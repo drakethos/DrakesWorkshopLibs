@@ -1,0 +1,34 @@
+<Project>
+  <PropertyGroup>
+    <_RenameItProj Condition="Exists('$(MSBuildThisFileDirectory)..\..\DrakesRenameIt\DrakeRenameit.csproj')">$(MSBuildThisFileDirectory)..\..\DrakesRenameIt\DrakeRenameit.csproj</_RenameItProj>
+    <_RenameItProj Condition="'$(_RenameItProj)' == '' and Exists('$(MSBuildThisFileDirectory)..\DrakesRenameIt\DrakeRenameit.csproj')">$(MSBuildThisFileDirectory)..\DrakesRenameIt\DrakeRenameit.csproj</_RenameItProj>
+    <RenameItPluginFolder Condition="'$(RenameItPluginFolder)' == ''">DrakeMods-DrakesRenameit</RenameItPluginFolder>
+    <RenameItDll Condition="'$(RenameItDll)' == '' and '$(R2ModPath)' != '' and '$(ProfileName)' != ''">$(R2ModPath)\$(ProfileName)\BepInEx\plugins\$(RenameItPluginFolder)\DrakesRenameit.dll</RenameItDll>
+  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(_RenameItProj)' != ''">
+      <ItemGroup>
+        <ProjectReference Include="$(_RenameItProj)">
+          <Project>{5DF97E86-BF46-46C5-894F-6B2D80EA6645}</Project>
+          <Name>DrakesRenameIt</Name>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+    <When Condition="'$(RenameItDll)' != '' and Exists('$(RenameItDll)')">
+      <ItemGroup>
+        <Reference Include="DrakesRenameit">
+          <HintPath>$(RenameItDll)</HintPath>
+          <Private>False</Private>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <_RenameItReferenceMissing>true</_RenameItReferenceMissing>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  <Target Name="VerifyRenameItReference" BeforeTargets="ResolveReferences" Condition="'$(_RenameItReferenceMissing)' == 'true'">
+    <Error Text="DrakesRenameit not found. Clone DrakesRenameIt as a sibling, install via r2modman, or set RenameItDll in environment.props." />
+  </Target>
+</Project>

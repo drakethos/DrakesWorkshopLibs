@@ -1,0 +1,8 @@
+<Project>
+  <!-- Optional per-mod overrides only. Copy to environment.props (gitignored) if needed.
+       Paths and ProfileName come from the suite-root environment.props. -->
+  <PropertyGroup>
+    <!-- Example: only set properties that differ for this project. -->
+    <!-- <AfterTargets>ILRepacker</AfterTargets> -->
+  </PropertyGroup>
+</Project>

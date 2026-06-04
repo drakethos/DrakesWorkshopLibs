@@ -1,0 +1,29 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!-- Register the ILRepack task -->
+
+    <Target Name="ILRepacker" AfterTargets="Build">
+        <ItemGroup>
+            <InputAssemblies Include="$(TargetPath)" />
+            <InputAssemblies Include="$(MSBuildProjectDirectory)\libs\ServerSync.dll" />
+        </ItemGroup>
+
+        <MakeDir Directories="$(TargetDir)ilrepack_stage" />
+        <ILRepack
+                Parallel="true"
+                DebugInfo="true"
+                Internalize="true"
+                InputAssemblies="@(InputAssemblies)"
+                OutputFile="$(TargetDir)ilrepack_stage\$(TargetFileName)"
+                TargetKind="SameAsPrimaryAssembly"
+                LibraryPath="$(OutputPath)" />
+
+        <!-- Keep assembly identity DrakesWorkshopLibs.dll (not *.merged) -->
+        <Copy SourceFiles="$(TargetDir)ilrepack_stage\$(TargetFileName)"
+              DestinationFiles="$(TargetPath)"
+              OverwriteReadOnlyFiles="true" />
+        <RemoveDir Directories="$(TargetDir)ilrepack_stage" />
+        <Delete Files="$(TargetDir)ServerSync.dll" Condition="Exists('$(TargetDir)ServerSync.dll')" />
+    </Target>
+</Project>
+

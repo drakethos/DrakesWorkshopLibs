@@ -1,0 +1,34 @@
+<Project>
+  <!-- VS solution uses "Any CPU"; MSBuild projects often use AnyCPU. Support both configuration names. -->
+  <PropertyGroup>
+    <Platform Condition="'$(Platform)' == 'Any CPU'">AnyCPU</Platform>
+  </PropertyGroup>
+  <!-- Debug|Any CPU (solution / VS) -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Any CPU'">
+    <OutputPath Condition="'$(OutputPath)' == ''">bin\Debug\</OutputPath>
+    <DefineConstants Condition="'$(DefineConstants)' == ''">DEBUG;TRACE</DefineConstants>
+    <DebugSymbols Condition="'$(DebugSymbols)' == ''">true</DebugSymbols>
+    <Optimize Condition="'$(Optimize)' == ''">false</Optimize>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Any CPU'">
+    <OutputPath Condition="'$(OutputPath)' == ''">bin\Release\</OutputPath>
+    <DefineConstants Condition="'$(DefineConstants)' == ''">TRACE</DefineConstants>
+    <Optimize Condition="'$(Optimize)' == ''">true</Optimize>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <!-- Debug|AnyCPU (after Platform normalize) -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <OutputPath Condition="'$(OutputPath)' == ''">bin\Debug\</OutputPath>
+    <DefineConstants Condition="'$(DefineConstants)' == ''">DEBUG;TRACE</DefineConstants>
+    <DebugSymbols Condition="'$(DebugSymbols)' == ''">true</DebugSymbols>
+    <Optimize Condition="'$(Optimize)' == ''">false</Optimize>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath Condition="'$(OutputPath)' == ''">bin\Release\</OutputPath>
+    <DefineConstants Condition="'$(DefineConstants)' == ''">TRACE</DefineConstants>
+    <Optimize Condition="'$(Optimize)' == ''">true</Optimize>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
+  </PropertyGroup>
+</Project>

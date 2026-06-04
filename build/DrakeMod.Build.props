@@ -1,0 +1,28 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)DrakeMod.Platform.props" />
+  <PropertyGroup>
+    <CompanyName Condition="'$(CompanyName)' == '' and '$(ThunderstoreAuthor)' != ''">$(ThunderstoreAuthor)</CompanyName>
+    <!-- r2modman mods.yml uses Thunderstore package id (e.g. DrakesWorkshopLibs), not always AssemblyName -->
+    <R2PluginFolder Condition="'$(R2PluginFolder)' == '' and '$(CompanyName)' != '' and '$(ThunderstoreName)' != ''">$(CompanyName)-$(ThunderstoreName)</R2PluginFolder>
+    <R2PluginFolder Condition="'$(R2PluginFolder)' == '' and '$(CompanyName)' != '' and '$(AssemblyName)' != ''">$(CompanyName)-$(AssemblyName)</R2PluginFolder>
+    <R2ModDeployPath Condition="'$(R2ModPath)' != '' and '$(ProfileName)' != '' and '$(R2PluginFolder)' != ''">$(R2ModPath)\$(ProfileName)\BepInEx\plugins\$(R2PluginFolder)</R2ModDeployPath>
+    <R2ModsYmlPath Condition="'$(R2ModsYmlPath)' == '' and '$(R2ModPath)' != '' and '$(ProfileName)' != ''">$(R2ModPath)\$(ProfileName)\mods.yml</R2ModsYmlPath>
+    <UpdateR2ModsYml Condition="'$(UpdateR2ModsYml)' == '' and '$(CI_SKIP_POST_BUILD)' == ''">true</UpdateR2ModsYml>
+    <UpdateR2ModsYml Condition="'$(UpdateR2ModsYml)' == '' and '$(CI_SKIP_POST_BUILD)' != ''">false</UpdateR2ModsYml>
+    <R2ModProfileModScript Condition="'$(R2ModProfileModScript)' == '' and Exists('$(MSBuildThisFileDirectory)scripts\Update-R2ModProfileMod.ps1')">$(MSBuildThisFileDirectory)scripts\Update-R2ModProfileMod.ps1</R2ModProfileModScript>
+    <R2ModProfileModScript Condition="'$(R2ModProfileModScript)' == '' and Exists('$(MSBuildThisFileDirectory)..\scripts\Update-R2ModProfileMod.ps1')">$(MSBuildThisFileDirectory)..\scripts\Update-R2ModProfileMod.ps1</R2ModProfileModScript>
+    <DeployAfterTargets Condition="'$(DeployAfterTargets)' == ''">Build</DeployAfterTargets>
+    <ThunderstoreBasePath Condition="'$(ThunderstoreBasePath)' == ''">C:\Modding\Thunderstore</ThunderstoreBasePath>
+    <!-- ThunderstoreFolder/ZipOutput resolved in ResolveThunderstorePaths (after mod.package.props Version is known). -->
+    <ModInfoGeneratedFile>$(MSBuildProjectDirectory)\obj\$(Configuration)\ModInfo.g.cs</ModInfoGeneratedFile>
+    <AfterTargets Condition="'$(AfterTargets)' == ''">Build</AfterTargets>
+    <VerifyNoServerSyncScript Condition="'$(VerifyNoServerSyncScript)' == '' and Exists('$(MSBuildThisFileDirectory)scripts\Verify-NoServerSyncInModDll.ps1')">$(MSBuildThisFileDirectory)scripts\Verify-NoServerSyncInModDll.ps1</VerifyNoServerSyncScript>
+    <VerifyNoServerSyncScript Condition="'$(VerifyNoServerSyncScript)' == '' and Exists('$(MSBuildThisFileDirectory)..\scripts\Verify-NoServerSyncInModDll.ps1')">$(MSBuildThisFileDirectory)..\scripts\Verify-NoServerSyncInModDll.ps1</VerifyNoServerSyncScript>
+  </PropertyGroup>
+  <!-- Consumer mods reference Libs at runtime; do not copy Libs or ServerSync into bin or profile output. -->
+  <ItemDefinitionGroup Condition="'$(EmbedServerSync)' != 'true'">
+    <ProjectReference>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+</Project>

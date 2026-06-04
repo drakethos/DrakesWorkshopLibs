@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <!-- Thunderstore package id (zip folder: DrakeMods-DrakesWorkshopLibs-{version}) -->
+    <ThunderstoreName>DrakesWorkshopLibs</ThunderstoreName>
+    <ThunderstoreAuthor>DrakeMods</ThunderstoreAuthor>
+    <RootNamespace>DrakesWorkshopLibs</RootNamespace>
+    <AssemblyName>DrakesWorkshopLibs</AssemblyName>
+    <Version>0.3.0</Version>
+    <BepInPluginName>DrakesWorkshopLibs</BepInPluginName>
+    <BepInGuid>com.drakesworkshop.libs</BepInGuid>
+    <ModInfoClass>CustomizeLibsPlugin</ModInfoClass>
+    <Description>DrakesWorkshop — Shared customization library for Drake mods (display patches, tags, APIs).</Description>
+    <WebsiteUrl>https://github.com/drakethos/DrakesWorkshopLibs</WebsiteUrl>
+    <DeployAfterTargets>ILRepacker</DeployAfterTargets>
+    <!-- Only this project may ILRepack / embed ServerSync -->
+    <EmbedServerSync>true</EmbedServerSync>
+  </PropertyGroup>
+  <ItemGroup>
+    <ThunderstoreDependency Include="denikson-BepInExPack_Valheim-5.4.2333" />
+    <ThunderstoreDependency Include="ValheimModding-Jotunn-2.29.0" />
+  </ItemGroup>
+</Project>

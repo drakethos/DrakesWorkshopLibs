@@ -1,6 +1,6 @@
 using System;
 
-namespace DrakesWorkshopLibs.API;
+namespace DrakeModsLibs.API;
 
 /// <summary>
 /// Suite-wide item customization change notifications (raised by RenameIt and other Drake mods).

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DrakesWorkshopLibs.API;
+using DrakeModsLibs.API;
 
-namespace DrakesWorkshopLibs.Runtime;
+namespace DrakeModsLibs.Runtime;
 
 internal static class CustomizeLibsRuntime
 {

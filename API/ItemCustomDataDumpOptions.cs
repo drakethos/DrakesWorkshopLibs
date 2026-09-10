@@ -1,4 +1,4 @@
-namespace DrakesWorkshopLibs.API;
+namespace DrakeModsLibs.API;
 
 public sealed class ItemCustomDataDumpOptions
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace DrakesWorkshopLibs.Input;
+namespace DrakeModsLibs.Input;
 
 /// <summary>Shared parser for modifier chords (Shift, Ctrl+Alt, F1, None).</summary>
 public static class MenuKeyBinding

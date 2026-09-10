@@ -1,7 +1,7 @@
-using DrakesWorkshopLibs.API;
-using DrakesWorkshopLibs.Data;
+using DrakeModsLibs.API;
+using DrakeModsLibs.Data;
 
-namespace DrakesWorkshopLibs.Display;
+namespace DrakeModsLibs.Display;
 
 internal sealed class BuiltInRenameItNameLayer : IItemDisplayNameLayer
 {

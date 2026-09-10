@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using DrakesWorkshopLibs.Data;
-using DrakesWorkshopLibs.Display;
-using DrakesWorkshopLibs.Runtime;
-using DrakesWorkshopLibs.Sync;
-using DrakesWorkshopLibs.Tags;
+using DrakeModsLibs.Data;
+using DrakeModsLibs.Display;
+using DrakeModsLibs.Runtime;
+using DrakeModsLibs.Sync;
+using DrakeModsLibs.Tags;
 
-namespace DrakesWorkshopLibs.API;
+namespace DrakeModsLibs.API;
 
 public static class CustomizeLibsAPI
 {

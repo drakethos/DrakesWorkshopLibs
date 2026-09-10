@@ -1,4 +1,4 @@
-namespace DrakesWorkshopLibs.API;
+namespace DrakeModsLibs.API;
 
 public readonly struct TagBlockRule
 {

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using DrakesWorkshopLibs.API;
-using DrakesWorkshopLibs.Tags;
+using DrakeModsLibs.API;
+using DrakeModsLibs.Tags;
 
-namespace DrakesWorkshopLibs.Data;
+namespace DrakeModsLibs.Data;
 
 internal static class ItemCustomDataReader
 {

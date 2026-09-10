@@ -1,6 +1,6 @@
 <Project>
   <!-- Do not add a custom MSBuild-refs target here: during Rebuild Solution each consumer would
-       invoke a parallel Libs build and VS locks bin\Debug\DrakesWorkshopLibs.dll. ProjectReference
+       invoke a parallel Libs build and VS locks bin\Debug\DrakeModsLibs.dll. ProjectReference
        dependency order is enough for solution and single-.csproj builds. -->
 
   <Target Name="PrepareModPackageMetadata" BeforeTargets="GenerateModInfo;ResolveThunderstorePaths;WriteThunderstoreManifest">
@@ -56,8 +56,8 @@
           AfterTargets="Build"
           Condition="'$(EmbedServerSync)' != 'true'">
     <Delete Files="$(TargetDir)ServerSync.dll" Condition="Exists('$(TargetDir)ServerSync.dll')" />
-    <Delete Files="$(TargetDir)DrakesWorkshopLibs.dll" Condition="Exists('$(TargetDir)DrakesWorkshopLibs.dll')" />
-    <Delete Files="$(TargetDir)DrakesWorkshopLibs.pdb" Condition="Exists('$(TargetDir)DrakesWorkshopLibs.pdb')" />
+    <Delete Files="$(TargetDir)DrakeModsLibs.dll" Condition="Exists('$(TargetDir)DrakeModsLibs.dll')" />
+    <Delete Files="$(TargetDir)DrakeModsLibs.pdb" Condition="Exists('$(TargetDir)DrakeModsLibs.pdb')" />
   </Target>
 
   <!-- Fail the build if ServerSync leaked into a consumer mod output or deploy folder. -->
@@ -66,9 +66,9 @@
           DependsOnTargets="StripLeakedServerSync"
           Condition="'$(EmbedServerSync)' != 'true' and Exists('$(TargetPath)')">
     <Error Condition="Exists('$(TargetDir)ServerSync.dll')"
-           Text="ServerSync.dll was copied to $(TargetDir). Consumer mods must not reference ServerSync directly; use DrakesWorkshopLibs only." />
+           Text="ServerSync.dll was copied to $(TargetDir). Consumer mods must not reference ServerSync directly; use DrakeModsLibs only." />
     <Error Condition="Exists('$(R2ModDeployPath)\ServerSync.dll')"
-           Text="ServerSync.dll was deployed to $(R2ModDeployPath). Only DrakesWorkshopLibs may ship ServerSync." />
+           Text="ServerSync.dll was deployed to $(R2ModDeployPath). Only DrakeModsLibs may ship ServerSync." />
     <Error Condition="'$(VerifyNoServerSyncScript)' == '' or !Exists('$(VerifyNoServerSyncScript)')"
            Text="Verify-NoServerSyncInModDll.ps1 not found. Run scripts\Sync-ModBuild.ps1 or ensure build\scripts\ exists." />
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(VerifyNoServerSyncScript)&quot; -DllPath &quot;$(TargetPath)&quot;"

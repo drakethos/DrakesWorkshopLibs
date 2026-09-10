@@ -2,15 +2,15 @@ using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BepInEx.Logging;
-using DrakesWorkshopLibs.Display;
+using DrakeModsLibs.Display;
 using HarmonyLib;
 
-namespace DrakesWorkshopLibs.Patches;
+namespace DrakeModsLibs.Patches;
 
 
-using DrakesWorkshopLibs.Data;
-using DrakesWorkshopLibs.Runtime;
-using DrakesWorkshopLibs.Stack;
+using DrakeModsLibs.Data;
+using DrakeModsLibs.Runtime;
+using DrakeModsLibs.Stack;
 
 /// <summary>
 /// Replaces visible crafted-by text when <see cref="DrakeCustomDataKeys.CraftedByDisplay"/> and/or
@@ -39,7 +39,7 @@ internal static class ItemTooltipPatches
         {
             // InventoryGridTooltipPatch (CreateItemTooltip postfix) calls ApplyCraftedByDisplayToTooltipText after item.GetTooltip().
             log.LogDebug(
-                "[DrakesWorkshopLibs] Crafted-by display: no patchable GetTooltip overload on ItemData hierarchy; " +
+                "[DrakeModsLibs] Crafted-by display: no patchable GetTooltip overload on ItemData hierarchy; " +
                 "grid tooltips still apply crafted-by via CreateItemTooltip.");
             return;
         }

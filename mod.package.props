@@ -1,16 +1,16 @@
 <Project>
   <PropertyGroup>
-    <!-- Thunderstore package id (zip folder: DrakeMods-DrakesWorkshopLibs-{version}) -->
-    <ThunderstoreName>DrakesWorkshopLibs</ThunderstoreName>
+    <!-- Thunderstore package id (zip folder: DrakeMods-DrakeModsLibs-{version}) -->
+    <ThunderstoreName>DrakeModsLibs</ThunderstoreName>
     <ThunderstoreAuthor>DrakeMods</ThunderstoreAuthor>
-    <RootNamespace>DrakesWorkshopLibs</RootNamespace>
-    <AssemblyName>DrakesWorkshopLibs</AssemblyName>
-    <Version>0.3.0</Version>
-    <BepInPluginName>DrakesWorkshopLibs</BepInPluginName>
-    <BepInGuid>com.drakesworkshop.libs</BepInGuid>
+    <RootNamespace>DrakeModsLibs</RootNamespace>
+    <AssemblyName>DrakeModsLibs</AssemblyName>
+    <Version>0.9.0</Version>
+    <BepInPluginName>DrakeModsLibs</BepInPluginName>
+    <BepInGuid>com.drakemods.libs</BepInGuid>
     <ModInfoClass>CustomizeLibsPlugin</ModInfoClass>
-    <Description>DrakesWorkshop — Shared customization library for Drake mods (display patches, tags, APIs).</Description>
-    <WebsiteUrl>https://github.com/drakethos/DrakesWorkshopLibs</WebsiteUrl>
+    <Description>Shared DrakeMods library for Valheim - display patches, tags, APIs, and server config sync. Required by DrakesRenameit. Valheim 1.0 compatible.</Description>
+    <WebsiteUrl>https://github.com/drakethos/DrakeModsLibs</WebsiteUrl>
     <DeployAfterTargets>ILRepacker</DeployAfterTargets>
     <!-- Only this project may ILRepack / embed ServerSync -->
     <EmbedServerSync>true</EmbedServerSync>

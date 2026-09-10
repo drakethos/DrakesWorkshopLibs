@@ -1,23 +1,23 @@
 <Project>
-  <!-- Monorepo: sibling DrakesWorkshopLibs project. Standalone: DLL from r2modman profile (install DrakesWorkshopLibs). -->
+  <!-- Monorepo: sibling DrakeModsLibs project. Standalone: DLL from r2modman profile (install DrakeModsLibs). -->
   <PropertyGroup>
-    <_WorkshopLibsProj Condition="Exists('$(MSBuildThisFileDirectory)..\..\DrakesWorkshopLibs\DrakesWorkshopLibs.csproj')">$(MSBuildThisFileDirectory)..\..\DrakesWorkshopLibs\DrakesWorkshopLibs.csproj</_WorkshopLibsProj>
-    <_WorkshopLibsProj Condition="'$(_WorkshopLibsProj)' == '' and Exists('$(MSBuildThisFileDirectory)..\DrakesWorkshopLibs\DrakesWorkshopLibs.csproj')">$(MSBuildThisFileDirectory)..\DrakesWorkshopLibs\DrakesWorkshopLibs.csproj</_WorkshopLibsProj>
-    <WorkshopLibsPluginFolder Condition="'$(WorkshopLibsPluginFolder)' == ''">DrakeMods-DrakesWorkshopLibs</WorkshopLibsPluginFolder>
-    <WorkshopLibsDll Condition="'$(WorkshopLibsDll)' == '' and '$(R2ModPath)' != '' and '$(ProfileName)' != ''">$(R2ModPath)\$(ProfileName)\BepInEx\plugins\$(WorkshopLibsPluginFolder)\DrakesWorkshopLibs.dll</WorkshopLibsDll>
+    <_WorkshopLibsProj Condition="Exists('$(MSBuildThisFileDirectory)..\..\DrakeModsLibs\DrakeModsLibs.csproj')">$(MSBuildThisFileDirectory)..\..\DrakeModsLibs\DrakeModsLibs.csproj</_WorkshopLibsProj>
+    <_WorkshopLibsProj Condition="'$(_WorkshopLibsProj)' == '' and Exists('$(MSBuildThisFileDirectory)..\DrakeModsLibs\DrakeModsLibs.csproj')">$(MSBuildThisFileDirectory)..\DrakeModsLibs\DrakeModsLibs.csproj</_WorkshopLibsProj>
+    <WorkshopLibsPluginFolder Condition="'$(WorkshopLibsPluginFolder)' == ''">DrakeMods-DrakeModsLibs</WorkshopLibsPluginFolder>
+    <WorkshopLibsDll Condition="'$(WorkshopLibsDll)' == '' and '$(R2ModPath)' != '' and '$(ProfileName)' != ''">$(R2ModPath)\$(ProfileName)\BepInEx\plugins\$(WorkshopLibsPluginFolder)\DrakeModsLibs.dll</WorkshopLibsDll>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(_WorkshopLibsProj)' != ''">
       <ItemGroup>
         <ProjectReference Include="$(_WorkshopLibsProj)">
           <Project>{A1111111-1111-4111-8111-111111111101}</Project>
-          <Name>DrakesWorkshopLibs</Name>
+          <Name>DrakeModsLibs</Name>
         </ProjectReference>
       </ItemGroup>
     </When>
     <When Condition="'$(WorkshopLibsDll)' != '' and Exists('$(WorkshopLibsDll)')">
       <ItemGroup>
-        <Reference Include="DrakesWorkshopLibs">
+        <Reference Include="DrakeModsLibs">
           <HintPath>$(WorkshopLibsDll)</HintPath>
           <Private>False</Private>
         </Reference>
@@ -30,6 +30,6 @@
     </Otherwise>
   </Choose>
   <Target Name="VerifyWorkshopLibsReference" BeforeTargets="ResolveReferences" Condition="'$(_WorkshopLibsReferenceMissing)' == 'true'">
-    <Error Text="DrakesWorkshopLibs not found. Clone DrakesWorkshopLibs as a sibling folder, install DrakesWorkshopLibs in your r2modman profile ($(ProfileName)), or set WorkshopLibsDll in environment.props." />
+    <Error Text="DrakeModsLibs not found. Clone DrakeModsLibs as a sibling folder, install DrakeModsLibs in your r2modman profile ($(ProfileName)), or set WorkshopLibsDll in environment.props." />
   </Target>
 </Project>

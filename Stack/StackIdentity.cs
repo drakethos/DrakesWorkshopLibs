@@ -1,9 +1,9 @@
-using DrakesWorkshopLibs.Data;
+using DrakeModsLibs.Data;
 
 using System;
 using System.Text;
 
-namespace DrakesWorkshopLibs.Stack;
+namespace DrakeModsLibs.Stack;
 
 /// <summary>Compares Drake-specific custom data so stacks with different rename/desc/crafted display do not merge when <see cref="policy.SeparateStacksEnabled"/> is on.</summary>
 internal static class StackIdentity

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using DrakesWorkshopLibs.API;
-using DrakesWorkshopLibs.Data;
+using DrakeModsLibs.API;
+using DrakeModsLibs.Data;
 
-namespace DrakesWorkshopLibs.Tags;
+namespace DrakeModsLibs.Tags;
 
 public delegate bool CustomizeEditValidator(ItemDrop.ItemData? item, Player? player);
 

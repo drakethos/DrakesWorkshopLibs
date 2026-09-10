@@ -4,18 +4,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BepInEx.Logging;
-using DrakesWorkshopLibs.Data;
-using DrakesWorkshopLibs.Display;
-using DrakesWorkshopLibs.Runtime;
-
-
-using DrakesWorkshopLibs.Display;
-
+using DrakeModsLibs.Data;
+using DrakeModsLibs.Display;
+using DrakeModsLibs.Runtime;
 using HarmonyLib;
 
 
 
-namespace DrakesWorkshopLibs.Patches;
+namespace DrakeModsLibs.Patches;
 
 /// <summary>Shared hover text rename logic (ItemDrop + ItemStand / container stands).</summary>
 internal static class HoverRenameHelper
@@ -167,7 +163,10 @@ public static class ItemStandPatch
 {
     
 
-    /// <summary>Container-backed stands first, then vanilla attached <see cref="ItemDrop.ItemData"/> (publicized <c>GetAttachedItem</c>).</summary>
+    /// <summary>
+    /// Container-backed stands first, then vanilla attachment.
+    /// Valheim 1.0+: <see cref="ItemStand.GetAttachedItem"/> returns a prefab hash (not <see cref="ItemDrop.ItemData"/>).
+    /// </summary>
     private static ItemDrop.ItemData? TryGetStandOccupantItem(ItemStand stand)
     {
         if (stand == null)
@@ -177,22 +176,23 @@ public static class ItemStandPatch
         if (fromContainer?.m_shared != null)
             return fromContainer;
 
-        var getAttached = AccessTools.Method(typeof(ItemStand), nameof(ItemStand.GetAttachedItem), Type.EmptyTypes);
-        if (getAttached?.Invoke(stand, null) is ItemDrop.ItemData attached && attached.m_shared != null)
-            return attached;
+        int hash = stand.GetAttachedItem();
+        if (hash == 0 || ObjectDB.instance == null)
+            return null;
 
-        return null;
+        var prefab = ObjectDB.instance.GetItemPrefab(hash);
+        return prefab != null ? prefab.GetComponent<ItemDrop>()?.m_itemData : null;
     }
 
     /// <summary>
     /// Clears the cached label when the stand is visually empty. When occupied, only <b>sets</b> the ZDO from
     /// <see cref="ItemDrop.ItemData"/> if Drake rename keys are present on that instance — vanilla's attached
-    /// visual item is often a copy without <c>m_customData</c>, and clearing from that would wipe a correct value
+    /// visual is often a prefab copy without <c>m_customData</c>, and clearing from that would wipe a correct value
     /// written by <see cref="GrabItem"/>.
     /// </summary>
-    private static void SyncItemStandRenameZdoFromOccupant(ItemStand stand, ZDO zdo, string itemName)
+    private static void SyncItemStandRenameZdoFromOccupant(ItemStand stand, ZDO zdo, int itemHash)
     {
-        if (string.IsNullOrEmpty(itemName))
+        if (itemHash == 0)
         {
             zdo.Set(DrakeCustomDataKeys.ItemStandHoverName, string.Empty);
             return;
@@ -214,8 +214,17 @@ public static class ItemStandPatch
         if (stand == null)
             return false;
 
-        // Must use reflection: direct m_visualName access throws FieldAccessException at runtime when the
-        // game loads non-publicized ItemStand (compile against publicized, run against vanilla IL).
+        // Valheim 1.0+: prefer HaveAttachment / hash. Fall back to m_visualName for older builds.
+        try
+        {
+            if (stand.HaveAttachment())
+                return true;
+        }
+        catch
+        {
+            /* ignore */
+        }
+
         var visual = AccessTools.Field(typeof(ItemStand), "m_visualName")?.GetValue(stand) as string;
         return !string.IsNullOrEmpty(visual);
     }
@@ -378,10 +387,11 @@ public static class ItemStandPatch
             zdo.Set(DrakeCustomDataKeys.ItemStandHoverName, string.Empty);
     }
 
+    // Valheim 1.0+: SetVisualItem(int itemHash, int variant, int quality, int orientation)
     [HarmonyPatch(nameof(ItemStand.SetVisualItem))]
     [HarmonyPostfix]
     [HarmonyPriority(Priority.Last)]
-    static void FixStandText(ItemStand __instance, string itemName, int variant, int quality)
+    static void FixStandText(ItemStand __instance, int itemHash, int variant, int quality, int orientation)
     {
         if (__instance == null)
             return;
@@ -397,7 +407,7 @@ public static class ItemStandPatch
 
         if (zdo == null) return;
 
-        SyncItemStandRenameZdoFromOccupant(__instance, zdo, itemName);
+        SyncItemStandRenameZdoFromOccupant(__instance, zdo, itemHash);
 
         string customName = TooltipRichText.EnsureRichTextTagsClosedForTooltip(zdo.GetString(DrakeCustomDataKeys.ItemStandHoverName, ""));
         if (!string.IsNullOrEmpty(customName))
@@ -447,16 +457,16 @@ internal static class DropHudMessagePatches
 
             if (m == null)
             {
-                log.LogWarning("[DrakesWorkshopLibs] Drop HUD: Humanoid.DropItem(Inventory,ItemData,int) not found.");
+                log.LogWarning("[DrakeModsLibs] Drop HUD: Humanoid.DropItem(Inventory,ItemData,int) not found.");
                 return;
             }
 
             harmony.Patch(m, prefix: new HarmonyMethod(typeof(DropHudMessagePatches), nameof(HumanoidDropItemTypedPrefix)));
-            log.LogInfo("[DrakesWorkshopLibs] Drop HUD: patched typed " + m.DeclaringType?.Name + "." + m.Name);
+            log.LogInfo("[DrakeModsLibs] Drop HUD: patched typed " + m.DeclaringType?.Name + "." + m.Name);
         }
         catch (Exception ex)
         {
-            log.LogError("[DrakesWorkshopLibs] Drop HUD: typed DropItem patch failed: " + ex);
+            log.LogError("[DrakeModsLibs] Drop HUD: typed DropItem patch failed: " + ex);
         }
     }
 
@@ -582,7 +592,7 @@ internal static class DropHudMessagePatches
                 ?? hudType.GetNestedType("MessageType", BindingFlags.Public | BindingFlags.NonPublic);
             if (msgEnum == null)
             {
-                log.LogWarning("[DrakesWorkshopLibs] Drop HUD: MessageHud.MessageType nested type not found.");
+                log.LogWarning("[DrakeModsLibs] Drop HUD: MessageHud.MessageType nested type not found.");
                 return;
             }
 
@@ -611,7 +621,7 @@ internal static class DropHudMessagePatches
 
             if (best == null)
             {
-                log.LogWarning("[DrakesWorkshopLibs] Drop HUD: no suitable MessageHud.ShowMessage overload found.");
+                log.LogWarning("[DrakeModsLibs] Drop HUD: no suitable MessageHud.ShowMessage overload found.");
                 return;
             }
 
@@ -628,7 +638,7 @@ internal static class DropHudMessagePatches
 
             if (stringArgIndex < 0)
             {
-                log.LogWarning("[DrakesWorkshopLibs] Drop HUD: ShowMessage overload has no string parameter: " + best);
+                log.LogWarning("[DrakeModsLibs] Drop HUD: ShowMessage overload has no string parameter: " + best);
                 return;
             }
 
@@ -637,11 +647,11 @@ internal static class DropHudMessagePatches
                 : new HarmonyMethod(typeof(DropHudMessagePatches), nameof(MessageHudShowMessageStringArg1));
 
             harmony.Patch(best, prefix: prefix);
-            log.LogInfo("[DrakesWorkshopLibs] Drop HUD: patched MessageHud." + best.Name + " stringArg=" + stringArgIndex + " :: " + best);
+            log.LogInfo("[DrakeModsLibs] Drop HUD: patched MessageHud." + best.Name + " stringArg=" + stringArgIndex + " :: " + best);
         }
         catch (Exception ex)
         {
-            log.LogError("[DrakesWorkshopLibs] Drop HUD: MessageHud patch failed: " + ex);
+            log.LogError("[DrakeModsLibs] Drop HUD: MessageHud patch failed: " + ex);
         }
     }
 

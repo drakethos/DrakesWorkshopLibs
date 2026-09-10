@@ -1,9 +1,9 @@
 using System.Reflection;
 using BepInEx.Logging;
-using DrakesWorkshopLibs.Patches;
+using DrakeModsLibs.Patches;
 using HarmonyLib;
 
-namespace DrakesWorkshopLibs;
+namespace DrakeModsLibs;
 
 internal static class HarmonyPatchHub
 {
@@ -14,6 +14,6 @@ internal static class HarmonyPatchHub
         DropHudMessagePatches.ApplyDropItemPendingCapture(harmony, log);
         harmony.PatchAll(typeof(HarmonyPatchHub).Assembly);
         DropHudMessagePatches.ApplyMessageHudShowMessage(harmony, log);
-        log.LogInfo("[DrakesWorkshopLibs] Display Harmony patches applied.");
+        log.LogInfo("[DrakeModsLibs] Display Harmony patches applied.");
     }
 }

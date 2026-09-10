@@ -1,4 +1,4 @@
-namespace DrakesWorkshopLibs.Data;
+namespace DrakeModsLibs.Data;
 
 public static class DrakeCustomDataKeys
 {

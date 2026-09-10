@@ -1,8 +1,8 @@
 using System.Linq;
-using DrakesWorkshopLibs.API;
-using DrakesWorkshopLibs.Runtime;
+using DrakeModsLibs.API;
+using DrakeModsLibs.Runtime;
 
-namespace DrakesWorkshopLibs.Display;
+namespace DrakeModsLibs.Display;
 
 internal static class DisplayNameResolutionPipeline
 {

@@ -1,13 +1,13 @@
 using BepInEx;
 using HarmonyLib;
 
-namespace DrakesWorkshopLibs;
+namespace DrakeModsLibs;
 
 [BepInPlugin(GUID, ModName, Version)]
 public partial class CustomizeLibsPlugin : BaseUnityPlugin
 {
 
-    private readonly Harmony _harmony = new("drakesmod.DrakesWorkshopLibs");
+    private readonly Harmony _harmony = new("drakemods.DrakeModsLibs");
 
     private void Awake()
     {

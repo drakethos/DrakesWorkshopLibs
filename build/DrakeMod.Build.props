@@ -2,7 +2,7 @@
   <Import Project="$(MSBuildThisFileDirectory)DrakeMod.Platform.props" />
   <PropertyGroup>
     <CompanyName Condition="'$(CompanyName)' == '' and '$(ThunderstoreAuthor)' != ''">$(ThunderstoreAuthor)</CompanyName>
-    <!-- r2modman mods.yml uses Thunderstore package id (e.g. DrakesWorkshopLibs), not always AssemblyName -->
+    <!-- r2modman mods.yml uses Thunderstore package id (e.g. DrakeModsLibs), not always AssemblyName -->
     <R2PluginFolder Condition="'$(R2PluginFolder)' == '' and '$(CompanyName)' != '' and '$(ThunderstoreName)' != ''">$(CompanyName)-$(ThunderstoreName)</R2PluginFolder>
     <R2PluginFolder Condition="'$(R2PluginFolder)' == '' and '$(CompanyName)' != '' and '$(AssemblyName)' != ''">$(CompanyName)-$(AssemblyName)</R2PluginFolder>
     <R2ModDeployPath Condition="'$(R2ModPath)' != '' and '$(ProfileName)' != '' and '$(R2PluginFolder)' != ''">$(R2ModPath)\$(ProfileName)\BepInEx\plugins\$(R2PluginFolder)</R2ModDeployPath>

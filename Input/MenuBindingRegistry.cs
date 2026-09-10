@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
-using DrakesWorkshopLibs.Input;
+using DrakeModsLibs.Input;
 
-namespace DrakesWorkshopLibs.Input;
+namespace DrakeModsLibs.Input;
 
 public sealed class MenuBindingRegistration
 {
@@ -76,7 +76,7 @@ public static class MenuBindingRegistry
             if (!LoggedConflicts.Add(key))
                 continue;
             Log?.LogWarning(
-                $"[DrakesWorkshopLibs] Menu binding conflict in scope '{added.Scope}': " +
+                $"[DrakeModsLibs] Menu binding conflict in scope '{added.Scope}': " +
                 $"{existing.ModLabel} ({existing.Id}) and {added.ModLabel} ({added.Id}) both use '{newBinding}'.");
         }
     }

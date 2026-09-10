@@ -1,6 +1,6 @@
-using DrakesWorkshopLibs.Runtime;
+using DrakeModsLibs.Runtime;
 
-namespace DrakesWorkshopLibs.Display;
+namespace DrakeModsLibs.Display;
 
 internal static class DisplayNameModifierHub
 {

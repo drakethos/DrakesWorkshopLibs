@@ -1,6 +1,6 @@
 using System;
 
-namespace DrakesWorkshopLibs.API;
+namespace DrakeModsLibs.API;
 
 /// <summary>Describes one known custom-data key for discovery, filtering, and formatted dumps.</summary>
 public sealed class DrakeCustomDataField

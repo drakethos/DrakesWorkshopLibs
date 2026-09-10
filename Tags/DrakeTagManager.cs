@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DrakesWorkshopLibs.Data;
+using DrakeModsLibs.Data;
 
-namespace DrakesWorkshopLibs.Tags;
+namespace DrakeModsLibs.Tags;
 
 public static class DrakeTagManager
 {

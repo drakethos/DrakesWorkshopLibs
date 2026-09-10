@@ -1,11 +1,11 @@
 using HarmonyLib;
 using System;
 using System.Reflection;
-using DrakesWorkshopLibs.Data;
-using DrakesWorkshopLibs.Display;
-using DrakesWorkshopLibs.Runtime;
+using DrakeModsLibs.Data;
+using DrakeModsLibs.Display;
+using DrakeModsLibs.Runtime;
 
-namespace DrakesWorkshopLibs.Patches
+namespace DrakeModsLibs.Patches
 {
     /// <summary>
     /// UI-only: try to ensure places that use an ItemData "decorated name" helper (notably the upgrade-items list)
@@ -49,7 +49,7 @@ namespace DrakesWorkshopLibs.Patches
                 _loggedMissing = true;
                 // Intentionally no hard error: missing name helper should not disable the whole mod.
                 UnityEngine.Debug.LogWarning(
-                    "[DrakesWorkshopLibs] Upgrade list rename: no suitable ItemData decorated-name method found; upgrade tab names may remain vanilla.");
+                    "[DrakeModsLibs] Upgrade list rename: no suitable ItemData decorated-name method found; upgrade tab names may remain vanilla.");
             }
 
             return null;

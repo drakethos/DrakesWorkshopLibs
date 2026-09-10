@@ -1,4 +1,4 @@
-namespace DrakesWorkshopLibs.API;
+namespace DrakeModsLibs.API;
 
 /// <summary>How a <c>m_customData</c> key is interpreted when read or dumped.</summary>
 public enum DrakeCustomDataKind

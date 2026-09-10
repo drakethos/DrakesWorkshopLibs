@@ -3,12 +3,12 @@ using System.Reflection;
 using BepInEx.Logging;
 using HarmonyLib;
 
-namespace DrakesWorkshopLibs.Patches;
+namespace DrakeModsLibs.Patches;
 
 
-using DrakesWorkshopLibs.Data;
-using DrakesWorkshopLibs.Runtime;
-using DrakesWorkshopLibs.Stack;
+using DrakeModsLibs.Data;
+using DrakeModsLibs.Runtime;
+using DrakeModsLibs.Stack;
 
 /// <summary>When <see cref="policy.SeparateStacksEnabled"/> is on, only stacks with matching fingerprints merge.</summary>
 /// <remarks>
@@ -37,7 +37,7 @@ internal static class InventoryStackPatches
         else
         {
             log.LogWarning(
-                "[DrakesWorkshopLibs] SeparateStacks: AddItem(ItemData) not found — incoming stack tracking disabled.");
+                "[DrakeModsLibs] SeparateStacks: AddItem(ItemData) not found — incoming stack tracking disabled.");
         }
 
         // FindFreeStackItem has had 2- and 3-arg variants (worldLevel added in newer Valheim).
@@ -65,7 +65,7 @@ internal static class InventoryStackPatches
         else
         {
             log.LogWarning(
-                "[DrakesWorkshopLibs] SeparateStacks: FindFreeStackItem not found — merge-from-pickup may ignore identity.");
+                "[DrakeModsLibs] SeparateStacks: FindFreeStackItem not found — merge-from-pickup may ignore identity.");
         }
 
         // AddItem cell-overload has also varied in arity; find by signature: (ItemData, int, int, int[, ...]).
@@ -94,7 +94,7 @@ internal static class InventoryStackPatches
         else
         {
             log.LogWarning(
-                "[DrakesWorkshopLibs] SeparateStacks: AddItem(ItemData,int,int,int...) not found — cell merge guard disabled.");
+                "[DrakeModsLibs] SeparateStacks: AddItem(ItemData,int,int,int...) not found — cell merge guard disabled.");
         }
     }
 

@@ -1,9 +1,9 @@
 using HarmonyLib;
-using DrakesWorkshopLibs.Data;
-using DrakesWorkshopLibs.Display;
-using DrakesWorkshopLibs.Patches;
+using DrakeModsLibs.Data;
+using DrakeModsLibs.Display;
+using DrakeModsLibs.Patches;
 
-namespace DrakesWorkshopLibs.Patches;
+namespace DrakeModsLibs.Patches;
 
 [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.CreateItemTooltip))]
 [HarmonyPriority(500)]

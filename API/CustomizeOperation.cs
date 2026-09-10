@@ -1,4 +1,4 @@
-namespace DrakesWorkshopLibs.API;
+namespace DrakeModsLibs.API;
 
 [System.Flags]
 public enum CustomizeOperation

@@ -1,12 +1,22 @@
-<img width="256" height="256" alt="DrakesWorkshopLibs icon" src="icon.png" />
+<img width="256" height="256" alt="DrakeModsLibs icon" src="icon.png" />
 
-# DrakesWorkshopLibs
+# DrakeModsLibs
 
-**DrakesWorkshop** — shared customization library for Drake mods (display patches, tags, APIs, server config sync).
+Shared library for **DrakeMods** Valheim mods. It owns the display Harmony patches, item custom-data helpers, tag gatekeeping, menu binding registry, and **server config sync** so feature mods stay smaller and stay compatible when the game updates.
+
+**DrakeModsLibs** is published on its own so other DrakeMods (starting with **DrakesRenameit**) can depend on one common package. More customization-oriented mods may use it later; there is **no full suite planned for release right now** — priorities and a redesign pass come first. **Reskin** is something we still want to look into when time allows.
+
+## Valheim 1.0
+
+This release targets **Valheim 1.0** API changes (notably item-stand visual updates and related display paths). Install the matching **DrakeModsLibs** build with your feature mods so labels and hover text keep working after the 1.0 update.
+
+## Required for
+
+- **DrakesRenameit** (and any future DrakeMods that share display / config sync)
 
 ## Server config sync (DrakeConfigSync)
 
-**Only DrakesWorkshopLibs** references and ILRepack-embeds [ServerSync](https://github.com/MSchmoecker/ServerSync). Consumer mods must not add a ServerSync Thunderstore dependency or ILRepack step.
+**Only DrakeModsLibs** references and ILRepack-embeds [ServerSync](https://github.com/MSchmoecker/ServerSync). Consumer mods must not add a ServerSync Thunderstore dependency or ILRepack step.
 
 At startup, create sync via the API:
 
@@ -29,6 +39,14 @@ Read and dump `ItemDrop.ItemData.m_customData` through `CustomizeLibsAPI`:
 - `DumpAllDrakeCustomData(item)` / `DumpItemCustomDataForMod(item, modId)`
 - `RegisterModCustomDataFields(modId, fields)` — register your mod’s keys at startup
 
-Built-in mod ids: `DrakesRenameIt`, `DrakesWorkshopLibs`, `DrakesQuestItems`, `DrakesItemShop`.
+Built-in mod ids: `DrakesRenameIt`, `DrakeModsLibs`, `DrakesQuestItems`, `DrakesItemShop`.
 
 Subscribe to `CustomizationEvents.OnItemNameChanged` for rename logging; use `DrakeCustomDataKeys.Rename` with `GetCustomDataValue`.
+
+## Install
+
+1. Install **BepInEx** and **Jotunn** (see Thunderstore dependencies).
+2. Install **DrakeModsLibs**.
+3. Install feature mods that depend on it (e.g. **DrakesRenameit**).
+
+Team: **DrakeMods** · Contact: Drakethos (Discord / email in the RenameIt page).

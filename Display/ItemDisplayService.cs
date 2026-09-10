@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using DrakesWorkshopLibs.Data;
+using DrakeModsLibs.Data;
 
-namespace DrakesWorkshopLibs.Display;
+namespace DrakeModsLibs.Display;
 
 public static class ItemDisplayService
 {

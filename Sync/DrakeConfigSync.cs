@@ -4,7 +4,7 @@ using BepInEx.Logging;
 using Jotunn.Configs;
 using ServerSync;
 
-namespace DrakesWorkshopLibs.Sync;
+namespace DrakeModsLibs.Sync;
 
 public sealed class DrakeConfigSync
 {

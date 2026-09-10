@@ -53,7 +53,7 @@ jobs:
       #    • Pfhoenix.Valheim.ModProjectReferences — game DLLs for compile refs
       - name: Restore NuGet packages
         run: |
-          nuget restore DrakesWorkshopLibs.csproj -PackagesDirectory packages
+          nuget restore DrakeModsLibs.csproj -PackagesDirectory packages
 
       # ── Stage game / BepInEx DLLs from Pfhoenix ─────────────────────────────
       #
@@ -109,7 +109,7 @@ jobs:
         run: |
           CI_ROOT="$(pwd)/ci_valheim"
           MANAGED="$CI_ROOT/valheim_Data/Managed"
-          dotnet msbuild DrakesWorkshopLibs.csproj \
+          dotnet msbuild DrakeModsLibs.csproj \
             /p:Configuration=Release \
             /p:TargetFrameworkVersion=v4.8 \
             /p:BepInExPath="$CI_ROOT/BepInEx" \
@@ -124,14 +124,14 @@ jobs:
         id: pkg
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
-          PKG_DIR="DrakeMods-DrakesWorkshopLibs-${VERSION}"
-          ZIP_NAME="DrakeMods-DrakesWorkshopLibs-${VERSION}.zip"
+          PKG_DIR="DrakeMods-DrakeModsLibs-${VERSION}"
+          ZIP_NAME="DrakeMods-DrakeModsLibs-${VERSION}.zip"
           mkdir -p "$PKG_DIR"
-          cp bin/Release/DrakesWorkshopLibs.dll "$PKG_DIR/"
+          cp bin/Release/DrakeModsLibs.dll "$PKG_DIR/"
           cp README.md                      "$PKG_DIR/"
           cp icon.png                       "$PKG_DIR/"
           cp CHANGELOG.md                   "$PKG_DIR/"
-          dotnet msbuild DrakesWorkshopLibs.csproj \
+          dotnet msbuild DrakeModsLibs.csproj \
             /p:Version="$VERSION" \
             /p:ThunderstoreManifestDir="$PKG_DIR" \
             /t:WriteThunderstoreManifest \
@@ -142,17 +142,17 @@ cd "$PKG_DIR" && zip -r "../$ZIP_NAME" . && cd ..
           ls -lh "$ZIP_NAME"
         env:
           VERSION: ${{ steps.ver.outputs.version }}
-          PKG_DIR: DrakeMods-DrakesWorkshopLibs-${{ steps.ver.outputs.version }}
+          PKG_DIR: DrakeMods-DrakeModsLibs-${{ steps.ver.outputs.version }}
 
       # ── Create GitHub Release and attach the zip ────────────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
-          name: "DrakesWorkshopLibs ${{ steps.ver.outputs.version }}"
+          name: "DrakeModsLibs ${{ steps.ver.outputs.version }}"
           prerelease: true
           body: |
-            ## DrakesWorkshopLibs v${{ steps.ver.outputs.version }}
+            ## DrakeModsLibs v${{ steps.ver.outputs.version }}
 
             Pre-release build for testing before Thunderstore publish.
 

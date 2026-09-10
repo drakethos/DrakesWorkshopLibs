@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Jotunn.Managers;
 using UnityEngine;
 
-namespace DrakesWorkshopLibs.Display;
+namespace DrakeModsLibs.Display;
 
 /// <summary>Guards injected tooltip strings so unclosed rich-text tags do not bleed into the rest of the tooltip.</summary>
 internal static class TooltipRichText

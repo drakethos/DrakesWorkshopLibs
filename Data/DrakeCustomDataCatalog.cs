@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DrakesWorkshopLibs.API;
+using DrakeModsLibs.API;
 
-namespace DrakesWorkshopLibs.Data;
+namespace DrakeModsLibs.Data;
 
 /// <summary>Registry of known Drake-suite <c>m_customData</c> keys; other mods can register their keys at load.</summary>
 public static class DrakeCustomDataCatalog
 {
-    public const string ModWorkshopLibs = "DrakesWorkshopLibs";
+    public const string ModWorkshopLibs = "DrakeModsLibs";
     public const string ModRenameIt = "DrakesRenameIt";
     public const string ModQuestItems = "DrakesQuestItems";
     public const string ModItemShop = "DrakesItemShop";

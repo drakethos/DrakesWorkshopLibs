@@ -51,6 +51,13 @@ public static class CustomizeLibsAPI
     public static void SetShowItemStandItemNameWhenNoAccess(bool value) =>
         CustomizeLibsRuntime.ShowItemStandItemNameWhenNoAccess = value;
 
+    /// <summary>
+    /// Recomputes item-stand hover labels from live display rules (rename + durability modifiers).
+    /// Call after toggling durability (or other name-modifier) config so stands update immediately.
+    /// </summary>
+    public static void RefreshItemStandDisplayNames() =>
+        Patches.ItemStandPatch.RefreshAllItemStandDisplayNames();
+
     public static bool HasTag(ItemDrop.ItemData? item, string tagKey) => DrakeTagManager.HasTag(item, tagKey);
     public static void SetTag(ItemDrop.ItemData item, string tagKey) => DrakeTagManager.SetTag(item, tagKey);
     public static void ClearTag(ItemDrop.ItemData item, string tagKey) => DrakeTagManager.ClearTag(item, tagKey);

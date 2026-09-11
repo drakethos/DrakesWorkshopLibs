@@ -13,6 +13,12 @@ jobs:
     # ubuntu-22.04: mono-complete + nuget are pre-installed.
     # dotnet SDK added via setup-dotnet for Roslyn (C#10).
     runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+      zip: ${{ steps.pkg.outputs.zip }}
+      description: ${{ steps.pkg.outputs.description }}
+      website_url: ${{ steps.pkg.outputs.website_url }}
 
     steps:
       - name: Checkout
@@ -136,13 +142,20 @@ jobs:
             /p:ThunderstoreManifestDir="$PKG_DIR" \
             /t:WriteThunderstoreManifest \
             /v:minimal
-cd "$PKG_DIR" && zip -r "../$ZIP_NAME" . && cd ..
+
+          DESCRIPTION=$(jq -r '.description' "$PKG_DIR/manifest.json")
+          WEBSITE_URL=$(jq -r '.website_url // empty' "$PKG_DIR/manifest.json")
+
+          cd "$PKG_DIR" && zip -r "../$ZIP_NAME" . && cd ..
 
           echo "zip=$ZIP_NAME" >> "$GITHUB_OUTPUT"
+          {
+            echo "description<<EOF"
+            echo "$DESCRIPTION"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "website_url=$WEBSITE_URL" >> "$GITHUB_OUTPUT"
           ls -lh "$ZIP_NAME"
-        env:
-          VERSION: ${{ steps.ver.outputs.version }}
-          PKG_DIR: DrakeMods-DrakeModsLibs-${{ steps.ver.outputs.version }}
 
       # ── Create GitHub Release and attach the zip ────────────────────────────
       - name: Create GitHub Release
@@ -150,21 +163,117 @@ cd "$PKG_DIR" && zip -r "../$ZIP_NAME" . && cd ..
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: "DrakeModsLibs ${{ steps.ver.outputs.version }}"
-          prerelease: true
+          prerelease: false
           body: |
             ## DrakeModsLibs v${{ steps.ver.outputs.version }}
 
-            Pre-release build for testing before Thunderstore publish.
+            Thunderstore zip attached. CI also publishes to **Thunderstore** then **Hexium**.
 
             ### Install
-            Drop the zip into **r2modman** or **Thunderstore Mod Manager** via the "Import local mod" button, or manually extract into:
+            Drop the zip into **r2modman**, **Thunderstore Mod Manager**, or **Gale** via "Import local mod", or extract into:
             ```
-            BepInEx/plugins/DrakeMods-DrakesRenameit/
+            BepInEx/plugins/DrakeMods-DrakeModsLibs/
             ```
 
             ---
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ steps.ver.outputs.tag }}/CHANGELOG.md) for what's new.
           files: ${{ steps.pkg.outputs.zip }}
 
+      - name: Upload Thunderstore zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thunderstore-zip
+          path: ${{ steps.pkg.outputs.zip }}
+          if-no-files-found: error
 
+  publish-thunderstore:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Thunderstore zip
+        uses: actions/download-artifact@v4
+        with:
+          name: thunderstore-zip
+          path: dist
 
+      - name: Publish package to Thunderstore
+        uses: GreenTF/upload-thunderstore-package@v4.3
+        with:
+          namespace: DrakeMods
+          name: DrakeModsLibs
+          version: ${{ needs.build-and-release.outputs.version }}
+          description: ${{ needs.build-and-release.outputs.description }}
+          community: valheim
+          repo: https://thunderstore.io/c/valheim/
+          token: ${{ secrets.THUNDERSTORE_TOKEN }}
+          file: ${{ needs.build-and-release.outputs.zip }}
+          path: dist
+          website: ${{ needs.build-and-release.outputs.website_url }}
+          categories: |
+            misc
+
+  publish-hexium:
+    needs: [build-and-release, publish-thunderstore]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Thunderstore zip
+        uses: actions/download-artifact@v4
+        with:
+          name: thunderstore-zip
+          path: dist
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install tcli
+        run: dotnet tool install -g tcli
+
+      - name: Publish package to Hexium
+        env:
+          VERSION: ${{ needs.build-and-release.outputs.version }}
+          DESCRIPTION: ${{ needs.build-and-release.outputs.description }}
+          WEBSITE_URL: ${{ needs.build-and-release.outputs.website_url }}
+          ZIP_NAME: ${{ needs.build-and-release.outputs.zip }}
+          HEXIUM_TOKEN: ${{ secrets.HEXIUM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HEXIUM_TOKEN}" ]; then
+            echo "::error::HEXIUM_TOKEN secret is not set" >&2
+            exit 1
+          fi
+
+          # Escape description for TOML double-quoted string
+          DESC_ESC=$(printf '%s' "$DESCRIPTION" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
+          WEB_ESC=$(printf '%s' "$WEBSITE_URL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
+
+          cat > thunderstore.toml <<EOF
+          [config]
+          schemaVersion = "0.0.1"
+
+          [package]
+          namespace = "DrakeMods"
+          name = "DrakeModsLibs"
+          versionNumber = "${VERSION}"
+          description = "${DESC_ESC}"
+          websiteUrl = "${WEB_ESC}"
+          containsNsfwContent = false
+
+          [publish]
+          repository = "https://valheim.hexium.gg"
+          communities = ["valheim"]
+
+          [publish.categories]
+          valheim = ["Quality of Life", "Valheim 1.0"]
+          EOF
+
+          # Strip leading indentation from heredoc
+          sed -i 's/^          //' thunderstore.toml
+          cat thunderstore.toml
+
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          tcli publish \
+            --config-path thunderstore.toml \
+            --file "dist/${ZIP_NAME}" \
+            --token "${HEXIUM_TOKEN}"

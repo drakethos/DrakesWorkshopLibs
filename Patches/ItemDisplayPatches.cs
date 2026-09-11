@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -161,52 +161,293 @@ public static class Patches
 [HarmonyPatch(typeof(ItemStand))]
 public static class ItemStandPatch
 {
-    
-
     /// <summary>
-    /// Container-backed stands first, then vanilla attachment.
-    /// Valheim 1.0+: <see cref="ItemStand.GetAttachedItem"/> returns a prefab hash (not <see cref="ItemDrop.ItemData"/>).
+    /// Recomputes <c>m_currentItemName</c> on all loaded stands from each stand's rename ZDO cache + live
+    /// durability prefix. Does not mutate <see cref="ItemDrop.ItemData"/> / ObjectDB prefabs.
     /// </summary>
-    private static ItemDrop.ItemData? TryGetStandOccupantItem(ItemStand stand)
+    internal static void RefreshAllItemStandDisplayNames()
     {
-        if (stand == null)
-            return null;
+        ItemStand[] stands;
+        try
+        {
+            stands = UnityEngine.Object.FindObjectsByType<ItemStand>(UnityEngine.FindObjectsSortMode.None);
+        }
+        catch
+        {
+            try
+            {
+#pragma warning disable CS0618
+                stands = UnityEngine.Object.FindObjectsOfType<ItemStand>();
+#pragma warning restore CS0618
+            }
+            catch
+            {
+                return;
+            }
+        }
 
-        var fromContainer = TryGetFirstContainerItem(stand);
-        if (fromContainer?.m_shared != null)
-            return fromContainer;
+        if (stands == null || stands.Length == 0)
+            return;
 
-        int hash = stand.GetAttachedItem();
-        if (hash == 0 || ObjectDB.instance == null)
-            return null;
+        foreach (var stand in stands)
+        {
+            if (stand == null)
+                continue;
+            try
+            {
+                ApplyLiveDisplayNameToStand(stand);
+            }
+            catch
+            {
+                /* ignore per-stand failures */
+            }
+        }
+    }
 
-        var prefab = ObjectDB.instance.GetItemPrefab(hash);
-        return prefab != null ? prefab.GetComponent<ItemDrop>()?.m_itemData : null;
+    private static ZDO? TryGetStandZdo(ItemStand stand)
+    {
+        var nview = AccessTools.Field(typeof(ItemStand), "m_nview")?.GetValue(stand) as ZNetView;
+        return nview?.GetZDO();
     }
 
     /// <summary>
-    /// Clears the cached label when the stand is visually empty. When occupied, only <b>sets</b> the ZDO from
-    /// <see cref="ItemDrop.ItemData"/> if Drake rename keys are present on that instance — vanilla's attached
-    /// visual is often a prefab copy without <c>m_customData</c>, and clearing from that would wipe a correct value
-    /// written by <see cref="GrabItem"/>.
+    /// Vanilla <see cref="ItemStand"/> attach path calls <c>SaveToZDO(item, zdo, -1)</c>.
+    /// For index &lt; 0, Valheim stores bytes under <see cref="ZDOVars.s_itemData"/> (not the string "-1_itemData").
     /// </summary>
-    private static void SyncItemStandRenameZdoFromOccupant(ItemStand stand, ZDO zdo, int itemHash)
+    private const int StandItemDataZdoIndex = -1;
+
+    /// <summary>
+    /// Real attached item (durability + custom data) from the stand ZDO into a deep <see cref="ItemDrop.ItemData.Clone"/>.
+    /// Never mutates ObjectDB prefabs. Falls back to container occupant when there is no vanilla attachment.
+    /// </summary>
+    private static ItemDrop.ItemData? TryGetStandItemForDisplay(ItemStand stand, out bool loadedInstance)
     {
-        if (itemHash == 0)
+        loadedInstance = false;
+        if (stand == null)
+            return null;
+
+        int hash = 0;
+        try
         {
-            zdo.Set(DrakeCustomDataKeys.ItemStandHoverName, string.Empty);
-            return;
+            hash = stand.GetAttachedItem();
+        }
+        catch
+        {
+            /* ignore */
         }
 
-        var occupant = TryGetStandOccupantItem(stand);
-        if (occupant?.m_shared == null)
+        // Prefer vanilla attachment over any Container on the same piece.
+        if (hash != 0 && ObjectDB.instance != null)
+        {
+            var prefab = ObjectDB.instance.GetItemPrefab(hash);
+            var prefabData = prefab != null ? prefab.GetComponent<ItemDrop>()?.m_itemData : null;
+            if (prefabData == null)
+                return null;
+
+            var clone = prefabData.Clone();
+            var zdo = TryGetStandZdo(stand);
+            if (zdo == null)
+                return clone;
+
+            try
+            {
+                // Index -1 => ZDOVars.s_itemData (see ItemDrop.LoadFromZDO / SaveToZDO).
+                var bytes = zdo.GetByteArray(ZDOVars.s_itemData, (byte[]?)null);
+                if (bytes != null && bytes.Length > 2)
+                {
+                    ItemDrop.LoadFromZDO(clone, zdo, StandItemDataZdoIndex);
+                    loadedInstance = true;
+                }
+            }
+            catch
+            {
+                /* keep prefab clone defaults */
+            }
+
+            return clone;
+        }
+
+        var container = TryGetFirstContainerItem(stand);
+        if (container?.m_shared != null)
+        {
+            loadedInstance = true;
+            return container;
+        }
+
+        return null;
+    }
+
+    /// <summary>Sets <c>m_currentItemName</c> from a known item instance (place path — ZDO may not be saved yet).</summary>
+    private static void ApplyDisplayNameFromItemInstance(ItemStand stand, ItemDrop.ItemData item)
+    {
+        if (stand == null || item?.m_shared == null)
             return;
 
-        if (!ItemDisplayService.HasCustomName(occupant) && !DisplayNameModifierHub.AffectsDisplay(occupant))
+        var currentItemField = AccessTools.Field(typeof(ItemStand), "m_currentItemName");
+        if (currentItemField == null)
             return;
 
-        string display = ItemDisplayService.GetDisplayNameForUi(occupant, localize: false);
-        zdo.Set(DrakeCustomDataKeys.ItemStandHoverName, TooltipRichText.EnsureRichTextTagsClosedForTooltip(display));
+        if (ItemDisplayService.HasCustomName(item) || DisplayNameModifierHub.AffectsDisplay(item))
+        {
+            string display = ItemDisplayService.GetDisplayNameForUi(item, localize: false);
+            currentItemField.SetValue(stand, TooltipRichText.EnsureRichTextTagsClosedForTooltip(display));
+        }
+        else
+        {
+            currentItemField.SetValue(stand, item.m_shared.m_name);
+        }
+    }
+
+    /// <summary>
+    /// Base label for the stand: rename from loaded item / rename-only ZDO cache / vanilla shared name.
+    /// </summary>
+    private static string ResolveStandBaseLabel(ItemStand stand, ZDO? zdo, ItemDrop.ItemData? item)
+    {
+        if (item != null && ItemDisplayService.HasCustomName(item))
+            return ItemDisplayService.GetProperName(item);
+
+        string cached = zdo != null ? zdo.GetString(DrakeCustomDataKeys.ItemStandHoverName, "") : "";
+        if (!string.IsNullOrWhiteSpace(cached))
+            return StripLegacyDurabilityPrefix(item, cached.Trim());
+
+        if (item?.m_shared != null && !string.IsNullOrEmpty(item.m_shared.m_name))
+            return item.m_shared.m_name;
+
+        var current = AccessTools.Field(typeof(ItemStand), "m_currentItemName")?.GetValue(stand) as string;
+        return string.IsNullOrWhiteSpace(current) ? "" : current.Trim();
+    }
+
+    /// <summary>
+    /// Live display for <c>m_currentItemName</c>: real stand-item durability + rename. Clone-only loads — no prefab writes.
+    /// </summary>
+    private static void ApplyLiveDisplayNameToStand(ItemStand stand)
+    {
+        if (stand == null)
+            return;
+
+        var item = TryGetStandItemForDisplay(stand, out var loadedInstance);
+        if (item?.m_shared == null)
+            return;
+
+        var zdo = TryGetStandZdo(stand);
+        string baseLabel = ResolveStandBaseLabel(stand, zdo, item);
+        if (string.IsNullOrEmpty(baseLabel))
+            return;
+
+        // Keep ZDO as rename-only (migrate off baked "Pristine/Worn ..." from older builds).
+        if (zdo != null)
+        {
+            if (ItemDisplayService.HasCustomName(item))
+            {
+                string proper = ItemDisplayService.GetProperName(item);
+                zdo.Set(DrakeCustomDataKeys.ItemStandHoverName,
+                    TooltipRichText.EnsureRichTextTagsClosedForTooltip(proper));
+            }
+            else
+            {
+                string rawCache = zdo.GetString(DrakeCustomDataKeys.ItemStandHoverName, "");
+                if (!string.IsNullOrWhiteSpace(rawCache))
+                {
+                    string stripped = StripLegacyDurabilityPrefix(item, rawCache.Trim());
+                    if (!string.Equals(stripped, rawCache.Trim(), StringComparison.Ordinal))
+                        zdo.Set(DrakeCustomDataKeys.ItemStandHoverName,
+                            TooltipRichText.EnsureRichTextTagsClosedForTooltip(stripped));
+                }
+                else if (loadedInstance)
+                {
+                    zdo.Set(DrakeCustomDataKeys.ItemStandHoverName, string.Empty);
+                }
+            }
+        }
+
+        // Prefer full live pipeline when we have a real instance (correct durability + rename).
+        string display;
+        if (loadedInstance &&
+            (ItemDisplayService.HasCustomName(item) || DisplayNameModifierHub.AffectsDisplay(item)))
+        {
+            display = ItemDisplayService.GetDisplayNameForUi(item, localize: false);
+        }
+        else
+        {
+            display = baseLabel;
+            if (DisplayNameModifierHub.AffectsDisplay(item))
+            {
+                string prefix = DisplayNameModifierHub.GetPrefixRaw(item);
+                if (!string.IsNullOrEmpty(prefix))
+                {
+                    string strippedBase = StripLegacyDurabilityPrefix(item, baseLabel);
+                    display = prefix.TrimEnd() + " " + strippedBase;
+                }
+            }
+        }
+
+        var currentItemField = AccessTools.Field(typeof(ItemStand), "m_currentItemName");
+        currentItemField?.SetValue(stand, TooltipRichText.EnsureRichTextTagsClosedForTooltip(display));
+    }
+
+    /// <summary>
+    /// Older builds baked durability into the stand ZDO (e.g. "Worn MySword"). Strip known prefixes so live
+    /// re-apply does not become "Worn Worn ...".
+    /// </summary>
+    private static string StripLegacyDurabilityPrefix(ItemDrop.ItemData? item, string cached)
+    {
+        if (string.IsNullOrEmpty(cached))
+            return cached;
+
+        // Strip whatever the live modifier would prepend right now.
+        if (item != null)
+        {
+            string prefix = DisplayNameModifierHub.GetPrefixRaw(item);
+            cached = StripOnePrefix(cached, prefix);
+        }
+
+        // Also strip common configured labels when the modifier is currently off (disable path).
+        cached = StripOnePrefix(cached, "Pristine");
+        cached = StripOnePrefix(cached, "Worn");
+        cached = StripOnePrefix(cached, "Rusty");
+        cached = StripOnePrefix(cached, "Tarnished");
+        cached = StripOnePrefix(cached, "Broken");
+        return cached;
+    }
+
+    private static string StripOnePrefix(string cached, string? prefix)
+    {
+        if (string.IsNullOrWhiteSpace(prefix) || string.IsNullOrEmpty(cached))
+            return cached;
+
+        foreach (var candidate in UniquePrefixCandidates(prefix))
+        {
+            string withSpace = candidate.TrimEnd() + " ";
+            if (cached.StartsWith(withSpace, StringComparison.OrdinalIgnoreCase))
+                return cached.Substring(withSpace.Length).TrimStart();
+        }
+
+        return cached;
+    }
+
+    private static List<string> UniquePrefixCandidates(string prefix)
+    {
+        var list = new List<string>();
+        void consider(string? s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                return;
+            s = s.Trim();
+            if (list.Exists(x => string.Equals(x, s, StringComparison.Ordinal)))
+                return;
+            list.Add(s);
+            if (s.IndexOf('<') >= 0)
+            {
+                string plain = Regex.Replace(s, "<[^>]+>", "").Trim();
+                if (plain.Length > 0 && !list.Exists(x => string.Equals(x, plain, StringComparison.Ordinal)))
+                    list.Add(plain);
+            }
+        }
+
+        consider(prefix);
+        if (Localization.instance != null)
+            consider(Localization.instance.Localize(prefix));
+        return list;
     }
 
     private static bool ItemStandHadVisualBeforeUse(ItemStand stand)
@@ -234,18 +475,34 @@ public static class ItemStandPatch
         if (stand == null)
             return "";
 
-        var mNviewField = AccessTools.Field(typeof(ItemStand), "m_nview");
-        var nview = mNviewField?.GetValue(stand) as ZNetView;
-        var zdo = nview?.GetZDO();
+        var zdo = TryGetStandZdo(stand);
         if (zdo == null)
             return "";
 
-        // Cached display label for item-stand hover / shop-style labels (cleared when the stand is empty or holds a vanilla-named stack).
+        var item = TryGetStandItemForDisplay(stand, out var loadedInstance);
+        if (item != null && loadedInstance &&
+            (ItemDisplayService.HasCustomName(item) || DisplayNameModifierHub.AffectsDisplay(item)))
+        {
+            string live = ItemDisplayService.GetDisplayNameForUi(item, localize: true);
+            if (!string.IsNullOrEmpty(live))
+                return live;
+        }
+
+        // Cached rename (or legacy display) for ward / shop-style labels.
         string raw = zdo.GetString(DrakeCustomDataKeys.ItemStandHoverName, "");
         if (string.IsNullOrWhiteSpace(raw))
             return "";
 
-        string safe = TooltipRichText.EnsureRichTextTagsClosedForTooltip(raw);
+        string baseLabel = StripLegacyDurabilityPrefix(item, raw.Trim());
+        string display = baseLabel;
+        if (item != null && DisplayNameModifierHub.AffectsDisplay(item))
+        {
+            string prefix = DisplayNameModifierHub.GetPrefixRaw(item);
+            if (!string.IsNullOrEmpty(prefix))
+                display = prefix.TrimEnd() + " " + baseLabel;
+        }
+
+        string safe = TooltipRichText.EnsureRichTextTagsClosedForTooltip(display);
         return Localization.instance != null ? Localization.instance.Localize(safe) : safe;
     }
 
@@ -342,6 +599,19 @@ public static class ItemStandPatch
             return;
         }
 
+        // Container-only stands (no vanilla attachment hash): rewrite hover from the real inventory item.
+        // Vanilla attachment labels come from m_currentItemName (updated live) â€” do not re-apply durability here
+        // or names become "Worn Worn â€¦".
+        try
+        {
+            if (__instance.GetAttachedItem() != 0)
+                return;
+        }
+        catch
+        {
+            /* fall through to container path */
+        }
+
         var item = TryGetFirstContainerItem(__instance);
         if (item?.m_shared == null)
             return;
@@ -368,8 +638,7 @@ public static class ItemStandPatch
         if (item?.m_shared == null)
             return;
 
-        var nview = AccessTools.Field(typeof(ItemStand), "m_nview")?.GetValue(__instance) as ZNetView;
-        var zdo = nview?.GetZDO();
+        var zdo = TryGetStandZdo(__instance);
         if (zdo == null)
             return;
 
@@ -380,11 +649,19 @@ public static class ItemStandPatch
             return;
         }
 
-        string customName = ItemDisplayService.GetDisplayNameForUi(item, localize: false);
-        if (ItemDisplayService.HasCustomName(item) || customName != item.m_shared.m_name)
-            zdo.Set(DrakeCustomDataKeys.ItemStandHoverName, TooltipRichText.EnsureRichTextTagsClosedForTooltip(customName));
+        // Cache rename text only — never bake durability into the ZDO.
+        if (ItemDisplayService.HasCustomName(item))
+        {
+            string proper = ItemDisplayService.GetProperName(item);
+            zdo.Set(DrakeCustomDataKeys.ItemStandHoverName,
+                TooltipRichText.EnsureRichTextTagsClosedForTooltip(proper));
+        }
         else
             zdo.Set(DrakeCustomDataKeys.ItemStandHoverName, string.Empty);
+
+        // UseItem queues attach; ZDO payload may not exist yet. Label from the real item instance now;
+        // SetVisualItem postfix reloads from ZDOVars.s_itemData once UpdateAttach has saved.
+        ApplyDisplayNameFromItemInstance(__instance, item);
     }
 
     // Valheim 1.0+: SetVisualItem(int itemHash, int variant, int quality, int orientation)
@@ -396,25 +673,7 @@ public static class ItemStandPatch
         if (__instance == null)
             return;
 
-        var mNviewField = AccessTools.Field(typeof(ItemStand), "m_nview");
-        object? nviewObj = mNviewField?.GetValue(__instance);
-        var nview = nviewObj as ZNetView;
-
-        if (nview == null)
-            return;
-
-        var zdo = nview.GetZDO();
-
-        if (zdo == null) return;
-
-        SyncItemStandRenameZdoFromOccupant(__instance, zdo, itemHash);
-
-        string customName = TooltipRichText.EnsureRichTextTagsClosedForTooltip(zdo.GetString(DrakeCustomDataKeys.ItemStandHoverName, ""));
-        if (!string.IsNullOrEmpty(customName))
-        {
-            var currentItemField = AccessTools.Field(typeof(ItemStand), "m_currentItemName");
-            currentItemField?.SetValue(__instance, customName);
-        }
+        ApplyLiveDisplayNameToStand(__instance);
     }
 }
 
@@ -426,7 +685,7 @@ internal static class DropHudMessagePatches
     private const float PendingDroppedItemTtlSeconds = 2.5f;
 
     /// <summary>
-    /// Typed prefix on vanilla <see cref="Humanoid.DropItem(Inventory, ItemDrop.ItemData, int)"/> — Harmony
+    /// Typed prefix on vanilla <see cref="Humanoid.DropItem(Inventory, ItemDrop.ItemData, int)"/> â€” Harmony
     /// <c>object[] __args</c> multi-target patches often never run; runtime logs showed zero DropHud events until this.
     /// </summary>
     internal static void ApplyDropItemPendingCapture(Harmony harmony, ManualLogSource log)
@@ -497,7 +756,7 @@ internal static class DropHudMessagePatches
         var hasTok = msg.IndexOf(droppedToken, System.StringComparison.Ordinal) >= 0;
         var hasLoc = msg.IndexOf(droppedLocalized, System.StringComparison.OrdinalIgnoreCase) >= 0;
         bool careAboutDisplay = ItemDisplayService.HasCustomName(item) || DisplayNameModifierHub.AffectsDisplay(item);
-        // Some locales / builds show "Dropped …" without leaving $msg_dropped in the final string, or localize differently.
+        // Some locales / builds show "Dropped â€¦" without leaving $msg_dropped in the final string, or localize differently.
         var looksLikeDroppedLine = careAboutDisplay &&
                                    msg.IndexOf("drop", System.StringComparison.OrdinalIgnoreCase) >= 0 &&
                                    msg.Length < 280;
@@ -513,7 +772,7 @@ internal static class DropHudMessagePatches
         if (string.IsNullOrEmpty(displayNameLocalized))
             return;
 
-        // Vanilla Humanoid.DropItem passes "$msg_dropped " + m_shared.m_name (token) — replace whole tail in one shot.
+        // Vanilla Humanoid.DropItem passes "$msg_dropped " + m_shared.m_name (token) â€” replace whole tail in one shot.
         const string dropPrefix = "$msg_dropped ";
         if (careAboutDisplay &&
             msg.StartsWith(dropPrefix, StringComparison.Ordinal) &&
@@ -666,7 +925,7 @@ internal static class DropHudMessagePatches
         TryRewriteDroppedMessage(ref __1);
     }
 
-    // Character.Message — kept for non-Player characters / mods that call the base implementation.
+    // Character.Message â€” kept for non-Player characters / mods that call the base implementation.
     [HarmonyPatch(typeof(Character), nameof(Character.Message), new[] { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(UnityEngine.Sprite) })]
     [HarmonyPrefix]
     private static void CharacterMessagePrefix(MessageHud.MessageType type, ref string msg)

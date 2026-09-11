@@ -50,3 +50,18 @@ Subscribe to `CustomizationEvents.OnItemNameChanged` for rename logging; use `Dr
 3. Install feature mods that depend on it (e.g. **DrakesRenameit**).
 
 Team: **DrakeMods** · Contact: Drakethos (Discord / email in the RenameIt page).
+
+## Publishing (GitHub Actions)
+
+Pushing a tag `v{Version}` that matches `<Version>` in `mod.package.props` runs [.github/workflows/release.yml](.github/workflows/release.yml):
+
+1. Build the Thunderstore zip and create a GitHub Release with the zip attached  
+2. Publish that zip to **Thunderstore** (`DrakeMods-DrakeModsLibs`)  
+3. Publish the same zip to **Hexium** (`valheim.hexium.gg`) after Thunderstore succeeds  
+
+Repo secrets required:
+
+| Secret | Source |
+|--------|--------|
+| `THUNDERSTORE_TOKEN` | Thunderstore team service account for **DrakeMods** |
+| `HEXIUM_TOKEN` | Hexium team API token for **DrakeMods** ([team settings](https://hexium.gg/faq)) |

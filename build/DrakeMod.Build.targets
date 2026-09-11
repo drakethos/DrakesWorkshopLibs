@@ -69,6 +69,8 @@
            Text="ServerSync.dll was copied to $(TargetDir). Consumer mods must not reference ServerSync directly; use DrakeModsLibs only." />
     <Error Condition="Exists('$(R2ModDeployPath)\ServerSync.dll')"
            Text="ServerSync.dll was deployed to $(R2ModDeployPath). Only DrakeModsLibs may ship ServerSync." />
+    <Error Condition="Exists('$(GaleModDeployPath)\ServerSync.dll')"
+           Text="ServerSync.dll was deployed to $(GaleModDeployPath). Only DrakeModsLibs may ship ServerSync." />
     <Error Condition="'$(VerifyNoServerSyncScript)' == '' or !Exists('$(VerifyNoServerSyncScript)')"
            Text="Verify-NoServerSyncInModDll.ps1 not found. Run scripts\Sync-ModBuild.ps1 or ensure build\scripts\ exists." />
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(VerifyNoServerSyncScript)&quot; -DllPath &quot;$(TargetPath)&quot;"
@@ -94,6 +96,26 @@
     <Copy SourceFiles="$(TargetDir)icon.png" DestinationFiles="$(R2ModDeployPath)\icon.png" Condition="Exists('$(TargetDir)icon.png')" />
     <Copy SourceFiles="$(TargetDir)CHANGELOG.md" DestinationFiles="$(R2ModDeployPath)\CHANGELOG.md" Condition="Exists('$(TargetDir)CHANGELOG.md')" />
     <Message Importance="high" Text="Deployed $(TargetFileName) -&gt; $(R2ModDeployPath)" />
+  </Target>
+
+  <!-- Same deploy to Gale profile (same ProfileName / plugin folder layout). -->
+  <Target Name="CopyToGaleProfile"
+          DependsOnTargets="VerifyNoEmbeddedServerSync"
+          AfterTargets="$(DeployAfterTargets)"
+          Condition="'$(GaleModDeployPath)' != ''"
+          Inputs="$(TargetPath)"
+          Outputs="$(GaleModDeployPath)\$(TargetFileName)">
+    <MakeDir Directories="$(GaleModDeployPath)" />
+    <MakeDir Directories="$(GaleModDeployPath)\Assets\Localization" Condition="'@(LocalizationJson)' != ''" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GaleModDeployPath)\" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="@(LocalizationJson)"
+          DestinationFolder="$(GaleModDeployPath)\Assets\Localization"
+          SkipUnchangedFiles="true"
+          Condition="'@(LocalizationJson)' != ''" />
+    <Copy SourceFiles="$(TargetDir)README.md" DestinationFiles="$(GaleModDeployPath)\README.md" Condition="Exists('$(TargetDir)README.md')" />
+    <Copy SourceFiles="$(TargetDir)icon.png" DestinationFiles="$(GaleModDeployPath)\icon.png" Condition="Exists('$(TargetDir)icon.png')" />
+    <Copy SourceFiles="$(TargetDir)CHANGELOG.md" DestinationFiles="$(GaleModDeployPath)\CHANGELOG.md" Condition="Exists('$(TargetDir)CHANGELOG.md')" />
+    <Message Importance="high" Text="Deployed $(TargetFileName) -&gt; $(GaleModDeployPath)" />
   </Target>
 
   <!-- Register or refresh this mod in the r2modman profile mods.yml (simulates a Thunderstore install). -->

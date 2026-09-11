@@ -9,6 +9,8 @@ public static class DrakeCustomDataKeys
     public const string CraftedByDisplay = "Drake_CraftedByDisplay";
     public const string CraftedByLineLabel = "Drake_CraftedByLineLabel";
     public const string RenameUnlocked = "Drake_RenameUnlocked";
+    /// <summary>When set, non-owners may rewrite name/description if PublicRewriteEnabled (not crafted-by).</summary>
+    public const string PublicRewrite = "Drake_PublicRewrite";
     public const string ItemStandHoverName = "DrakeRenameIt_CustomName";
     public const string NoRename = "Drake_NoRename";
     public const string NoDescription = "Drake_NoDesc";

@@ -15,7 +15,7 @@ $text = [Text.Encoding]::ASCII.GetString($bytes)
 $markers = @('ServerSync', 'ServerSyncManager', 'ServerSync.ConfigSync')
 foreach ($marker in $markers) {
     if ($text.Contains($marker)) {
-        throw "Forbidden embed detected ($marker) in $DllPath. ServerSync belongs only in DrakesWorkshopLibs."
+        throw "Forbidden embed detected ($marker) in $DllPath. ServerSync belongs only in DrakeModsLibs."
     }
 }
 

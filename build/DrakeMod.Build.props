@@ -7,6 +7,7 @@
     <R2PluginFolder Condition="'$(R2PluginFolder)' == '' and '$(CompanyName)' != '' and '$(AssemblyName)' != ''">$(CompanyName)-$(AssemblyName)</R2PluginFolder>
     <R2ModDeployPath Condition="'$(R2ModPath)' != '' and '$(ProfileName)' != '' and '$(R2PluginFolder)' != ''">$(R2ModPath)\$(ProfileName)\BepInEx\plugins\$(R2PluginFolder)</R2ModDeployPath>
     <R2ModsYmlPath Condition="'$(R2ModsYmlPath)' == '' and '$(R2ModPath)' != '' and '$(ProfileName)' != ''">$(R2ModPath)\$(ProfileName)\mods.yml</R2ModsYmlPath>
+    <GaleModDeployPath Condition="'$(GaleModPath)' != '' and '$(ProfileName)' != '' and '$(R2PluginFolder)' != ''">$(GaleModPath)\$(ProfileName)\BepInEx\plugins\$(R2PluginFolder)</GaleModDeployPath>
     <UpdateR2ModsYml Condition="'$(UpdateR2ModsYml)' == '' and '$(CI_SKIP_POST_BUILD)' == ''">true</UpdateR2ModsYml>
     <UpdateR2ModsYml Condition="'$(UpdateR2ModsYml)' == '' and '$(CI_SKIP_POST_BUILD)' != ''">false</UpdateR2ModsYml>
     <R2ModProfileModScript Condition="'$(R2ModProfileModScript)' == '' and Exists('$(MSBuildThisFileDirectory)scripts\Update-R2ModProfileMod.ps1')">$(MSBuildThisFileDirectory)scripts\Update-R2ModProfileMod.ps1</R2ModProfileModScript>

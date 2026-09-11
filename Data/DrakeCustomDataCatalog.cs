@@ -61,6 +61,7 @@ public static class DrakeCustomDataCatalog
             new DrakeCustomDataField(DrakeCustomDataKeys.CraftedByDisplay, ModRenameIt, DrakeCustomDataKind.Text, "Crafted-by display"),
             new DrakeCustomDataField(DrakeCustomDataKeys.CraftedByLineLabel, ModRenameIt, DrakeCustomDataKind.Text, "Crafted-by line label"),
             new DrakeCustomDataField(DrakeCustomDataKeys.RenameUnlocked, ModRenameIt, DrakeCustomDataKind.Tag, "Rename unlocked"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.PublicRewrite, ModRenameIt, DrakeCustomDataKind.Tag, "Anyone can rewrite name/desc"),
             new DrakeCustomDataField(DrakeCustomDataKeys.ItemStandHoverName, ModRenameIt, DrakeCustomDataKind.Text, "Item stand hover name (ZDO)"),
         });
 

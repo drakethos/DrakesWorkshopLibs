@@ -211,8 +211,111 @@ public static class ItemStandPatch
     }
 
     /// <summary>
-    /// Vanilla <see cref="ItemStand"/> attach path calls <c>SaveToZDO(item, zdo, -1)</c>.
-    /// For index &lt; 0, Valheim stores bytes under <see cref="ZDOVars.s_itemData"/> (not the string "-1_itemData").
+    /// Valheim 1.0 returns a prefab hash. Older publicized refs (CI) return a prefab name string.
+    /// Bind at runtime so both compile against the older reference assemblies.
+    /// </summary>
+    private static int TryGetAttachedPrefabHash(ItemStand stand)
+    {
+        if (stand == null)
+            return 0;
+
+        var method = AccessTools.Method(typeof(ItemStand), nameof(ItemStand.GetAttachedItem));
+        if (method == null)
+            return 0;
+
+        object? value;
+        try
+        {
+            value = method.Invoke(stand, null);
+        }
+        catch
+        {
+            return 0;
+        }
+
+        if (value is int hash)
+            return hash;
+        if (value is string name && int.TryParse(name, out var parsed))
+            return parsed;
+        return 0;
+    }
+
+    /// <summary>
+    /// Valheim 1.0 stores stand item bytes under ZDOVars.s_itemData (hashed int key).
+    /// That field is missing from older reference assemblies used by CI.
+    /// </summary>
+    private static byte[]? TryGetStandItemBytes(ZDO zdo)
+    {
+        var field = AccessTools.Field(typeof(ZDOVars), "s_itemData");
+        if (field != null)
+        {
+            var key = field.GetValue(null);
+            if (key is int hashed)
+                return zdo.GetByteArray(hashed, (byte[]?)null);
+            if (key is string name && !string.IsNullOrEmpty(name))
+                return zdo.GetByteArray(name, (byte[]?)null);
+        }
+
+        return zdo.GetByteArray("-1_itemData", (byte[]?)null);
+    }
+
+    /// <summary>
+    /// 1.0 signature is LoadFromZDO(item, zdo, index). Older refs use (index, item, zdo) or (item, zdo).
+    /// </summary>
+    private static bool TryLoadItemFromZdo(ItemDrop.ItemData item, ZDO zdo, int index)
+    {
+        const string methodName = "LoadFromZDO";
+        var methods = typeof(ItemDrop).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+        var modern = methods.FirstOrDefault(m =>
+        {
+            if (m.Name != methodName)
+                return false;
+            var p = m.GetParameters();
+            return p.Length == 3
+                && p[0].ParameterType == typeof(ItemDrop.ItemData)
+                && p[1].ParameterType == typeof(ZDO)
+                && p[2].ParameterType == typeof(int);
+        });
+        if (modern != null)
+        {
+            modern.Invoke(null, new object[] { item, zdo, index });
+            return true;
+        }
+
+        var legacyIndexed = methods.FirstOrDefault(m =>
+        {
+            if (m.Name != methodName)
+                return false;
+            var p = m.GetParameters();
+            return p.Length == 3
+                && p[0].ParameterType == typeof(int)
+                && p[1].ParameterType == typeof(ItemDrop.ItemData)
+                && p[2].ParameterType == typeof(ZDO);
+        });
+        if (legacyIndexed != null)
+        {
+            legacyIndexed.Invoke(null, new object[] { index, item, zdo });
+            return true;
+        }
+
+        var legacy = methods.FirstOrDefault(m =>
+        {
+            if (m.Name != methodName)
+                return false;
+            var p = m.GetParameters();
+            return p.Length == 2
+                && p[0].ParameterType == typeof(ItemDrop.ItemData)
+                && p[1].ParameterType == typeof(ZDO);
+        });
+        if (legacy == null)
+            return false;
+
+        legacy.Invoke(null, new object[] { item, zdo });
+        return true;
+    }
+
+    /// <summary>
+    /// Vanilla attach path calls SaveToZDO with index -1. 1.0 stores those bytes under ZDOVars.s_itemData.
     /// </summary>
     private const int StandItemDataZdoIndex = -1;
 
@@ -229,7 +332,7 @@ public static class ItemStandPatch
         int hash = 0;
         try
         {
-            hash = stand.GetAttachedItem();
+            hash = TryGetAttachedPrefabHash(stand);
         }
         catch
         {
@@ -251,13 +354,10 @@ public static class ItemStandPatch
 
             try
             {
-                // Index -1 => ZDOVars.s_itemData (see ItemDrop.LoadFromZDO / SaveToZDO).
-                var bytes = zdo.GetByteArray(ZDOVars.s_itemData, (byte[]?)null);
-                if (bytes != null && bytes.Length > 2)
-                {
-                    ItemDrop.LoadFromZDO(clone, zdo, StandItemDataZdoIndex);
+                // Index -1 => ZDOVars.s_itemData on 1.0 (see ItemDrop.LoadFromZDO / SaveToZDO).
+                var bytes = TryGetStandItemBytes(zdo);
+                if (bytes != null && bytes.Length > 2 && TryLoadItemFromZdo(clone, zdo, StandItemDataZdoIndex))
                     loadedInstance = true;
-                }
             }
             catch
             {
@@ -604,7 +704,7 @@ public static class ItemStandPatch
         // or names become "Worn Worn â€¦".
         try
         {
-            if (__instance.GetAttachedItem() != 0)
+            if (TryGetAttachedPrefabHash(__instance) != 0)
                 return;
         }
         catch

@@ -5,12 +5,12 @@
     <ThunderstoreAuthor>DrakeMods</ThunderstoreAuthor>
     <RootNamespace>DrakeModsLibs</RootNamespace>
     <AssemblyName>DrakeModsLibs</AssemblyName>
-    <Version>0.9.0</Version>
+    <Version>0.9.1</Version>
     <BepInPluginName>DrakeModsLibs</BepInPluginName>
     <BepInGuid>com.drakemods.libs</BepInGuid>
     <ModInfoClass>CustomizeLibsPlugin</ModInfoClass>
     <Description>Shared DrakeMods library for Valheim - display patches, tags, APIs, and server config sync. Required by DrakesRenameit. Valheim 1.0 compatible.</Description>
-    <WebsiteUrl>https://github.com/drakethos/DrakeModsLibs</WebsiteUrl>
+    <WebsiteUrl>https://github.com/drakethos/DrakesWorkshopLibs</WebsiteUrl>
     <DeployAfterTargets>ILRepacker</DeployAfterTargets>
     <!-- Only this project may ILRepack / embed ServerSync -->
     <EmbedServerSync>true</EmbedServerSync>

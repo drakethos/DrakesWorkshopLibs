@@ -1,5 +1,11 @@
 # DrakeModsLibs
 
+## 0.9.1
+- Item-stand hover labels load the attached item from the stand ZDO (durability and custom data) instead of the prefab, so names stay accurate without mutating ObjectDB.
+- `CustomizeLibsAPI.RefreshItemStandDisplayNames` recomputes stand labels immediately after name-modifier config changes.
+- `Drake_PublicRewrite` custom-data key for allowing non-owners to rewrite name/description.
+- `DrakeConfigSync.BindSynced` accepts Configuration Manager acceptable values.
+
 ## 0.9.0
 - First standalone Thunderstore-oriented package identity: **DrakeModsLibs** (`com.drakemods.libs`).
 - Shared library split out for **DrakesRenameit** and future DrakeMods consumers (no full suite release planned at this time).

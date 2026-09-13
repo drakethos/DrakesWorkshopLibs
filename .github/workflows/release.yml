@@ -210,7 +210,7 @@ jobs:
           path: dist
           website: ${{ needs.build-and-release.outputs.website_url }}
           categories: |
-            misc
+            libraries
 
   publish-hexium:
     needs: [build-and-release, publish-thunderstore]

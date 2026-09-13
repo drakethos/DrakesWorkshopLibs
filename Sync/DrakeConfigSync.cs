@@ -34,9 +34,19 @@ public sealed class DrakeConfigSync
     }
 
     public ConfigEntry<T> BindSynced<T>(ConfigFile config, string section, string configurationManagerCategory, string key, T defaultValue, string description)
+        => BindSynced(config, section, configurationManagerCategory, key, defaultValue, description, null);
+
+    public ConfigEntry<T> BindSynced<T>(
+        ConfigFile config,
+        string section,
+        string configurationManagerCategory,
+        string key,
+        T defaultValue,
+        string description,
+        AcceptableValueBase? acceptableValues)
     {
         var entry = config.Bind(section, key, defaultValue,
-            new ConfigDescription(description, null,
+            new ConfigDescription(description, acceptableValues,
                 string.IsNullOrEmpty(configurationManagerCategory) ? null : new ConfigurationManagerAttributes { Category = configurationManagerCategory }));
         var synced = _inner.AddConfigEntry(entry);
         synced.SynchronizedConfig = true;

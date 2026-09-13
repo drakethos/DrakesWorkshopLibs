@@ -2,6 +2,12 @@
   <!-- Per-mod: environment.props + mod.package.props. Monorepo also picks up suite-root Directory.Build.props (parent folder). -->
   <Import Project="$(MSBuildThisFileDirectory)environment.props" Condition="Exists('$(MSBuildThisFileDirectory)environment.props')" />
   <Import Project="$(MSBuildThisFileDirectory)mod.package.props" Condition="Exists('$(MSBuildThisFileDirectory)mod.package.props')" />
+  <!-- CI checks out this repo alone, so the suite-root props that set this are not present. -->
+  <PropertyGroup Condition="'$(CI_NET48_FWPATH)' != ''">
+    <TargetFrameworkRootPath>$(CI_NET48_FWPATH)/</TargetFrameworkRootPath>
+  </PropertyGroup>
+  <Import Project="$(CI_NET48_FWPATH)/Microsoft.NETFramework.ReferenceAssemblies.net48.targets"
+          Condition="'$(CI_NET48_FWPATH)' != '' and Exists('$(CI_NET48_FWPATH)/Microsoft.NETFramework.ReferenceAssemblies.net48.targets')" />
   <PropertyGroup>
     <!-- Prefer suite build/ when present; otherwise use this repo's build/ (standalone clone). -->
     <DrakeModBuildRoot Condition="Exists('$(MSBuildThisFileDirectory)..\build\DrakeMod.Build.props')">$(MSBuildThisFileDirectory)..\build\</DrakeModBuildRoot>

@@ -87,6 +87,49 @@ internal static class PickupHudMessageHelper
     }
 }
 
+/// <summary>
+/// Valheim 1.0+: <c>Character.Message(type, msg, amount, icon, log)</c>.
+/// Older publicized refs (CI) only expose the 4-arg overload — bind at runtime.
+/// </summary>
+internal static class CharacterMessageInvoker
+{
+    private static readonly MethodInfo? Message5 = AccessTools.Method(
+        typeof(Character),
+        nameof(Character.Message),
+        new[] { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(UnityEngine.Sprite), typeof(bool) });
+
+    private static readonly MethodInfo? Message4 = AccessTools.Method(
+        typeof(Character),
+        nameof(Character.Message),
+        new[] { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(UnityEngine.Sprite) });
+
+    internal static void Show(
+        Character character,
+        MessageHud.MessageType type,
+        string msg,
+        int amount,
+        UnityEngine.Sprite? icon)
+    {
+        if (!character)
+            return;
+
+        try
+        {
+            if (Message5 != null)
+            {
+                Message5.Invoke(character, new object?[] { type, msg, amount, icon, false });
+                return;
+            }
+
+            Message4?.Invoke(character, new object?[] { type, msg, amount, icon });
+        }
+        catch (Exception)
+        {
+            /* never break pickup/remove HUD */
+        }
+    }
+}
+
 [HarmonyPatch(typeof(Character), nameof(Character.ShowPickupMessage))]
 internal static class CharacterShowPickupMessagePatch
 {
@@ -96,7 +139,12 @@ internal static class CharacterShowPickupMessagePatch
         if (!PickupHudMessageHelper.TryGetLocalizedCustomNameForHud(item, out var nameFragment))
             return true;
 
-        __instance.Message(MessageHud.MessageType.TopLeft, "$msg_added " + nameFragment, amount, item.GetIcon(), false);
+        CharacterMessageInvoker.Show(
+            __instance,
+            MessageHud.MessageType.TopLeft,
+            "$msg_added " + nameFragment,
+            amount,
+            item.GetIcon());
         return false;
     }
 }
@@ -110,7 +158,12 @@ internal static class CharacterShowRemovedMessagePatch
         if (!PickupHudMessageHelper.TryGetLocalizedCustomNameForHud(item, out var nameFragment))
             return true;
 
-        __instance.Message(MessageHud.MessageType.TopLeft, "$msg_removed " + nameFragment, amount, item.GetIcon(), false);
+        CharacterMessageInvoker.Show(
+            __instance,
+            MessageHud.MessageType.TopLeft,
+            "$msg_removed " + nameFragment,
+            amount,
+            item.GetIcon());
         return false;
     }
 }

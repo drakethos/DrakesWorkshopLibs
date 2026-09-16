@@ -96,7 +96,7 @@ internal static class CharacterShowPickupMessagePatch
         if (!PickupHudMessageHelper.TryGetLocalizedCustomNameForHud(item, out var nameFragment))
             return true;
 
-        __instance.Message(MessageHud.MessageType.TopLeft, "$msg_added " + nameFragment, amount, item.GetIcon());
+        __instance.Message(MessageHud.MessageType.TopLeft, "$msg_added " + nameFragment, amount, item.GetIcon(), false);
         return false;
     }
 }
@@ -110,7 +110,7 @@ internal static class CharacterShowRemovedMessagePatch
         if (!PickupHudMessageHelper.TryGetLocalizedCustomNameForHud(item, out var nameFragment))
             return true;
 
-        __instance.Message(MessageHud.MessageType.TopLeft, "$msg_removed " + nameFragment, amount, item.GetIcon());
+        __instance.Message(MessageHud.MessageType.TopLeft, "$msg_removed " + nameFragment, amount, item.GetIcon(), false);
         return false;
     }
 }
@@ -1025,8 +1025,9 @@ internal static class DropHudMessagePatches
         TryRewriteDroppedMessage(ref __1);
     }
 
-    // Character.Message â€” kept for non-Player characters / mods that call the base implementation.
-    [HarmonyPatch(typeof(Character), nameof(Character.Message), new[] { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(UnityEngine.Sprite) })]
+    // Character.Message — kept for non-Player characters / mods that call the base implementation.
+    // Valheim 1.0+: Message(type, msg, amount, icon, log).
+    [HarmonyPatch(typeof(Character), nameof(Character.Message), new[] { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(UnityEngine.Sprite), typeof(bool) })]
     [HarmonyPrefix]
     private static void CharacterMessagePrefix(MessageHud.MessageType type, ref string msg)
     {
@@ -1037,7 +1038,7 @@ internal static class DropHudMessagePatches
     /// Local <see cref="Player"/> overrides <see cref="Character.Message"/> and forwards straight to <see cref="MessageHud.instance.ShowMessage"/>,
     /// so drop notifications never hit the <see cref="Character.Message"/> patch. Pickup works because we patch <see cref="Character.ShowPickupMessage"/> instead.
     /// </summary>
-    [HarmonyPatch(typeof(Player), nameof(Player.Message), new[] { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(UnityEngine.Sprite) })]
+    [HarmonyPatch(typeof(Player), nameof(Player.Message), new[] { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(UnityEngine.Sprite), typeof(bool) })]
     [HarmonyPrefix]
     private static void PlayerMessagePrefix(MessageHud.MessageType type, ref string msg)
     {

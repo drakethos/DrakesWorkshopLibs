@@ -1,5 +1,8 @@
 # DrakeModsLibs
 
+## 0.9.3
+- Fix Valheim 1.0 pickup/drop HUD: `Character.Message` / `Player.Message` take a fifth `bool log` argument. Old 4-arg calls threw `MissingMethodException` on every pickup.
+
 ## 0.9.2
 - **ArtItemLoader** — register Asset Forge items from `Assets/Items` beside a consumer plugin (optional customize hook).
 - Folder packs: shared `keys.bundle` + per-item JSON/PNG (e.g. LockSmith `masterkey`), with process-lifetime AssetBundle path cache.

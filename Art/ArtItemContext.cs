@@ -29,6 +29,12 @@ public sealed class ArtItemContext
 
     public List<string> Materials { get; } = new();
 
+    /// <summary>
+    /// When true, keep the donor prefab's mesh (e.g. CryptKey / swamp key) and only retint materials.
+    /// Skips attaching a custom art.bundle visual.
+    /// </summary>
+    public bool UseDonorVisual { get; set; }
+
     public GameObject? Prefab { get; internal set; }
     public ItemDrop? Drop { get; internal set; }
 

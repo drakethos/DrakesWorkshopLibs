@@ -12,7 +12,17 @@ This release targets **Valheim 1.0** API changes (notably item-stand visual upda
 
 ## Required for
 
+- **LockSmith** (ArtItemLoader for the Locksmith Key pack)
 - **DrakesRenameit** (and any future DrakeMods that share display / config sync)
+
+## Art items (ArtItemLoader)
+
+Consumer mods call `ArtItemLoader.Register(log, pluginDir, config, customize)` from `Awake`. Layouts:
+
+- **Folder pack:** `Assets/Items/keys/keys.bundle` + `masterkey.json` / `masterkey.png` (shared bundle, many items)
+- **Legacy:** `Assets/Items/<id>/item.json` + `art.bundle`
+
+Optional `customize` can set name, recipe, scale, materials, or `UseDonorVisual` (keep CryptKey mesh, retint only).
 
 ## Server config sync (DrakeConfigSync)
 

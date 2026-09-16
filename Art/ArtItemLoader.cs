@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BepInEx.Configuration;
@@ -15,11 +16,22 @@ using UnityEngine;
 namespace DrakeModsLibs.Art;
 
 /// <summary>
-/// Loads every Assets/Items/&lt;id&gt; folder beside a plugin. The mod does not copy this class.
+/// Loads Assets/Items beside a plugin. Supports both layouts:
+/// <list type="bullet">
+/// <item>Folder pack: Assets/Items/keys/keys.bundle + keymaker.json, masterkey.json, …</item>
+/// <item>Legacy: Assets/Items/keymaker/item.json + art.bundle</item>
+/// </list>
 /// Call <see cref="Register"/> and pass a customize hook if you want to change name, description, scale, or materials in code.
 /// </summary>
 public static class ArtItemLoader
 {
+    /// <summary>
+    /// Unity refuses to LoadFromFile the same AssetBundle path twice. Folder packs share one
+    /// keys.bundle across many JSON items — cache by full path for the process lifetime.
+    /// </summary>
+    private static readonly Dictionary<string, object> BundleCache =
+        new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
     public static void Register(
         ManualLogSource log,
         string pluginDirectory,
@@ -46,67 +58,139 @@ public static class ArtItemLoader
         }
 
         var registered = 0;
-        foreach (var dir in EnumerateItemFolders(itemsRoot))
+        foreach (var entry in EnumerateItemEntries(itemsRoot))
         {
             try
             {
-                if (AddItem(log, dir, config, customize))
+                if (AddItem(log, entry, config, customize))
                     registered++;
             }
             catch (Exception ex)
             {
-                log?.LogError($"[ArtForge] Failed '{Path.GetFileName(dir)}': {ex.Message}");
+                log?.LogError($"[ArtForge] Failed '{entry.Id}': {ex.Message}");
             }
         }
 
         log?.LogInfo($"[ArtForge] Registered {registered} item(s) from {itemsRoot}");
     }
 
-    private static IEnumerable<string> EnumerateItemFolders(string root)
+    private sealed class ItemEntry
+    {
+        public string Id = "";
+        public string WirePath = "";
+        public string Folder = "";
+        public string? BundlePath;
+        public string? IconPath;
+        public string PrefabInBundle = "art";
+    }
+
+    private static IEnumerable<ItemEntry> EnumerateItemEntries(string root)
     {
         if (!Directory.Exists(root))
             yield break;
 
         foreach (var dir in Directory.EnumerateDirectories(root))
         {
-            if (File.Exists(Path.Combine(dir, "item.json")))
+            var folderName = Path.GetFileName(dir);
+
+            // Folder pack: keys/keys.bundle + keymaker.json, masterkey.json, …
+            var folderBundle = Path.Combine(dir, folderName + ".bundle");
+            if (!File.Exists(folderBundle))
             {
-                yield return dir;
+                folderBundle = Directory.EnumerateFiles(dir, "*.bundle", SearchOption.TopDirectoryOnly)
+                    .FirstOrDefault(f => !Path.GetFileName(f).Equals("art.bundle", StringComparison.OrdinalIgnoreCase));
+            }
+
+            var packJsons = Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly)
+                .Where(j => !Path.GetFileName(j).Equals("item.json", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (folderBundle != null && File.Exists(folderBundle) && packJsons.Count > 0)
+            {
+                foreach (var json in packJsons)
+                {
+                    var leaf = Path.GetFileNameWithoutExtension(json);
+                    var icon = Path.Combine(dir, leaf + ".png");
+                    if (!File.Exists(icon))
+                        icon = Path.Combine(dir, leaf + "_icon.png");
+
+                    yield return new ItemEntry
+                    {
+                        Id = leaf,
+                        WirePath = json,
+                        Folder = dir,
+                        BundlePath = folderBundle,
+                        IconPath = File.Exists(icon) ? icon : null,
+                        PrefabInBundle = leaf,
+                    };
+                }
+
                 continue;
             }
 
-            foreach (var nested in EnumerateItemFolders(dir))
+            // Legacy: …/keymaker/item.json (+ art.bundle)
+            var legacyWire = Path.Combine(dir, "item.json");
+            if (File.Exists(legacyWire))
+            {
+                var legacyBundle = Path.Combine(dir, "art.bundle");
+                if (!File.Exists(legacyBundle))
+                {
+                    var named = Path.Combine(dir, folderName + ".bundle");
+                    if (File.Exists(named))
+                        legacyBundle = named;
+                    else
+                        legacyBundle = null;
+                }
+
+                var icon = Path.Combine(dir, "icon.png");
+                yield return new ItemEntry
+                {
+                    Id = folderName,
+                    WirePath = legacyWire,
+                    Folder = dir,
+                    BundlePath = legacyBundle != null && File.Exists(legacyBundle) ? legacyBundle : null,
+                    IconPath = File.Exists(icon) ? icon : null,
+                    PrefabInBundle = "art",
+                };
+                continue;
+            }
+
+            foreach (var nested in EnumerateItemEntries(dir))
                 yield return nested;
         }
     }
 
-    private static bool AddItem(ManualLogSource log, string folder, ConfigFile? config, Action<ArtItemContext>? customize)
+    private static bool AddItem(
+        ManualLogSource log,
+        ItemEntry entry,
+        ConfigFile? config,
+        Action<ArtItemContext>? customize)
     {
-        var wirePath = Path.Combine(folder, "item.json");
-        var bundlePath = Path.Combine(folder, "art.bundle");
-        if (!File.Exists(wirePath))
+        if (!File.Exists(entry.WirePath))
         {
-            log?.LogWarning($"[ArtForge] Skip {Path.GetFileName(folder)} — needs item.json.");
+            log?.LogWarning($"[ArtForge] Skip {entry.Id} — wire json missing.");
             return false;
         }
 
-        var hasArtBundle = File.Exists(bundlePath);
-
-        var wire = File.ReadAllText(wirePath);
-        var id = ReadString(wire, "id") ?? Path.GetFileName(folder);
+        var wire = File.ReadAllText(entry.WirePath);
+        var id = ReadString(wire, "id") ?? entry.Id;
         var donor = ReadString(wire, "donor");
         if (string.IsNullOrWhiteSpace(donor))
         {
-            log?.LogError($"[ArtForge] {id}: item.json is missing donor.");
+            log?.LogError($"[ArtForge] {id}: json is missing donor.");
             return false;
         }
+
+        var prefabInBundle = ReadString(wire, "artPrefab")
+                             ?? ReadString(wire, "prefabInBundle")
+                             ?? entry.PrefabInBundle;
 
         var context = new ArtItemContext
         {
             Id = id,
             SourceId = ReadString(wire, "sourceId") ?? id,
             Donor = donor,
-            Folder = folder,
+            Folder = entry.Folder,
             DisplayName = ReadString(wire, "displayName") ?? id,
             Description = ReadString(wire, "description"),
             Scale = SanitizeScale(ReadFloat(wire, "scale") ?? 1f),
@@ -153,15 +237,22 @@ public static class ArtItemLoader
 
         context.Prefab = item.ItemPrefab;
         context.Drop = drop;
-        ApplyIcon(log, folder, drop);
-        if (hasArtBundle)
+        ApplyIcon(log, entry.IconPath, drop);
+        if (context.UseDonorVisual)
         {
-            if (!AttachArtPrefab(log, item.ItemPrefab, bundlePath, context))
+            // Keep CryptKey / swamp-key mesh; only retint when materials were requested.
+            if (context.Materials.Count > 0 && item.ItemPrefab != null)
+                ApplyExistingMaterials(log, item.ItemPrefab, context);
+            log?.LogInfo($"[ArtForge] {context.Id}: UseDonorVisual — kept donor mesh.");
+        }
+        else if (!string.IsNullOrWhiteSpace(entry.BundlePath) && File.Exists(entry.BundlePath))
+        {
+            if (!AttachArtPrefab(log, item.ItemPrefab, entry.BundlePath, context, prefabInBundle))
                 return false;
         }
         else
         {
-            log?.LogInfo($"[ArtForge] {context.Id}: registered without art.bundle (scripts/properties / icon only).");
+            log?.LogInfo($"[ArtForge] {context.Id}: registered without art bundle (scripts/properties / icon only).");
         }
 
         ItemManager.Instance.AddItem(item);
@@ -224,10 +315,9 @@ public static class ArtItemLoader
             context.Description = description.Trim();
     }
 
-    private static void ApplyIcon(ManualLogSource log, string folder, ItemDrop drop)
+    private static void ApplyIcon(ManualLogSource log, string? iconPath, ItemDrop drop)
     {
-        var iconPath = Path.Combine(folder, "icon.png");
-        if (!File.Exists(iconPath))
+        if (string.IsNullOrWhiteSpace(iconPath) || !File.Exists(iconPath))
             return;
 
         try
@@ -246,31 +336,70 @@ public static class ArtItemLoader
         }
     }
 
-    private static bool AttachArtPrefab(ManualLogSource log, GameObject item, string bundlePath, ArtItemContext context)
+    private static object? LoadOrGetBundle(string bundlePath, ManualLogSource log)
+    {
+        if (string.IsNullOrWhiteSpace(bundlePath))
+            return null;
+
+        var key = Path.GetFullPath(bundlePath);
+        if (BundleCache.TryGetValue(key, out var cached) && cached != null)
+            return cached;
+
+        var bundleType = Type.GetType("UnityEngine.AssetBundle, UnityEngine.AssetBundleModule");
+        var load = bundleType?.GetMethod(
+            "LoadFromFile",
+            BindingFlags.Public | BindingFlags.Static,
+            null,
+            new[] { typeof(string) },
+            null);
+        var bundle = load?.Invoke(null, new object[] { key });
+        if (bundle == null)
+            return null;
+
+        BundleCache[key] = bundle;
+        return bundle;
+    }
+
+    private static bool AttachArtPrefab(
+        ManualLogSource log,
+        GameObject item,
+        string bundlePath,
+        ArtItemContext context,
+        string preferredPrefabName)
     {
         var bundleType = Type.GetType("UnityEngine.AssetBundle, UnityEngine.AssetBundleModule");
-        var load = bundleType?.GetMethod("LoadFromFile", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(string) }, null);
-        var bundle = load?.Invoke(null, new object[] { bundlePath });
-        if (bundle == null)
+        var bundle = LoadOrGetBundle(bundlePath, log);
+        if (bundle == null || bundleType == null)
         {
-            log?.LogError($"[ArtForge] {context.Id}: art.bundle failed to load.");
+            log?.LogError($"[ArtForge] {context.Id}: art bundle failed to load ({Path.GetFileName(bundlePath)}).");
             return false;
         }
 
         var loadAsset = bundleType.GetMethod("LoadAsset", new[] { typeof(string), typeof(Type) });
-        var art = loadAsset?.Invoke(bundle, new object[] { "art", typeof(GameObject) }) as GameObject;
+        GameObject? art = null;
+        foreach (var name in PrefabNameCandidates(preferredPrefabName, context))
+        {
+            art = loadAsset?.Invoke(bundle, new object[] { name, typeof(GameObject) }) as GameObject;
+            if (art != null)
+                break;
+        }
+
         if (art == null)
         {
-            log?.LogError($"[ArtForge] {context.Id}: bundle has no prefab named 'art'.");
+            log?.LogError(
+                $"[ArtForge] {context.Id}: bundle '{Path.GetFileName(bundlePath)}' has no prefab " +
+                $"'{preferredPrefabName}' (also tried art / sourceId).");
             return false;
         }
 
-        var visual = UnityEngine.Object.Instantiate(art, item.transform, false);
+        var visual = UnityEngine.Object.Instantiate(art, FindHoldAttach(item) ?? item.transform, false);
         visual.name = "art";
         visual.transform.localPosition = Vector3.zero;
         visual.transform.localRotation = Quaternion.identity;
         visual.transform.localScale = Vector3.one * context.Scale;
+        OrientHeldArtForHand(log, visual);
         ApplyExistingMaterials(log, visual, context);
+        ApplyBundleDiffuse(log, bundle, bundleType, loadAsset, visual, context);
 
         foreach (var renderer in item.GetComponentsInChildren<Renderer>(true))
         {
@@ -285,12 +414,267 @@ public static class ArtItemLoader
         return true;
     }
 
+    /// <summary>
+    /// If the art / folder pack includes a diffuse Texture2D (compile-time PNG), stamp it onto
+    /// the Valheim materials already applied so the custom albedo shows with a game shader.
+    /// </summary>
+    private static void ApplyBundleDiffuse(
+        ManualLogSource log,
+        object bundle,
+        Type bundleType,
+        MethodInfo? loadAsset,
+        GameObject visual,
+        ArtItemContext context)
+    {
+        var tex = FindBundleDiffuse(bundle, bundleType, loadAsset, context);
+        if (tex == null)
+            return;
+
+        var stamped = 0;
+        foreach (var renderer in visual.GetComponentsInChildren<Renderer>(true))
+        {
+            if (renderer == null)
+                continue;
+
+            // .materials clones shared mats so we don't mutate global Valheim iron/bronze.
+            var mats = renderer.materials;
+            for (var i = 0; i < mats.Length; i++)
+            {
+                var mat = mats[i];
+                if (mat == null)
+                    continue;
+                if (mat.HasProperty("_MainTex"))
+                {
+                    mat.SetTexture("_MainTex", tex);
+                    stamped++;
+                }
+                else if (mat.HasProperty("_BaseMap"))
+                {
+                    mat.SetTexture("_BaseMap", tex);
+                    stamped++;
+                }
+            }
+
+            renderer.materials = mats;
+        }
+
+        if (stamped > 0)
+            log?.LogInfo($"[ArtForge] {context.Id}: stamped bundle diffuse '{tex.name}' on {stamped} material slot(s).");
+    }
+
+    private static Texture2D? FindBundleDiffuse(
+        object bundle,
+        Type bundleType,
+        MethodInfo? loadAsset,
+        ArtItemContext context)
+    {
+        var candidates = new[]
+        {
+            context.Id + "_diffuse",
+            (context.SourceId ?? "") + "_diffuse",
+            "diffuse",
+            context.Id,
+        };
+
+        foreach (var name in candidates)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+            var tex = loadAsset?.Invoke(bundle, new object[] { name, typeof(Texture2D) }) as Texture2D;
+            if (tex != null)
+                return tex;
+        }
+
+        var loadAll = bundleType.GetMethod("LoadAllAssets", new[] { typeof(Type) });
+        if (loadAll?.Invoke(bundle, new object[] { typeof(Texture2D) }) is not Array all)
+            return null;
+
+        Texture2D? matched = null;
+        foreach (var obj in all)
+        {
+            if (obj is not Texture2D tex)
+                continue;
+            var n = tex.name ?? "";
+            // Only this item's diffuse — never stamp another key's albedo onto KeyMaker / siblings.
+            if (n.IndexOf(context.Id, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                n.IndexOf("diffuse", StringComparison.OrdinalIgnoreCase) >= 0)
+                return tex;
+            if (!string.IsNullOrEmpty(context.SourceId) &&
+                n.IndexOf(context.SourceId, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                n.IndexOf("diffuse", StringComparison.OrdinalIgnoreCase) >= 0)
+                matched ??= tex;
+        }
+
+        return matched;
+    }
+
+    /// <summary>
+    /// Prefer the donor's hold/attach transform (OpenHold / attach) so the art sits in the open hand.
+    /// </summary>
+    private static Transform? FindHoldAttach(GameObject item)
+    {
+        Transform? ranked = null;
+        var best = 0;
+        foreach (var t in item.GetComponentsInChildren<Transform>(true))
+        {
+            if (t == null || t == item.transform)
+                continue;
+            var n = t.name;
+            var score = 0;
+            if (n.IndexOf("OpenHold", StringComparison.OrdinalIgnoreCase) >= 0)
+                score = 3;
+            else if (n.Equals("attach", StringComparison.OrdinalIgnoreCase))
+                score = 2;
+            else if (n.IndexOf("attach", StringComparison.OrdinalIgnoreCase) >= 0)
+                score = 1;
+            if (score > best)
+            {
+                best = score;
+                ranked = t;
+            }
+        }
+
+        return ranked;
+    }
+
+    /// <summary>
+    /// Hand pose for held art (keys etc.): roll so the skull/detail face shows,
+    /// then slide so the handle/grip sits on the hold attach and the teeth point out.
+    /// Same approach as LockSmith's FixKeyHandAttach.
+    /// </summary>
+    private static void OrientHeldArtForHand(ManualLogSource log, GameObject visual)
+    {
+        try
+        {
+            if (!TryGetArtLocalBounds(visual, out var bounds))
+                return;
+
+            var size = bounds.size;
+            var axis = 0;
+            if (size.y > size[axis])
+                axis = 1;
+            if (size.z > size[axis])
+                axis = 2;
+
+            // Roll 180° around the shaft — skull face toward camera, not the underside.
+            var roll = axis == 0
+                ? Quaternion.Euler(180f, 0f, 0f)
+                : axis == 1
+                    ? Quaternion.Euler(0f, 180f, 0f)
+                    : Quaternion.Euler(0f, 0f, 180f);
+            visual.transform.localRotation = roll * visual.transform.localRotation;
+
+            // Handle/grip at the hold point (hand). Teeth/bit at the far end of the shaft.
+            const bool handleAtMax = false;
+            var handleLocal = bounds.center;
+            handleLocal[axis] = handleAtMax ? bounds.max[axis] : bounds.min[axis];
+
+            var scaled = Vector3.Scale(handleLocal, visual.transform.localScale);
+            visual.transform.localPosition -= visual.transform.localRotation * scaled;
+
+            log?.LogInfo(
+                $"[ArtForge] Hold orient '{visual.name}': shaft-roll180 axis={axis}, " +
+                $"handle=min, bounds={size}.");
+        }
+        catch (Exception ex)
+        {
+            log?.LogWarning($"[ArtForge] Hold orient skipped: {ex.Message}");
+        }
+    }
+
+    private static bool TryGetArtLocalBounds(GameObject visual, out Bounds bounds)
+    {
+        bounds = default;
+        var first = true;
+        foreach (var filter in visual.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (filter?.sharedMesh == null)
+                continue;
+            var b = filter.sharedMesh.bounds;
+            // Mesh bounds are in filter-local space — convert into visual-local.
+            var corners = new[]
+            {
+                new Vector3(b.min.x, b.min.y, b.min.z),
+                new Vector3(b.min.x, b.min.y, b.max.z),
+                new Vector3(b.min.x, b.max.y, b.min.z),
+                new Vector3(b.min.x, b.max.y, b.max.z),
+                new Vector3(b.max.x, b.min.y, b.min.z),
+                new Vector3(b.max.x, b.min.y, b.max.z),
+                new Vector3(b.max.x, b.max.y, b.min.z),
+                new Vector3(b.max.x, b.max.y, b.max.z),
+            };
+            foreach (var c in corners)
+            {
+                var world = filter.transform.TransformPoint(c);
+                var local = visual.transform.InverseTransformPoint(world);
+                if (first)
+                {
+                    bounds = new Bounds(local, Vector3.zero);
+                    first = false;
+                }
+                else
+                {
+                    bounds.Encapsulate(local);
+                }
+            }
+        }
+
+        foreach (var skinned in visual.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            if (skinned?.sharedMesh == null)
+                continue;
+            var b = skinned.localBounds;
+            var corners = new[]
+            {
+                new Vector3(b.min.x, b.min.y, b.min.z),
+                new Vector3(b.min.x, b.min.y, b.max.z),
+                new Vector3(b.min.x, b.max.y, b.min.z),
+                new Vector3(b.min.x, b.max.y, b.max.z),
+                new Vector3(b.max.x, b.min.y, b.min.z),
+                new Vector3(b.max.x, b.min.y, b.max.z),
+                new Vector3(b.max.x, b.max.y, b.min.z),
+                new Vector3(b.max.x, b.max.y, b.max.z),
+            };
+            foreach (var c in corners)
+            {
+                var world = skinned.transform.TransformPoint(c);
+                var local = visual.transform.InverseTransformPoint(world);
+                if (first)
+                {
+                    bounds = new Bounds(local, Vector3.zero);
+                    first = false;
+                }
+                else
+                {
+                    bounds.Encapsulate(local);
+                }
+            }
+        }
+
+        return !first;
+    }
+
+    private static IEnumerable<string> PrefabNameCandidates(string preferred, ArtItemContext context)
+    {
+        if (!string.IsNullOrWhiteSpace(preferred))
+            yield return preferred.Trim();
+        if (!string.IsNullOrWhiteSpace(context.Id) &&
+            !context.Id.Equals(preferred, StringComparison.OrdinalIgnoreCase))
+            yield return context.Id;
+        if (!string.IsNullOrWhiteSpace(context.SourceId) &&
+            !context.SourceId.Equals(preferred, StringComparison.OrdinalIgnoreCase) &&
+            !context.SourceId.Equals(context.Id, StringComparison.OrdinalIgnoreCase))
+            yield return context.SourceId;
+        yield return "art";
+    }
+
     private static void ApplyExistingMaterials(ManualLogSource log, GameObject visual, ArtItemContext context)
     {
         if (context.Materials.Count == 0)
         {
-            log?.LogWarning($"[ArtForge] {context.Id}: no materials set. The art mesh has nothing to draw with. Set Materials in config or the editor (try iron).");
-            return;
+            // Held art with stripped mats is a black silhouette — use iron until Customize/config sets one.
+            context.SetMaterials("iron");
+            log?.LogInfo($"[ArtForge] {context.Id}: no materials set — defaulting to iron for visibility.");
         }
 
         var loaded = Resources.FindObjectsOfTypeAll<Material>();

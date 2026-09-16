@@ -1,5 +1,11 @@
 # DrakeModsLibs
 
+## 0.9.2
+- **ArtItemLoader** — register Asset Forge items from `Assets/Items` beside a consumer plugin (optional customize hook).
+- Folder packs: shared `keys.bundle` + per-item JSON/PNG (e.g. LockSmith `masterkey`), with process-lifetime AssetBundle path cache.
+- Legacy layout still supported: `Assets/Items/<id>/item.json` + `art.bundle`.
+- `ArtItemContext.UseDonorVisual` keeps the donor mesh and only retints materials when requested.
+
 ## 0.9.1
 - Item-stand hover labels load the attached item from the stand ZDO (durability and custom data) instead of the prefab, so names stay accurate without mutating ObjectDB.
 - `CustomizeLibsAPI.RefreshItemStandDisplayNames` recomputes stand labels immediately after name-modifier config changes.

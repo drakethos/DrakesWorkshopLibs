@@ -67,16 +67,37 @@ public static class DrakeCustomDataCatalog
 
         RegisterModFields(ModWorkshopLibs, new[]
         {
-            new DrakeCustomDataField(DrakeCustomDataKeys.NoRename, ModWorkshopLibs, DrakeCustomDataKind.Tag, "Block rename"),
-            new DrakeCustomDataField(DrakeCustomDataKeys.NoDescription, ModWorkshopLibs, DrakeCustomDataKind.Tag, "Block description edit"),
-            new DrakeCustomDataField(DrakeCustomDataKeys.NoCraftedByEdit, ModWorkshopLibs, DrakeCustomDataKind.Tag, "Block crafted-by edit"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.NoRename, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Soft block rename; suppresses RenameIt inventory UI"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.NoDescription, ModWorkshopLibs, DrakeCustomDataKind.Tag, "Soft block description edit"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.NoCraftedByEdit, ModWorkshopLibs, DrakeCustomDataKind.Tag, "Soft block crafted-by edit"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.HardNoRename, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Hard block rename (no admin bypass); suppresses inventory UI"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.HardNoDescription, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Hard block description (no admin bypass); suppresses inventory UI"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.HardNoCraftedByEdit, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Hard block crafted-by (no admin bypass); suppresses inventory UI"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.Immutable, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Hard block all edits (no admin bypass); suppresses inventory UI"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.DeferRename, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Defer rename-name to EditAuthority"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.DeferDescription, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Defer description edit to EditAuthority"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.DeferCraftedBy, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Defer crafted-by edit to EditAuthority"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.DeferEdits, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "Defer all edits to EditAuthority"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.EditAuthority, ModWorkshopLibs, DrakeCustomDataKind.Text,
+                "Deferred edit authority id (e.g. LockSmith)"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.DeferSuppressUi, ModWorkshopLibs, DrakeCustomDataKind.Tag,
+                "With deferral: suppress RenameIt inventory UI"),
         });
 
         RegisterModFields(ModQuestItems, new[]
         {
-            new DrakeCustomDataField(DrakeCustomDataKeys.QuestItem, ModQuestItems, DrakeCustomDataKind.Tag, "Quest item"),
+            new DrakeCustomDataField(DrakeCustomDataKeys.QuestItem, ModQuestItems, DrakeCustomDataKind.Tag,
+                "Soft block all edits; suppresses RenameIt inventory UI"),
         });
-
         RegisterModFields(ModItemShop, new[]
         {
             new DrakeCustomDataField(DrakeCustomDataKeys.MarketPrice, ModItemShop, DrakeCustomDataKind.Text, "Market price"),

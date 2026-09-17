@@ -53,6 +53,83 @@ Built-in mod ids: `DrakesRenameIt`, `DrakeModsLibs`, `DrakesQuestItems`, `Drakes
 
 Subscribe to `CustomizationEvents.OnItemNameChanged` for rename logging; use `DrakeCustomDataKeys.Rename` with `GetCustomDataValue`.
 
+## Tag gates (RenameIt integration)
+
+Other mods talk to **Libs only**; RenameIt calls `CanPerform` / `IsRenameInventorySuppressed` and never needs a new release for your tags.
+
+| Built-in tag | Blocks | Inventory UI | Admin bypass |
+|--------------|--------|--------------|--------------|
+| `Drake_NoRename` | rename | suppress | soft (yes) |
+| `Drake_NoDesc` | description | — | soft (yes) |
+| `Drake_NoCraftedByEdit` | crafted-by | — | soft (yes) |
+| `Drake_QuestItem` | all edits | suppress | soft (yes) |
+| `Drake_HardNoRename` | rename | suppress | **hard (no)** |
+| `Drake_HardNoDesc` | description | suppress | **hard (no)** |
+| `Drake_HardNoCraftedBy` | crafted-by | suppress | **hard (no)** |
+| `Drake_Immutable` | all edits | suppress | **hard (no)** |
+| Deferred (`DeferEditsTo`) | chosen ops | optional | **authority decides** |
+
+```csharp
+// Soft stamp (admin/VIP TagBypass may still allow)
+CustomizeLibsAPI.BlockRename(item);
+
+// Hard stamp (LockSmith-style safety — no admin bypass)
+CustomizeLibsAPI.HardBlockRename(item);
+// or
+CustomizeLibsAPI.MarkImmutable(item);
+
+// Deferred: owning mod is in charge (not never, not hard-never)
+CustomizeLibsAPI.RegisterDeferredEditAuthority(
+    "LockSmith",
+    CustomizeOperation.RenameName | CustomizeOperation.RenameDescription,
+    (item, player, op) => /* your policy */ true);
+
+CustomizeLibsAPI.DeferEditsTo(
+    item,
+    "LockSmith",
+    CustomizeOperation.RenameName,
+    suppressRenameInventoryUi: true); // Relabel owns inventory menu
+
+// Whole prefab family at startup (no per-drop stamp)
+CustomizeLibsAPI.RegisterItemExclusion(
+    "masterkey",
+    CustomizeOperation.RenameName,
+    suppressRenameInventoryUi: true,
+    hardLock: true);
+
+CustomizeLibsAPI.RegisterItemDeferral(
+    "CryptKey",
+    "LockSmith",
+    CustomizeOperation.RenameName,
+    suppressRenameInventoryUi: true);
+
+// Custom tag rule at startup (RenameIt picks it up automatically)
+CustomizeLibsAPI.RegisterTagBlockRule(
+    "Drake_MyMod_LockBound",
+    CustomizeOperation.RenameName,
+    suppressRenameInventoryUi: true,
+    hardLock: true);
+```
+
+Soft blocks still respect RenameIt admin/VIP `TagBypass` for `CanPerform`. Hard locks, deferred authority, and inventory UI suppress do **not** auto-apply bypass. Direct `SetCustomName` still works for an owning mod’s Relabel UI.
+
+## Shared wood UI + tab host
+
+RenameIt-looking chrome lives in `DrakeModsLibs.UI`:
+
+- `DrakeWoodActionMenu`, `DrakeConfirmPanel` (300×178), `DrakeTextPromptPanel`
+- `DrakeGuiInput` / `DrakeButtonSfx`
+- **`DrakeTabHost`** — Craft|Upgrade-style **top-right** tabs; only **registered** (installed) mods get a tab. Rename baseline priority is low; feature mods claim default (e.g. Lock on keys). Defer/suppress hides Rename entirely.
+
+Cross-mod knobs: BepInEx config section **`Integration`** (`DrakeIntegrationConfig`) — shared inventory open modifier, `TabPriorityOverrides` (`id=priority;…`), `ForceDefaultTabId`, `DisableClaimDefault`. Feature mods keep gameplay-only config.
+
+**Inventory open + hints (Libs):** `InventoryOpenModifier` + right-click opens `DrakeTabHost` when any **usable** tab exists for the item (permission-aware `IsAvailable`). Yellow interact line:
+- 1 usable tab → that mod’s localized `getHintPhrase` (e.g. LockSmith “configure lock tool”, RenameIt “edit”)
+- 2+ usable → Libs localized `customize`
+Do not put those phrases in Libs — register getters from each feature mod. Tab strip appears only when usable count ≥ 2.
+
+**RenameIt handoff:** Register tab `renameit` with your localized hint; `IsAvailable` must respect suppress **and** TagBypass (admin may get usable=2 on Locksmith keys). Drop competing “for options” tooltip/open once Libs consumes usable ≥ 1.
+
 ## Install
 
 1. Install **BepInEx** and **Jotunn** (see Thunderstore dependencies).

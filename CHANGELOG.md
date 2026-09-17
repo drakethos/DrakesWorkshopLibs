@@ -1,5 +1,14 @@
 # DrakeModsLibs
 
+## 0.9.4
+- Soft `IsRenameInventorySuppressed` respects admin/VIP `TagBypass` (hard suppress still always hides Rename inventory UI).
+- `HardNoDescription` / `HardNoCraftedByEdit` no longer set `suppressRenameInventoryUi` — they block those ops only, so Locksmith keys can show Lock|Rename tabs for bypass admins.
+- Shared Drake wood UI shell (RenameIt-standard): `DrakeWoodActionMenu`, `DrakeConfirmPanel` (300×178), `DrakeTextPromptPanel`, `DrakeGuiInput`, `DrakeButtonSfx`.
+- **`DrakeTabHost`**: Craft|Upgrade-style top-right tabs; `Register` / `ClaimDefault` / priority (Rename baseline low); `Hide` / `NotifyFeatureClosed`; `CloseSilent` on action menus. Missing mod = no tab.
+- Inventory context chord: Libs `Integration.InventoryOpenModifier` → open when any usable tab exists; dynamic interact hint (`getHintPhrase` / multi-mode customize token).
+- **`DrakeIntegrationConfig`**: umbrella Integration section — shared open modifier, tab priority overrides, force default tab, disable ClaimDefault.
+- Tag / edit gatekeeper: rule-driven `IsRenameInventorySuppressed`; hard locks; deferred edit authority; soft stamp helpers; prefab/family exclusions and deferrals.
+
 ## 0.9.3
 - Fix Valheim 1.0 pickup/drop HUD: `Character.Message` / `Player.Message` take a fifth `bool log` argument. Old 4-arg calls threw `MissingMethodException` on every pickup.
 

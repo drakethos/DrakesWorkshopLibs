@@ -1,5 +1,8 @@
 using BepInEx;
+using DrakeModsLibs.Input;
+using DrakeModsLibs.Integration;
 using HarmonyLib;
+using Jotunn.Managers;
 
 namespace DrakeModsLibs;
 
@@ -11,7 +14,24 @@ public partial class CustomizeLibsPlugin : BaseUnityPlugin
 
     private void Awake()
     {
+        DrakeIntegrationConfig.Bind(Config);
+        MenuBindingRegistry.SetLogger(Logger);
+        MenuBindingRegistry.Register(
+            InventoryContextHints.BindingId,
+            MenuBindingRegistry.InventoryContextScope,
+            priority: 0,
+            () => DrakeIntegrationConfig.InventoryOpenModifier,
+            ModName);
+
         HarmonyPatchHub.ApplyAll(_harmony, Logger);
-        Logger.LogInfo($"{ModName} {Version} loaded (display patches, DrakeConfigSync API, shared API).");
+
+        PrefabManager.OnVanillaPrefabsAvailable += OnVanillaPrefabs;
+        Logger.LogInfo($"{ModName} {Version} loaded (display patches, DrakeConfigSync API, shared wood UI + inventory context host).");
+    }
+
+    void OnVanillaPrefabs()
+    {
+        PrefabManager.OnVanillaPrefabsAvailable -= OnVanillaPrefabs;
+        InventoryContextLocalization.Register();
     }
 }

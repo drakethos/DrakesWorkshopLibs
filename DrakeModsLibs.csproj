@@ -35,6 +35,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(CorlibPath)\UnityEngine.CoreModule.dll</HintPath></Reference>
     <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(CorlibPath)\UnityEngine.IMGUIModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(CorlibPath)\UnityEngine.UI.dll</HintPath></Reference>
     <Reference Include="Unity.TextMeshPro"><HintPath>$(CorlibPath)\Unity.TextMeshPro.dll</HintPath></Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,6 +47,7 @@
     <Compile Include="API\CustomizationEvents.cs" />
     <Compile Include="API\CustomizeLibsAPI.cs" />
     <Compile Include="API\CustomizeOperation.cs" />
+    <Compile Include="API\DeferredEditHandler.cs" />
     <Compile Include="API\DrakeCustomDataField.cs" />
     <Compile Include="API\DrakeCustomDataKind.cs" />
     <Compile Include="API\IDisplayNameModifier.cs" />
@@ -53,6 +55,7 @@
     <Compile Include="API\IStackMergePolicy.cs" />
     <Compile Include="API\ItemCustomDataDumpFormat.cs" />
     <Compile Include="API\ItemCustomDataDumpOptions.cs" />
+    <Compile Include="API\ItemExclusionRule.cs" />
     <Compile Include="API\TagBlockRule.cs" />
     <Compile Include="CustomizeLibsPlugin.cs" />
     <Compile Include="Data\DrakeCustomDataCatalog.cs" />
@@ -66,7 +69,12 @@
     <Compile Include="HarmonyPatchHub.cs" />
     <Compile Include="Input\MenuBindingRegistry.cs" />
     <Compile Include="Input\MenuKeyBinding.cs" />
+    <Compile Include="Integration\DrakeIntegrationConfig.cs" />
+    <Compile Include="Integration\InventoryContextHints.cs" />
+    <Compile Include="Integration\InventoryContextLocalization.cs" />
     <Compile Include="Patches\DecoratedNamePatches.cs" />
+    <Compile Include="Patches\InventoryContextHintPatch.cs" />
+    <Compile Include="Patches\InventoryContextOpenPatch.cs" />
     <Compile Include="Patches\InventoryGridDisplayTooltipPatch.cs" />
     <Compile Include="Patches\InventoryStackPatches.cs" />
     <Compile Include="Patches\ItemDisplayPatches.cs" />
@@ -77,6 +85,16 @@
     <Compile Include="Stack\StackIdentity.cs" />
     <Compile Include="Tags\CustomizationGatekeeper.cs" />
     <Compile Include="Tags\DrakeTagManager.cs" />
+    <Compile Include="Tags\ItemNameMatch.cs" />
+    <Compile Include="UI\DrakeButtonSfx.cs" />
+    <Compile Include="UI\DrakeConfirmPanel.cs" />
+    <Compile Include="UI\DrakeGuiInput.cs" />
+    <Compile Include="UI\DrakeMenuAction.cs" />
+    <Compile Include="UI\DrakeTabHost.cs" />
+    <Compile Include="UI\DrakeTabPageContext.cs" />
+    <Compile Include="UI\DrakeTabRegistration.cs" />
+    <Compile Include="UI\DrakeTextPromptPanel.cs" />
+    <Compile Include="UI\DrakeWoodActionMenu.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

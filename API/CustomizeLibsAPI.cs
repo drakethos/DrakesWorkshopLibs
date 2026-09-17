@@ -71,6 +71,29 @@ public static class CustomizeLibsAPI
     public static void RegisterTagBlockRule(string tagKey, CustomizeOperation blockedOperations) =>
         CustomizationGatekeeper.RegisterTagBlockRule(tagKey, blockedOperations);
 
+    /// <summary>
+    /// Register a tag that blocks <paramref name="blockedOperations"/>. When
+    /// <paramref name="suppressRenameInventoryUi"/> is true, RenameIt inventory menu/tooltips
+    /// stand down for tagged items (no RenameIt code change needed for new tags).
+    /// </summary>
+    public static void RegisterTagBlockRule(
+        string tagKey,
+        CustomizeOperation blockedOperations,
+        bool suppressRenameInventoryUi) =>
+        CustomizationGatekeeper.RegisterTagBlockRule(tagKey, blockedOperations, suppressRenameInventoryUi);
+
+    /// <summary>
+    /// Register a tag block. When <paramref name="hardLock"/> is true, <see cref="CanPerform"/>
+    /// always denies — admin/VIP <c>TagBypass</c> cannot override.
+    /// </summary>
+    public static void RegisterTagBlockRule(
+        string tagKey,
+        CustomizeOperation blockedOperations,
+        bool suppressRenameInventoryUi,
+        bool hardLock) =>
+        CustomizationGatekeeper.RegisterTagBlockRule(
+            tagKey, blockedOperations, suppressRenameInventoryUi, hardLock);
+
     public static void RegisterDisplayNameLayer(IItemDisplayNameLayer layer) =>
         DisplayNameResolutionPipeline.RegisterLayer(layer);
 
@@ -82,6 +105,153 @@ public static class CustomizeLibsAPI
 
     public static bool CanEditCraftedBy(ItemDrop.ItemData? item, Player? player) =>
         CanPerform(CustomizeOperation.EditCraftedBy, item, player);
+
+    /// <summary>True when a hard-lock tag blocks this operation (TagBypass cannot override).</summary>
+    public static bool IsHardBlocked(CustomizeOperation operation, ItemDrop.ItemData? item) =>
+        CustomizationGatekeeper.IsHardBlockedByTag(operation, item);
+
+    /// <summary>
+    /// When true, inventory rename UIs (RenameIt menu + tooltip hints) should leave this item alone.
+    /// Soft suppress tags (e.g. <see cref="DrakeCustomDataKeys.NoRename"/>) respect admin/VIP
+    /// <c>TagBypass</c>. Hard suppress (<see cref="DrakeCustomDataKeys.HardNoRename"/> /
+    /// <see cref="DrakeCustomDataKeys.Immutable"/>) always stands down Rename inventory UI.
+    /// Direct <see cref="SetCustomName"/> still works for mods that own their own relabel UI.
+    /// </summary>
+    public static bool IsRenameInventorySuppressed(ItemDrop.ItemData? item) =>
+        CustomizationGatekeeper.IsRenameInventorySuppressed(item);
+
+    /// <inheritdoc cref="IsRenameInventorySuppressed(ItemDrop.ItemData?)"/>
+    public static bool IsRenameInventorySuppressed(ItemDrop.ItemData? item, Player? player) =>
+        CustomizationGatekeeper.IsRenameInventorySuppressed(item, player);
+
+    // --- Soft stamps (TagBypass / admin may still allow CanPerform) ---
+
+    public static void BlockRename(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.NoRename);
+    public static void BlockDescription(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.NoDescription);
+    public static void BlockCraftedByEdit(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.NoCraftedByEdit);
+    public static void BlockAllEdits(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.QuestItem);
+
+    public static void ClearBlockRename(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.NoRename);
+    public static void ClearBlockDescription(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.NoDescription);
+    public static void ClearBlockCraftedByEdit(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.NoCraftedByEdit);
+    public static void ClearBlockAllEdits(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.QuestItem);
+
+    // --- Prefab / family exclusions (startup; no per-item stamp required) ---
+
+    /// <summary>
+    /// Soft or hard family exclusion. <paramref name="match"/> is token / prefab / localized name
+    /// (same as RenameIt ExcludedNames). Soft exclusions respect TagBypass; hard do not.
+    /// </summary>
+    public static void RegisterItemExclusion(
+        string match,
+        CustomizeOperation blockedOperations,
+        bool suppressRenameInventoryUi = false,
+        bool hardLock = false) =>
+        CustomizationGatekeeper.RegisterItemExclusion(
+            new ItemExclusionRule(match, blockedOperations, suppressRenameInventoryUi, hardLock));
+
+    /// <summary>
+    /// Defer all matching items to <paramref name="authorityId"/> (no per-drop stamp).
+    /// Requires <see cref="RegisterDeferredEditAuthority"/>.
+    /// </summary>
+    public static void RegisterItemDeferral(
+        string match,
+        string authorityId,
+        CustomizeOperation operations,
+        bool suppressRenameInventoryUi = false) =>
+        CustomizationGatekeeper.RegisterItemExclusion(
+            new ItemExclusionRule(
+                match,
+                operations,
+                suppressRenameInventoryUi,
+                hardLock: false,
+                deferredAuthorityId: authorityId));
+
+    // --- Hard lock stamps (RenameIt-facing; owning mods may still SetCustomName) ---
+
+    public static void HardBlockRename(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.HardNoRename);
+    public static void HardBlockDescription(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.HardNoDescription);
+    public static void HardBlockCraftedByEdit(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.HardNoCraftedByEdit);
+    public static void MarkImmutable(ItemDrop.ItemData item) => SetTag(item, DrakeCustomDataKeys.Immutable);
+
+    public static void ClearHardBlockRename(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.HardNoRename);
+    public static void ClearHardBlockDescription(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.HardNoDescription);
+    public static void ClearHardBlockCraftedByEdit(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.HardNoCraftedByEdit);
+    public static void ClearImmutable(ItemDrop.ItemData item) => ClearTag(item, DrakeCustomDataKeys.Immutable);
+
+    // --- Deferred authority ("I am in charge of whether rename is OK") ---
+
+    /// <summary>
+    /// Register at startup. When an item is deferred to <paramref name="authorityId"/>,
+    /// <see cref="CanPerform"/> asks <paramref name="handler"/> (TagBypass does not auto-win).
+    /// </summary>
+    public static void RegisterDeferredEditAuthority(
+        string authorityId,
+        CustomizeOperation operations,
+        DeferredEditHandler handler) =>
+        CustomizationGatekeeper.RegisterDeferredEditAuthority(authorityId, operations, handler);
+
+    /// <summary>
+    /// Stamp an item so RenameIt defers the given ops to <paramref name="authorityId"/>.
+    /// Pair with <see cref="RegisterDeferredEditAuthority"/> in the owning mod.
+    /// </summary>
+    public static void DeferEditsTo(
+        ItemDrop.ItemData item,
+        string authorityId,
+        CustomizeOperation operations,
+        bool suppressRenameInventoryUi = false)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(authorityId) || operations == CustomizeOperation.None)
+            return;
+
+        item.m_customData ??= new System.Collections.Generic.Dictionary<string, string>();
+        item.m_customData[DrakeCustomDataKeys.EditAuthority] = authorityId.Trim();
+
+        ClearDeferOperationTags(item);
+
+        if ((operations & CustomizeOperation.AllEdits) == CustomizeOperation.AllEdits)
+        {
+            SetTag(item, DrakeCustomDataKeys.DeferEdits);
+        }
+        else
+        {
+            if ((operations & CustomizeOperation.RenameName) != 0)
+                SetTag(item, DrakeCustomDataKeys.DeferRename);
+            if ((operations & CustomizeOperation.RenameDescription) != 0)
+                SetTag(item, DrakeCustomDataKeys.DeferDescription);
+            if ((operations & CustomizeOperation.EditCraftedBy) != 0)
+                SetTag(item, DrakeCustomDataKeys.DeferCraftedBy);
+        }
+
+        if (suppressRenameInventoryUi)
+            SetTag(item, DrakeCustomDataKeys.DeferSuppressUi);
+        else
+            ClearTag(item, DrakeCustomDataKeys.DeferSuppressUi);
+    }
+
+    /// <summary>Remove deferral stamps (authority id + defer tags + suppress-UI tag).</summary>
+    public static void ClearEditDeferral(ItemDrop.ItemData item)
+    {
+        if (item == null)
+            return;
+        ClearDeferOperationTags(item);
+        ClearTag(item, DrakeCustomDataKeys.DeferSuppressUi);
+        item.m_customData?.Remove(DrakeCustomDataKeys.EditAuthority);
+    }
+
+    public static bool IsEditDeferred(CustomizeOperation operation, ItemDrop.ItemData? item) =>
+        CustomizationGatekeeper.IsDeferredFor(operation, item);
+
+    public static string? GetEditAuthorityId(ItemDrop.ItemData? item) =>
+        CustomizationGatekeeper.GetEditAuthorityId(item);
+
+    static void ClearDeferOperationTags(ItemDrop.ItemData item)
+    {
+        ClearTag(item, DrakeCustomDataKeys.DeferRename);
+        ClearTag(item, DrakeCustomDataKeys.DeferDescription);
+        ClearTag(item, DrakeCustomDataKeys.DeferCraftedBy);
+        ClearTag(item, DrakeCustomDataKeys.DeferEdits);
+    }
 
 
     // --- Custom data read / dump (for logging, moderation, other mods) ---

@@ -16,5 +16,28 @@ public static class DrakeCustomDataKeys
     public const string NoDescription = "Drake_NoDesc";
     public const string NoCraftedByEdit = "Drake_NoCraftedByEdit";
     public const string QuestItem = "Drake_QuestItem";
+
+    /// <summary>Hard: rename blocked even for admin/VIP TagBypass.</summary>
+    public const string HardNoRename = "Drake_HardNoRename";
+    /// <summary>Hard: description edit blocked even for admin/VIP TagBypass.</summary>
+    public const string HardNoDescription = "Drake_HardNoDesc";
+    /// <summary>Hard: crafted-by edit blocked even for admin/VIP TagBypass.</summary>
+    public const string HardNoCraftedByEdit = "Drake_HardNoCraftedBy";
+    /// <summary>Hard: all RenameIt edits blocked even for admin/VIP TagBypass.</summary>
+    public const string Immutable = "Drake_Immutable";
+
+    /// <summary>Defer rename-name decisions to <see cref="EditAuthority"/>.</summary>
+    public const string DeferRename = "Drake_DeferRename";
+    /// <summary>Defer description-edit decisions to <see cref="EditAuthority"/>.</summary>
+    public const string DeferDescription = "Drake_DeferDesc";
+    /// <summary>Defer crafted-by-edit decisions to <see cref="EditAuthority"/>.</summary>
+    public const string DeferCraftedBy = "Drake_DeferCraftedBy";
+    /// <summary>Defer all edit ops to <see cref="EditAuthority"/>.</summary>
+    public const string DeferEdits = "Drake_DeferEdits";
+    /// <summary>Authority id string (e.g. <c>LockSmith</c>) for deferred edits.</summary>
+    public const string EditAuthority = "Drake_EditAuthority";
+    /// <summary>When set with a deferral, suppress RenameIt inventory UI (owning mod owns menu).</summary>
+    public const string DeferSuppressUi = "Drake_DeferSuppressUi";
+
     public const string MarketPrice = "Drake_MarketPrice";
 }

@@ -90,10 +90,12 @@
     <Compile Include="UI\DrakeConfirmPanel.cs" />
     <Compile Include="UI\DrakeGuiInput.cs" />
     <Compile Include="UI\DrakeMenuAction.cs" />
+    <Compile Include="UI\DrakeNumericStepper.cs" />
     <Compile Include="UI\DrakeTabHost.cs" />
     <Compile Include="UI\DrakeTabPageContext.cs" />
     <Compile Include="UI\DrakeTabRegistration.cs" />
     <Compile Include="UI\DrakeTextPromptPanel.cs" />
+    <Compile Include="UI\DrakeToggleLayout.cs" />
     <Compile Include="UI\DrakeWoodActionMenu.cs" />
   </ItemGroup>
   <ItemGroup>

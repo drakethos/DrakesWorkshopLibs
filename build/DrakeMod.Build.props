@@ -19,6 +19,13 @@
     <AfterTargets Condition="'$(AfterTargets)' == ''">Build</AfterTargets>
     <VerifyNoServerSyncScript Condition="'$(VerifyNoServerSyncScript)' == '' and Exists('$(MSBuildThisFileDirectory)scripts\Verify-NoServerSyncInModDll.ps1')">$(MSBuildThisFileDirectory)scripts\Verify-NoServerSyncInModDll.ps1</VerifyNoServerSyncScript>
     <VerifyNoServerSyncScript Condition="'$(VerifyNoServerSyncScript)' == '' and Exists('$(MSBuildThisFileDirectory)..\scripts\Verify-NoServerSyncInModDll.ps1')">$(MSBuildThisFileDirectory)..\scripts\Verify-NoServerSyncInModDll.ps1</VerifyNoServerSyncScript>
+    <PosixZipScript Condition="'$(PosixZipScript)' == '' and Exists('$(MSBuildThisFileDirectory)scripts\New-PosixZip.ps1')">$(MSBuildThisFileDirectory)scripts\New-PosixZip.ps1</PosixZipScript>
+    <InstallThunderstoreZipScript Condition="'$(InstallThunderstoreZipScript)' == '' and Exists('$(MSBuildThisFileDirectory)scripts\Install-ThunderstoreZip.ps1')">$(MSBuildThisFileDirectory)scripts\Install-ThunderstoreZip.ps1</InstallThunderstoreZipScript>
+    <StageCiValheimRefsScript Condition="'$(StageCiValheimRefsScript)' == '' and Exists('$(MSBuildThisFileDirectory)scripts\Stage-CiValheimRefs.ps1')">$(MSBuildThisFileDirectory)scripts\Stage-CiValheimRefs.ps1</StageCiValheimRefsScript>
+    <!-- Local builds compile against Pfhoenix stubs (same as GitHub Actions) so store-only type drift fails here first. Set UseCiValheimRefs=false to use live publicized assemblies. -->
+    <UseCiValheimRefs Condition="'$(UseCiValheimRefs)' == '' and '$(CI_SKIP_POST_BUILD)' == ''">true</UseCiValheimRefs>
+    <!-- Deploy profile plugins by extracting the Thunderstore zip (not a piecemeal copy). -->
+    <DeployViaThunderstoreZip Condition="'$(DeployViaThunderstoreZip)' == ''">true</DeployViaThunderstoreZip>
   </PropertyGroup>
   <!-- Consumer mods reference Libs at runtime; do not copy Libs or ServerSync into bin or profile output. -->
   <ItemDefinitionGroup Condition="'$(EmbedServerSync)' != 'true'">

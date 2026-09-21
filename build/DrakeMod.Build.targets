@@ -41,6 +41,43 @@
     </PropertyGroup>
   </Target>
 
+  <!-- Compile against Pfhoenix stubs locally (same surface as Thunderstore CI). Live publicized
+       refs hide missing 1.0 interface slots and old Character.Message overloads. -->
+  <Target Name="StageCiValheimRefs"
+          BeforeTargets="ResolveAssemblyReferences"
+          Condition="'$(UseCiValheimRefs)' == 'true' and '$(CI_SKIP_POST_BUILD)' == '' and '$(StageCiValheimRefsScript)' != '' and Exists('$(StageCiValheimRefsScript)')">
+    <PropertyGroup>
+      <CiValheimRoot>$(IntermediateOutputPath)ci_valheim</CiValheimRoot>
+      <CiPublicized>$(CiValheimRoot)\valheim_Data\Managed\publicized_assemblies</CiPublicized>
+    </PropertyGroup>
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(StageCiValheimRefsScript)&quot; -ProjectDir &quot;$(MSBuildProjectDirectory)&quot; -OutRoot &quot;$(CiValheimRoot)&quot;" />
+    <Warning Condition="!Exists('$(CiPublicized)\assembly_valheim_publicized.dll')"
+             Text="Pfhoenix CI refs were not staged. Build is using live Valheim publicized assemblies (not Thunderstore-equivalent)." />
+    <PropertyGroup Condition="Exists('$(CiPublicized)\assembly_valheim_publicized.dll')">
+      <PublicizedAssembliesPath>$(CiPublicized)</PublicizedAssembliesPath>
+    </PropertyGroup>
+    <ItemGroup Condition="Exists('$(CiPublicized)\assembly_valheim_publicized.dll')">
+      <Reference Remove="assembly_valheim" />
+      <Reference Remove="assembly_utils" />
+      <Reference Remove="assembly_guiframework" />
+      <Reference Include="assembly_valheim">
+        <HintPath>$(CiPublicized)\assembly_valheim_publicized.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="assembly_utils" Condition="Exists('$(CiPublicized)\assembly_utils_publicized.dll')">
+        <HintPath>$(CiPublicized)\assembly_utils_publicized.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+      <Reference Include="assembly_guiframework" Condition="Exists('$(CiPublicized)\gui_framework_publicized.dll')">
+        <HintPath>$(CiPublicized)\gui_framework_publicized.dll</HintPath>
+        <Private>false</Private>
+      </Reference>
+    </ItemGroup>
+    <Message Importance="high"
+             Condition="Exists('$(CiPublicized)\assembly_valheim_publicized.dll')"
+             Text="Compiling against Pfhoenix CI refs (Thunderstore-equivalent), not live publicized assemblies." />
+  </Target>
+
   <Target Name="GenerateModInfo" BeforeTargets="CoreCompile" DependsOnTargets="PrepareForBuild;PrepareModPackageMetadata">
     <PropertyGroup>
       <_ModInfoContent>// &lt;auto-generated /&gt;%0anamespace $(ModInfoNamespace)%0a{%0a    public partial class $(ModInfoClass)%0a    {%0a        public const string CompanyName = "$(ThunderstoreAuthor)"%3b%0a        public const string ModName = "$(BepInPluginName)"%3b%0a        public const string Version = "$(Version)"%3b%0a        public const string GUID = "$(BepInGuid)"%3b%0a    }%0a}</_ModInfoContent>
@@ -82,16 +119,26 @@
   <Target Name="CopyToR2Profile"
           DependsOnTargets="VerifyNoEmbeddedServerSync"
           AfterTargets="$(DeployAfterTargets)"
-          Condition="'$(R2ModDeployPath)' != ''"
+          Condition="'$(R2ModDeployPath)' != '' and ('$(DeployViaThunderstoreZip)' != 'true' or '$(SkipPackageMod)' == 'true')"
           Inputs="$(TargetPath)"
           Outputs="$(R2ModDeployPath)\$(TargetFileName)">
     <MakeDir Directories="$(R2ModDeployPath)" />
     <MakeDir Directories="$(R2ModDeployPath)\Assets\Localization" Condition="'@(LocalizationJson)' != ''" />
+    <MakeDir Directories="$(R2ModDeployPath)\Assets\Icons" Condition="'@(PaperIcon)' != ''" />
+    <MakeDir Directories="$(R2ModDeployPath)\Assets\Items" Condition="'@(PaperForgeAssets)' != ''" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(R2ModDeployPath)\" SkipUnchangedFiles="false" />
     <Copy SourceFiles="@(LocalizationJson)"
           DestinationFolder="$(R2ModDeployPath)\Assets\Localization"
           SkipUnchangedFiles="true"
           Condition="'@(LocalizationJson)' != ''" />
+    <Copy SourceFiles="@(PaperIcon)"
+          DestinationFolder="$(R2ModDeployPath)\Assets\Icons"
+          SkipUnchangedFiles="true"
+          Condition="'@(PaperIcon)' != ''" />
+    <Copy SourceFiles="@(PaperForgeAssets)"
+          DestinationFiles="@(PaperForgeAssets->'$(R2ModDeployPath)\Assets\Items\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(PaperForgeAssets)' != ''" />
     <Copy SourceFiles="$(TargetDir)README.md" DestinationFiles="$(R2ModDeployPath)\README.md" Condition="Exists('$(TargetDir)README.md')" />
     <Copy SourceFiles="$(TargetDir)icon.png" DestinationFiles="$(R2ModDeployPath)\icon.png" Condition="Exists('$(TargetDir)icon.png')" />
     <Copy SourceFiles="$(TargetDir)CHANGELOG.md" DestinationFiles="$(R2ModDeployPath)\CHANGELOG.md" Condition="Exists('$(TargetDir)CHANGELOG.md')" />
@@ -102,16 +149,26 @@
   <Target Name="CopyToGaleProfile"
           DependsOnTargets="VerifyNoEmbeddedServerSync"
           AfterTargets="$(DeployAfterTargets)"
-          Condition="'$(GaleModDeployPath)' != ''"
+          Condition="'$(GaleModDeployPath)' != '' and ('$(DeployViaThunderstoreZip)' != 'true' or '$(SkipPackageMod)' == 'true')"
           Inputs="$(TargetPath)"
           Outputs="$(GaleModDeployPath)\$(TargetFileName)">
     <MakeDir Directories="$(GaleModDeployPath)" />
     <MakeDir Directories="$(GaleModDeployPath)\Assets\Localization" Condition="'@(LocalizationJson)' != ''" />
+    <MakeDir Directories="$(GaleModDeployPath)\Assets\Icons" Condition="'@(PaperIcon)' != ''" />
+    <MakeDir Directories="$(GaleModDeployPath)\Assets\Items" Condition="'@(PaperForgeAssets)' != ''" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GaleModDeployPath)\" SkipUnchangedFiles="false" />
     <Copy SourceFiles="@(LocalizationJson)"
           DestinationFolder="$(GaleModDeployPath)\Assets\Localization"
           SkipUnchangedFiles="true"
           Condition="'@(LocalizationJson)' != ''" />
+    <Copy SourceFiles="@(PaperIcon)"
+          DestinationFolder="$(GaleModDeployPath)\Assets\Icons"
+          SkipUnchangedFiles="true"
+          Condition="'@(PaperIcon)' != ''" />
+    <Copy SourceFiles="@(PaperForgeAssets)"
+          DestinationFiles="@(PaperForgeAssets->'$(GaleModDeployPath)\Assets\Items\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(PaperForgeAssets)' != ''" />
     <Copy SourceFiles="$(TargetDir)README.md" DestinationFiles="$(GaleModDeployPath)\README.md" Condition="Exists('$(TargetDir)README.md')" />
     <Copy SourceFiles="$(TargetDir)icon.png" DestinationFiles="$(GaleModDeployPath)\icon.png" Condition="Exists('$(TargetDir)icon.png')" />
     <Copy SourceFiles="$(TargetDir)CHANGELOG.md" DestinationFiles="$(GaleModDeployPath)\CHANGELOG.md" Condition="Exists('$(TargetDir)CHANGELOG.md')" />
@@ -120,7 +177,7 @@
 
   <!-- Register or refresh this mod in the r2modman profile mods.yml (simulates a Thunderstore install). -->
   <Target Name="UpdateR2ModProfile"
-          AfterTargets="CopyToR2Profile"
+          AfterTargets="DeployThunderstoreZipToProfiles;CopyToR2Profile"
           DependsOnTargets="PrepareModPackageMetadata;ComposeThunderstoreDependencies"
           Condition="'$(UpdateR2ModsYml)' == 'true' and '$(R2ModsYmlPath)' != '' and Exists('$(R2ModProfileModScript)')">
     <PropertyGroup>
@@ -131,6 +188,18 @@
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(R2ModProfileModScript)&quot; -ModsYmlPath &quot;$(R2ModsYmlPath)&quot; -AuthorName &quot;$(ThunderstoreAuthor)&quot; -PackageName &quot;$(ThunderstoreName)&quot; -DisplayName &quot;$(BepInPluginName)&quot; -Version &quot;$(Version)&quot; -DescriptionFile &quot;$(_R2ModDescFile)&quot; -WebsiteUrl &quot;$(WebsiteUrl)&quot; -Dependencies &quot;$(_R2ThunderstoreDeps)&quot;"
           IgnoreExitCode="false" />
     <Message Importance="high" Text="Synced mods.yml: $(ThunderstoreAuthor)-$(ThunderstoreName) ($(Version))" />
+  </Target>
+
+  <!-- After PackageMod: install the posix Thunderstore zip into r2modman + Gale (same as a store import). -->
+  <Target Name="DeployThunderstoreZipToProfiles"
+          AfterTargets="PackageMod"
+          DependsOnTargets="ResolveThunderstorePaths"
+          Condition="'$(DeployViaThunderstoreZip)' == 'true' and '$(SkipPackageMod)' != 'true' and '$(InstallThunderstoreZipScript)' != '' and Exists('$(InstallThunderstoreZipScript)') and Exists('$(ZipOutput)')">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(InstallThunderstoreZipScript)&quot; -ZipPath &quot;$(ZipOutput)&quot; -DestDir &quot;$(R2ModDeployPath)&quot;"
+          Condition="'$(R2ModDeployPath)' != ''" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(InstallThunderstoreZipScript)&quot; -ZipPath &quot;$(ZipOutput)&quot; -DestDir &quot;$(GaleModDeployPath)&quot;"
+          Condition="'$(GaleModDeployPath)' != ''" />
+    <Message Importance="high" Text="Deployed Thunderstore zip $(ZipOutput) -&gt; profile plugin folders" />
   </Target>
 
   <Target Name="WriteThunderstoreManifest" DependsOnTargets="ComposeThunderstoreDependencies;ResolveThunderstorePaths">

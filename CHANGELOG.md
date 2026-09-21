@@ -1,5 +1,10 @@
 # DrakeModsLibs
 
+## 0.9.5
+- Shared **`DrakeNumericStepper`** (− / field / +) for integer spin boxes (Jotunn has no NumericUpDown).
+- Shared **`DrakeToggleLayout`** for label-left / box-right wood toggle rows.
+- Local PackageMod can stage Pfhoenix CI refs and deploy via Thunderstore zip extract (same surface as store builds).
+
 ## 0.9.4
 - Soft `IsRenameInventorySuppressed` respects admin/VIP `TagBypass` (hard suppress still always hides Rename inventory UI).
 - `HardNoDescription` / `HardNoCraftedByEdit` no longer set `suppressRenameInventoryUi` — they block those ops only, so Locksmith keys can show Lock|Rename tabs for bypass admins.

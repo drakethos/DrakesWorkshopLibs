@@ -1,5 +1,9 @@
 # DrakeModsLibs
 
+## 0.9.6
+- **`DrakeStackForce`** on `IStackMergePolicy.GetStackForce` — per-item `None` / `ByIdentity` / `Never` merge override (ignores SeparateStacks; no TagBypass). Consumers that implement the policy must add this method.
+- **`DrakeNumericStepper.SetRange`** / **`SetInteractable`** so spin boxes can change min/max and disable in place.
+
 ## 0.9.5
 - Shared **`DrakeNumericStepper`** (− / field / +) for integer spin boxes (Jotunn has no NumericUpDown).
 - Shared **`DrakeToggleLayout`** for label-left / box-right wood toggle rows.

@@ -52,6 +52,7 @@
     <Compile Include="API\DrakeCustomDataKind.cs" />
     <Compile Include="API\IDisplayNameModifier.cs" />
     <Compile Include="API\IItemDisplayNameLayer.cs" />
+    <Compile Include="API\DrakeStackForce.cs" />
     <Compile Include="API\IStackMergePolicy.cs" />
     <Compile Include="API\ItemCustomDataDumpFormat.cs" />
     <Compile Include="API\ItemCustomDataDumpOptions.cs" />

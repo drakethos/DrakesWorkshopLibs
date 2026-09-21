@@ -5,7 +5,7 @@
     <ThunderstoreAuthor>DrakeMods</ThunderstoreAuthor>
     <RootNamespace>DrakeModsLibs</RootNamespace>
     <AssemblyName>DrakeModsLibs</AssemblyName>
-    <Version>0.9.5</Version>
+    <Version>0.9.6</Version>
     <BepInPluginName>DrakeModsLibs</BepInPluginName>
     <BepInGuid>com.drakemods.libs</BepInGuid>
     <ModInfoClass>CustomizeLibsPlugin</ModInfoClass>

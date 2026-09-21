@@ -16,8 +16,8 @@ public sealed class DrakeNumericStepper
     public Button? MinusButton { get; }
     public Button? PlusButton { get; }
 
-    public int Min { get; }
-    public int Max { get; }
+    public int Min { get; private set; }
+    public int Max { get; private set; }
 
     int _value;
     bool _suppress;
@@ -66,6 +66,31 @@ public sealed class DrakeNumericStepper
     public void SetValueWithoutNotify(int value) => SetValue(value, notify: false);
 
     public void SetOnChanged(Action<int>? onChanged) => _onChanged = onChanged;
+
+    /// <summary>Change min/max and clamp the current value into the new range.</summary>
+    public void SetRange(int min, int max, bool notifyIfClamped = false)
+    {
+        if (max < min)
+            (min, max) = (max, min);
+        Min = min;
+        Max = max;
+        if (Field != null)
+            Field.characterLimit = Math.Max(1, max.ToString().Length);
+        var prev = _value;
+        SetValue(_value, notify: false);
+        if (notifyIfClamped && prev != _value)
+            _onChanged?.Invoke(_value);
+    }
+
+    public void SetInteractable(bool interactable)
+    {
+        if (Field != null)
+            Field.interactable = interactable;
+        if (MinusButton != null)
+            MinusButton.interactable = interactable;
+        if (PlusButton != null)
+            PlusButton.interactable = interactable;
+    }
 
     /// <summary>
     /// Build a centered spin row under <paramref name="parent"/>.

@@ -113,12 +113,30 @@ CustomizeLibsAPI.RegisterTagBlockRule(
 
 Soft blocks still respect RenameIt admin/VIP `TagBypass` for `CanPerform`. Hard locks, deferred authority, and inventory UI suppress do **not** auto-apply bypass. Direct `SetCustomName` still works for an owning mod’s Relabel UI.
 
+## Stack merge policy
+
+Register one consumer policy with `CustomizeLibsAPI.RegisterStackMergePolicy`. Libs then owns inventory merge:
+
+- `SeparateStacksEnabled` / `SeparateStacksHardLock` — global fingerprint merge
+- **`GetStackForce(item)`** — per-item override that **ignores** those globals (no TagBypass)
+
+```csharp
+public DrakeStackForce GetStackForce(ItemDrop.ItemData? item)
+{
+    // None = follow SeparateStacks; ByIdentity = always fingerprint; Never = never auto-merge
+    return DrakeStackForce.None;
+}
+```
+
+When two items disagree, **Never** wins over **ByIdentity** over **None**.
+
 ## Shared wood UI + tab host
 
 RenameIt-looking chrome lives in `DrakeModsLibs.UI`:
 
 - `DrakeWoodActionMenu`, `DrakeConfirmPanel` (300×178), `DrakeTextPromptPanel`
 - `DrakeGuiInput` / `DrakeButtonSfx`
+- **`DrakeNumericStepper`** (− / field / +) with `SetRange` / `SetInteractable`
 - **`DrakeTabHost`** — Craft|Upgrade-style **top-right** tabs; only **registered** (installed) mods get a tab. Rename baseline priority is low; feature mods claim default (e.g. Lock on keys). Defer/suppress hides Rename entirely.
 
 Cross-mod knobs: BepInEx config section **`Integration`** (`DrakeIntegrationConfig`) — shared inventory open modifier, `TabPriorityOverrides` (`id=priority;…`), `ForceDefaultTabId`, `DisableClaimDefault`. Feature mods keep gameplay-only config.

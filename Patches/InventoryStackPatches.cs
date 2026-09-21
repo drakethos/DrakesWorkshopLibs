@@ -2,19 +2,18 @@ using System;
 using System.Reflection;
 using BepInEx.Logging;
 using HarmonyLib;
-
-namespace DrakeModsLibs.Patches;
-
-
-using DrakeModsLibs.Data;
+using DrakeModsLibs.API;
 using DrakeModsLibs.Runtime;
 using DrakeModsLibs.Stack;
 
-/// <summary>When <see cref="policy.SeparateStacksEnabled"/> is on, only stacks with matching fingerprints merge.</summary>
+namespace DrakeModsLibs.Patches;
+
+/// <summary>
+/// Inventory merge: SeparateStacks fingerprint mode, plus per-item <see cref="DrakeStackForce"/>.
+/// </summary>
 /// <remarks>
 /// <see cref="Inventory.FindFreeStackItem"/> is implemented as a simple loop; we replace it when we know the incoming
 /// item (<see cref="IncomingStackItem"/> from <c>AddItem(ItemData)</c>) so merge decisions always include custom data.
-/// A postfix on <c>ref __result</c> is unreliable across Harmony versions; a prefix that skips the original does not.
 /// </remarks>
 internal static class InventoryStackPatches
 {
@@ -40,8 +39,6 @@ internal static class InventoryStackPatches
                 "[DrakeModsLibs] SeparateStacks: AddItem(ItemData) not found — incoming stack tracking disabled.");
         }
 
-        // FindFreeStackItem has had 2- and 3-arg variants (worldLevel added in newer Valheim).
-        // Harmony matches prefix params by name, so one prefix covers both — we just need to bind.
         MethodInfo? findStack = null;
         foreach (var m in inv.GetMethods(flags))
         {
@@ -68,7 +65,6 @@ internal static class InventoryStackPatches
                 "[DrakeModsLibs] SeparateStacks: FindFreeStackItem not found — merge-from-pickup may ignore identity.");
         }
 
-        // AddItem cell-overload has also varied in arity; find by signature: (ItemData, int, int, int[, ...]).
         MethodInfo? addAtCell = null;
         foreach (var m in inv.GetMethods(flags))
         {
@@ -108,10 +104,6 @@ internal static class InventoryStackPatches
         IncomingStackItem = null;
     }
 
-    /// <summary>
-    /// Replicates vanilla <c>FindFreeStackItem</c> and requires matching custom data when
-    /// <see cref="policy.SeparateStacksEnabled"/> is on and the incoming stack is known.
-    /// </summary>
     internal static bool FindFreeStackItem_Prefix(
         Inventory __instance,
         string name,
@@ -119,13 +111,27 @@ internal static class InventoryStackPatches
         ref ItemDrop.ItemData? __result)
     {
         var policy = CustomizeLibsRuntime.StackMergePolicy;
-        if (policy == null || !policy.SeparateStacksEnabled || IncomingStackItem == null)
+        if (policy == null || IncomingStackItem == null)
+            return true;
+
+        var force = ResolveForce(policy, IncomingStackItem, null);
+        var useIdentity = force == DrakeStackForce.ByIdentity
+                          || (force == DrakeStackForce.None && policy.SeparateStacksEnabled);
+
+        // Never: do not auto-merge into an existing stack.
+        if (force == DrakeStackForce.Never)
+        {
+            __result = null;
+            return false;
+        }
+
+        if (!useIdentity)
             return true;
 
         __result = null;
         foreach (ItemDrop.ItemData? itemData in __instance.GetAllItems())
         {
-            if (TryPickStackSlot(IncomingStackItem, name, quality, itemData, ref __result))
+            if (TryPickStackSlot(IncomingStackItem, name, quality, itemData, requireIdentity: true, ref __result))
                 continue;
             break;
         }
@@ -133,12 +139,13 @@ internal static class InventoryStackPatches
         return false;
     }
 
-    /// <returns><c>true</c> = keep scanning; <c>false</c> = matched a stack (also sets <paramref name="__result"/>).</returns>
+    /// <returns><c>true</c> = keep scanning; <c>false</c> = matched a stack.</returns>
     private static bool TryPickStackSlot(
         ItemDrop.ItemData incoming,
         string name,
         int quality,
         ItemDrop.ItemData? itemData,
+        bool requireIdentity,
         ref ItemDrop.ItemData? __result)
     {
         if (itemData?.m_shared == null)
@@ -147,7 +154,7 @@ internal static class InventoryStackPatches
             return true;
         if (itemData.m_stack >= itemData.m_shared.m_maxStackSize)
             return true;
-        if (!StackIdentity.SameDrakeStackIdentity(incoming, itemData))
+        if (requireIdentity && !StackIdentity.SameDrakeStackIdentity(incoming, itemData))
             return true;
 
         __result = itemData;
@@ -163,7 +170,7 @@ internal static class InventoryStackPatches
         ref bool __result)
     {
         var policy = CustomizeLibsRuntime.StackMergePolicy;
-        if (policy == null || !policy.SeparateStacksEnabled)
+        if (policy == null)
             return true;
 
         ItemDrop.ItemData? itemAt = __instance.GetItemAt(x, y);
@@ -173,6 +180,28 @@ internal static class InventoryStackPatches
         if (itemAt.m_shared.m_name != item.m_shared.m_name)
             return true;
         if (itemAt.m_shared.m_maxQuality > 1 && itemAt.m_quality != item.m_quality)
+            return true;
+
+        var force = ResolveForce(policy, item, itemAt);
+        if (force == DrakeStackForce.Never)
+        {
+            __result = false;
+            return false;
+        }
+
+        if (force == DrakeStackForce.ByIdentity)
+        {
+            if (!StackIdentity.SameDrakeStackIdentity(item, itemAt))
+            {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
+
+        // None — global SeparateStacks path.
+        if (!policy.SeparateStacksEnabled)
             return true;
 
         if (!StackIdentity.SameDrakeStackIdentity(item, itemAt))
@@ -185,5 +214,38 @@ internal static class InventoryStackPatches
         }
 
         return true;
+    }
+
+    /// <summary>Never wins over ByIdentity over None when either side forces.</summary>
+    internal static DrakeStackForce ResolveForce(
+        IStackMergePolicy policy,
+        ItemDrop.ItemData? a,
+        ItemDrop.ItemData? b)
+    {
+        DrakeStackForce fa;
+        DrakeStackForce fb;
+        try
+        {
+            fa = policy.GetStackForce(a);
+        }
+        catch
+        {
+            fa = DrakeStackForce.None;
+        }
+
+        try
+        {
+            fb = b == null ? DrakeStackForce.None : policy.GetStackForce(b);
+        }
+        catch
+        {
+            fb = DrakeStackForce.None;
+        }
+
+        if (fa == DrakeStackForce.Never || fb == DrakeStackForce.Never)
+            return DrakeStackForce.Never;
+        if (fa == DrakeStackForce.ByIdentity || fb == DrakeStackForce.ByIdentity)
+            return DrakeStackForce.ByIdentity;
+        return DrakeStackForce.None;
     }
 }

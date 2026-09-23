@@ -39,6 +39,17 @@ sync.FinalizeBinding(log, expectedSyncedEntryCount, () => lockEntry.Value);
 
 Use `BindClientOnly` for per-client settings (never registered with ServerSync). `IsSourceOfTruth` / `SourceOfTruthChanged` behave like the underlying ServerSync instance.
 
+## Soft-compat (CompatHost)
+
+Optional foreign mods (WardIsLove, ProtectiveWards, Arcane Ward, DevCommands, …) are **never** hard dependencies. DrakeModsLibs provides per-plugin scaffolding:
+
+- `DrakeModsLibs.Compat.ICompatModule` / `CompatPriority`
+- `CompatHost` / `CompatHosts.GetOrCreate(ownerGuid, log)` — **one host per Drake plugin GUID**
+
+Domain rules (ward access, paper take, item-stand names) stay in **LockSmith** / **RenameIt**. Built-in bridges there are a courtesy — not a promise to track every upstream ward change. Please report issues on those repos; pull requests and your own SoftDependency modules are welcome. LockSmith also exposes `LockSmithCompatApi` for third-party bridges.
+
+Agent guidance: `.cursor/skills/drakemods-compat-host/SKILL.md`. WardIsLove RenameIt handover: [`docs/handover-wardislove-renameit.md`](docs/handover-wardislove-renameit.md).
+
 ## Custom data API (other mods)
 
 Read and dump `ItemDrop.ItemData.m_customData` through `CustomizeLibsAPI`:

@@ -633,8 +633,7 @@ public static class ItemStandPatch
             return "";
 
         var item = TryGetStandItemForDisplay(stand, out var loadedInstance);
-        if (item != null && loadedInstance &&
-            (ItemDisplayService.HasCustomName(item) || DisplayNameModifierHub.AffectsDisplay(item)))
+        if (item != null && loadedInstance && ItemDisplayService.HasCustomName(item))
         {
             string live = ItemDisplayService.GetDisplayNameForUi(item, localize: true);
             if (!string.IsNullOrEmpty(live))
@@ -710,15 +709,19 @@ public static class ItemStandPatch
         return items[0];
     }
 
-    private static string TryGetBestStandLabel(ItemStand stand)
+    internal static string TryGetBestStandLabel(ItemStand stand)
     {
-        // Preferred: the stand's own current-item name (often what other mods tweak for shop labels).
-        string label = TryGetStandCurrentItemName(stand);
+        if (stand == null)
+            return "";
+
+        // Rename (live item or ZDO cache) wins over m_currentItemName. Vanilla writes the prefab
+        // token there, which localizes to the base item and hides a custom name.
+        string label = TryGetStandCustomNameFromZdo(stand);
         if (!string.IsNullOrEmpty(label))
             return label;
 
-        // Fallback: our own cached name on the ZDO (set when interacting with stands).
-        label = TryGetStandCustomNameFromZdo(stand);
+        // Shop-style mods often write the label they want into m_currentItemName.
+        label = TryGetStandCurrentItemName(stand);
         if (!string.IsNullOrEmpty(label))
             return label;
 

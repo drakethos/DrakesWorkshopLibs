@@ -1,5 +1,9 @@
 # DrakeModsLibs
 
+## 0.9.7
+- **`CompatHost`** / **`CompatHosts`** / **`ICompatModule`** / **`CompatPriority`** — per-plugin soft-compat scaffolding (no hard deps). Consumers keep domain modules; see `.cursor/skills/drakemods-compat-host` and `docs/handover-wardislove-renameit.md`.
+- **`CustomizeLibsAPI.GetItemStandHoverLabel`** — the same stand label the warded hover postfix uses, so a consumer can keep that name when another mod replaces item-stand hover text.
+
 ## 0.9.6
 - **`DrakeStackForce`** on `IStackMergePolicy.GetStackForce` — per-item `None` / `ByIdentity` / `Never` merge override (ignores SeparateStacks; no TagBypass). Consumers that implement the policy must add this method.
 - **`DrakeNumericStepper.SetRange`** / **`SetInteractable`** so spin boxes can change min/max and disable in place.

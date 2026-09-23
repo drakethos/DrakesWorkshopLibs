@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DrakeModsLibs.Data;
 using DrakeModsLibs.Display;
+using DrakeModsLibs.Patches;
 using DrakeModsLibs.Runtime;
 using DrakeModsLibs.Sync;
 using DrakeModsLibs.Tags;
@@ -57,6 +58,19 @@ public static class CustomizeLibsAPI
     /// </summary>
     public static void RefreshItemStandDisplayNames() =>
         Patches.ItemStandPatch.RefreshAllItemStandDisplayNames();
+
+    /// <summary>
+    /// Label shown for a warded item stand when hover text is allowed: live stand name,
+    /// cached rename, or the first container item. Empty when the stand has nothing to show.
+    /// Does not include the No access line.
+    /// </summary>
+    public static string GetItemStandHoverLabel(ItemStand? stand)
+    {
+        if (!stand)
+            return "";
+
+        return ItemStandPatch.TryGetBestStandLabel(stand);
+    }
 
     public static bool HasTag(ItemDrop.ItemData? item, string tagKey) => DrakeTagManager.HasTag(item, tagKey);
     public static void SetTag(ItemDrop.ItemData item, string tagKey) => DrakeTagManager.SetTag(item, tagKey);

@@ -58,6 +58,10 @@
     <Compile Include="API\ItemCustomDataDumpOptions.cs" />
     <Compile Include="API\ItemExclusionRule.cs" />
     <Compile Include="API\TagBlockRule.cs" />
+    <Compile Include="Compat\CompatHost.cs" />
+    <Compile Include="Compat\CompatHosts.cs" />
+    <Compile Include="Compat\CompatPriority.cs" />
+    <Compile Include="Compat\ICompatModule.cs" />
     <Compile Include="CustomizeLibsPlugin.cs" />
     <Compile Include="Data\DrakeCustomDataCatalog.cs" />
     <Compile Include="Data\DrakeCustomDataKeys.cs" />

@@ -1,5 +1,8 @@
 # DrakeModsLibs
 
+## 0.9.8
+- **`DrakeConfirmPanel`:** nested Show over an already-blocked wood panel no longer calls `EnsureUnblocked` on Close (Yes/No/Esc). Fixes cursor disappearing / camera look while a parent editor is still open.
+
 ## 0.9.7
 - **`CompatHost`** / **`CompatHosts`** / **`ICompatModule`** / **`CompatPriority`** — per-plugin soft-compat scaffolding (no hard deps). Consumers keep domain modules; see `.cursor/skills/drakemods-compat-host` and `docs/handover-wardislove-renameit.md`.
 - **`CustomizeLibsAPI.GetItemStandHoverLabel`** — the same stand label the warded hover postfix uses, so a consumer can keep that name when another mod replaces item-stand hover text.

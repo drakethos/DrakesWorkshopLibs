@@ -24,6 +24,11 @@ public sealed class DrakeConfirmPanel
     Button? _noButton;
     Action? _onYes;
     Action? _onNo;
+    /// <summary>
+    /// True when <see cref="Show"/> acquired the BlockInput lock (nothing else was already blocking).
+    /// Nested confirms over an open editor must not release the parent's lock on Close.
+    /// </summary>
+    bool _releaseInputOnClose;
 
     public DrakeConfirmPanel(string panelName = "drake_confirm_panel")
     {
@@ -55,6 +60,8 @@ public sealed class DrakeConfirmPanel
         SetButtonLabel(_yesButton, yesLabel);
         SetButtonLabel(_noButton, noLabel);
 
+        // If a parent wood panel already blocked input, Close must leave that block in place.
+        _releaseInputOnClose = !DrakeGuiInput.IsBlocked;
         _panel.SetActive(true);
         _panel.transform.SetAsLastSibling();
         DrakeGuiInput.EnsureBlocked();
@@ -64,7 +71,9 @@ public sealed class DrakeConfirmPanel
     {
         if (_panel)
             _panel.SetActive(false);
-        DrakeGuiInput.EnsureUnblocked();
+        if (_releaseInputOnClose)
+            DrakeGuiInput.EnsureUnblocked();
+        _releaseInputOnClose = false;
         _onYes = null;
         _onNo = null;
     }

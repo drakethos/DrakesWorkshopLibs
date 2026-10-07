@@ -18,6 +18,10 @@ internal static class StackIdentity
         Append(sb, item, DrakeCustomDataKeys.RenameDescription);
         Append(sb, item, DrakeCustomDataKeys.CraftedByDisplay);
         Append(sb, item, DrakeCustomDataKeys.CraftedByLineLabel);
+        Append(sb, item, DrakeCustomDataKeys.IconOverride);
+        Append(sb, item, DrakeCustomDataKeys.ModelOverride);
+        Append(sb, item, DrakeCustomDataKeys.IconTint);
+        Append(sb, item, DrakeCustomDataKeys.ModelTint);
         return sb.ToString();
     }
 

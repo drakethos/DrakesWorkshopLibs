@@ -60,7 +60,14 @@ public sealed class DrakeTabRegistration
     /// <summary>Suggested baseline for LockSmith key-pass (and similar feature tabs).</summary>
     public const int DefaultFeaturePriority = 200;
 
+    /// <summary>
+    /// Suggested baseline for ReskinIt: below Rename and Paper so it is never the default tab
+    /// (Rename / Paper own the first click; Reskin is opt-in).
+    /// </summary>
+    public const int DefaultReskinPriority = 50;
+
     public const string RenameItTabId = "renameit";
+    public const string ReskinItTabId = "reskinit";
     public const string LockSmithKeyPassTabId = "locksmith.keypass";
 
     string SafeTitle()

@@ -46,6 +46,11 @@
     <Compile Include="Art\ArtItemLoader.cs" />
     <Compile Include="API\CustomizationEvents.cs" />
     <Compile Include="API\CustomizeLibsAPI.cs" />
+    <Compile Include="Display\IconCatalog.cs" />
+    <Compile Include="Display\ItemIconService.cs" />
+    <Compile Include="Display\ItemLookService.cs" />
+    <Compile Include="Patches\ItemLookPatches.cs" />
+    <Compile Include="Patches\ItemIconPatches.cs" />
     <Compile Include="API\CustomizeOperation.cs" />
     <Compile Include="API\DeferredEditHandler.cs" />
     <Compile Include="API\DrakeCustomDataField.cs" />
@@ -88,6 +93,11 @@
     <Compile Include="Runtime\CustomizeLibsRuntime.cs" />
     <Compile Include="Sync\DrakeConfigSync.cs" />
     <Compile Include="Stack\StackIdentity.cs" />
+    <Compile Include="Permissions\DrakeItemCategory.cs" />
+    <Compile Include="Progression\DrakeDiscovery.cs" />
+    <Compile Include="Progression\DrakeProgression.cs" />
+    <Compile Include="Permissions\DrakePermissionProfile.cs" />
+    <Compile Include="Permissions\DrakePlayerIdentity.cs" />
     <Compile Include="Tags\CustomizationGatekeeper.cs" />
     <Compile Include="Tags\DrakeTagManager.cs" />
     <Compile Include="Tags\ItemNameMatch.cs" />

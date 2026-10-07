@@ -120,6 +120,42 @@ public static class CustomizeLibsAPI
     public static bool CanEditCraftedBy(ItemDrop.ItemData? item, Player? player) =>
         CanPerform(CustomizeOperation.EditCraftedBy, item, player);
 
+    /// <summary>
+    /// <c>Character.Message</c> that works on Valheim 1.0 (5-arg) and older refs (4-arg). Call this instead of
+    /// <c>Message</c> directly: a direct call compiled against CI stubs throws MissingMethodException at JIT time.
+    /// </summary>
+    public static void ShowHudMessage(Character? character, MessageHud.MessageType type, string? text)
+    {
+        if (character != null && !string.IsNullOrEmpty(text))
+            CharacterMessageInvoker.Show(character, type, text!, 0, null);
+    }
+
+    public static bool CanReskinIcon(ItemDrop.ItemData? item, Player? player) =>
+        CanPerform(CustomizeOperation.ReskinIcon, item, player);
+
+    public static string? GetIconOverride(ItemDrop.ItemData? item) => ItemIconService.GetIconOverride(item);
+    public static bool HasIconOverride(ItemDrop.ItemData? item) => ItemIconService.HasIconOverride(item);
+
+    /// <summary>Store an icon source (<see cref="IconCatalogEntry.SourceRef"/>); null/empty clears. Caller checks <see cref="CanReskinIcon"/>.</summary>
+    public static void SetIconOverride(ItemDrop.ItemData item, string? sourceRef) => ItemIconService.SetIconOverride(item, sourceRef);
+    public static void ClearIconOverride(ItemDrop.ItemData item) => ItemIconService.ClearIconOverride(item);
+
+    public static bool CanReskinModel(ItemDrop.ItemData? item, Player? player) =>
+        CanPerform(CustomizeOperation.ReskinModel, item, player);
+
+    public static bool CanRecolor(ItemDrop.ItemData? item, Player? player) =>
+        CanPerform(CustomizeOperation.ReskinColor, item, player);
+
+    public static string? GetModelOverride(ItemDrop.ItemData? item) => ItemLookService.GetModelOverride(item);
+    public static void SetModelOverride(ItemDrop.ItemData item, string? sourceRef) => ItemLookService.SetModelOverride(item, sourceRef);
+    public static UnityEngine.Color? GetIconTint(ItemDrop.ItemData? item) => ItemLookService.GetIconTint(item);
+    public static void SetIconTint(ItemDrop.ItemData item, UnityEngine.Color? tint) => ItemLookService.SetIconTint(item, tint);
+    public static UnityEngine.Color? GetModelTint(ItemDrop.ItemData? item) => ItemLookService.GetModelTint(item);
+    public static void SetModelTint(ItemDrop.ItemData item, UnityEngine.Color? tint) => ItemLookService.SetModelTint(item, tint);
+
+    /// <summary>All distinct item icons in ObjectDB (vanilla + modded), for pickers.</summary>
+    public static IReadOnlyList<IconCatalogEntry> GetIconCatalog() => IconCatalog.GetAll();
+
     /// <summary>True when a hard-lock tag blocks this operation (TagBypass cannot override).</summary>
     public static bool IsHardBlocked(CustomizeOperation operation, ItemDrop.ItemData? item) =>
         CustomizationGatekeeper.IsHardBlockedByTag(operation, item);

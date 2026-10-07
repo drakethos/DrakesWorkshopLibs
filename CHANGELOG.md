@@ -1,5 +1,14 @@
 # DrakeModsLibs
 
+## 0.9.10
+- **Item looks** (`ItemLookService`, `CustomizeLibsAPI.Get/SetModelOverride`, `Get/SetIconTint`, `Get/SetModelTint`, `CanReskinModel`, `CanRecolor`): equipped-model swap (same item type) via VisEquipment hash prefixes, model tint synced through the player ZDO, icon tint in inventory grids and hotbar. New ops `ReskinModel` / `ReskinColor`; keys `Drake_ModelOverride` / `Drake_IconTint` / `Drake_ModelTint` (part of stack identity). Game members bound by name at runtime (1.0 signatures differ from CI stubs).
+- **Progression helpers** (`DrakeModsLibs.Progression`): `DrakeProgression.RequiredKey` (boss key per item: anchored materials + recipe ingredients, with aliases/overrides), `IsKeyUnlocked` (global key or player key). `DrakeDiscovery`: `HasSeen` (vanilla known materials), `HasCrafted` / craft tracking (saved per character as `Drake_Crafted`), `IsCraftable`.
+- **Permission profiles** (`DrakeModsLibs.Permissions`): `DrakePermissionProfiles.Create` + `DrakePermissionProfile.Bind` give a mod synced admin/VIP + exclusion settings with `AdminSource` / `ExclusionSource` links to another mod's profile (`Own` / `<Mod>` / `Merge`). `RegisterSource` exposes an existing mod's logic as a link target without moving its config. Helpers: `DrakePlayerIdentity` (Valheim admin + VIP keys), `DrakeItemCategory` (exclusion category tokens, `RegisterAlias`).
+- **Icon overrides (ReskinIt):** `Drake_IconOverride` custom-data key stores a source `PrefabName[#variant]`; a shared `ItemData.GetIcon` postfix shows that icon in inventory, hotbar, tooltips, and HUD messages. API: `CustomizeLibsAPI.GetIconOverride` / `SetIconOverride` / `ClearIconOverride` / `HasIconOverride` / `CanReskinIcon` / `GetIconCatalog` (`IconCatalog`, `IconCategory`).
+- **`DrakeTabRegistration.DefaultReskinPriority`** (50) / **`ReskinItTabId`** — Reskin ranks below Rename and Paper, so it never takes the default tab.
+- **`CustomizeLibsAPI.ShowHudMessage`** — public Valheim 1.0-safe `Character.Message` (feature mods must not call `Message` directly when built against CI stubs).
+- **`CustomizeOperation.ReskinIcon`** (outside `AllEdits`); quest-item and immutable tags block it. Icon override is part of stack identity, so reskinned stacks don't merge with plain ones.
+
 ## 0.9.9
 - **Fix: multiplayer join with pre-release mod versions.** `DrakeConfigSync` now strips SemVer suffixes (`-beta.3`, `+build`) before handing versions to ServerSync, whose `System.Version` parse threw in `VersionCheck.RPC_PeerInfo` and left clients unable to join (e.g. DrakesRenameit 1.2.0-beta.3).
 - Dependencies: BepInExPack_Valheim 5.4.2351, Jotunn 2.30.2.

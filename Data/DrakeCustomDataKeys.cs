@@ -9,6 +9,16 @@ public static class DrakeCustomDataKeys
     public const string CraftedByDisplay = "Drake_CraftedByDisplay";
     public const string CraftedByLineLabel = "Drake_CraftedByLineLabel";
     public const string RenameUnlocked = "Drake_RenameUnlocked";
+    /// <summary>Icon source as <c>PrefabName</c> or <c>PrefabName#variant</c>; the item shows that prefab's icon.</summary>
+    public const string IconOverride = "Drake_IconOverride";
+    /// <summary>When set on a stack, ReskinIt's cost has been paid and icon edits are free.</summary>
+    /// <summary>Equipped-model source as <c>PrefabName</c> or <c>PrefabName#variant</c> (same equip slot only).</summary>
+    public const string ModelOverride = "Drake_ModelOverride";
+    /// <summary>Icon tint as <c>RRGGBB</c> hex.</summary>
+    public const string IconTint = "Drake_IconTint";
+    /// <summary>Equipped-model tint as <c>RRGGBB</c> hex.</summary>
+    public const string ModelTint = "Drake_ModelTint";
+    public const string ReskinUnlocked = "Drake_ReskinUnlocked";
     /// <summary>When set, non-owners may rewrite name/description if PublicRewriteEnabled (not crafted-by).</summary>
     public const string PublicRewrite = "Drake_PublicRewrite";
     public const string ItemStandHoverName = "DrakeRenameIt_CustomName";

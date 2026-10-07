@@ -59,6 +59,10 @@ public static class CustomizationGatekeeper
             CustomizeOperation.AllEdits,
             suppressRenameInventoryUi: true,
             hardLock: true);
+        // Quest / immutable stacks keep their look too (ReskinIcon sits outside AllEdits).
+        const CustomizeOperation reskin = CustomizeOperation.ReskinIcon | CustomizeOperation.ReskinModel | CustomizeOperation.ReskinColor;
+        RegisterTagBlockRule(DrakeCustomDataKeys.QuestItem, reskin);
+        RegisterTagBlockRule(DrakeCustomDataKeys.Immutable, reskin, suppressRenameInventoryUi: false, hardLock: true);
         RegisterTagBlockRule(
             DrakeCustomDataKeys.DeferSuppressUi,
             CustomizeOperation.None,

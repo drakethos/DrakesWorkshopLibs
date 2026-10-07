@@ -181,6 +181,87 @@ public static class ForgeLook
         }
     }
 
+    /// <summary>Where the visible model lives: items show <c>attach</c> both dropped and held, pieces their root.</summary>
+    public static Transform VisualRoot(GameObject prefab) =>
+        prefab.GetComponent<ItemDrop>() != null && prefab.transform.Find("attach") is { } attach ? attach : prefab.transform;
+
+    /// <summary>Scales the whole model (on items the held/dropped visual, on pieces the root and its collision).</summary>
+    public static void Scale(GameObject prefab, Vector3 scale)
+    {
+        var root = VisualRoot(prefab);
+        root.localScale = Vector3.Scale(root.localScale, scale);
+    }
+
+    /// <summary>
+    /// Kitbashing: copies another vanilla prefab's highest-detail meshes onto this model and returns the new part
+    /// (use <see cref="Material"/> on it to restyle just that part). Position/rotation/scale are in the prefab's own
+    /// space; <paramref name="child"/> keeps only meshes whose name (or a parent's) contains it.
+    /// </summary>
+    public static GameObject? AddPart(GameObject prefab, string sourcePrefab, string? child, Vector3 position, Vector3 rotation, Vector3 scale)
+    {
+        var source = PrefabManager.Instance.GetPrefab(sourcePrefab);
+        if (source == null)
+        {
+            Logger.LogWarning($"[Forge] {prefab.name}: part source {sourcePrefab} not found");
+            return null;
+        }
+
+        var visualRoot = VisualRoot(prefab);
+        var holder = visualRoot.Find("forge_parts");
+        if (holder == null)
+        {
+            holder = new GameObject("forge_parts").transform;
+            holder.SetParent(visualRoot, false);
+            holder.position = prefab.transform.position;
+            holder.rotation = prefab.transform.rotation;
+            holder.localScale = Vector3.one;
+        }
+
+        var part = new GameObject($"part{holder.childCount}_{sourcePrefab}");
+        part.transform.SetParent(holder, false);
+        part.transform.localPosition = position;
+        part.transform.localRotation = Quaternion.Euler(rotation);
+        part.transform.localScale = scale;
+
+        var lod = source.GetComponentInChildren<LODGroup>(true);
+        var renderers = lod != null && lod.GetLODs().Length > 0 ? lod.GetLODs()[0].renderers.Where(r => r != null) : Renderers(source);
+        var root = source.transform;
+        var copied = 0;
+        foreach (var renderer in renderers)
+        {
+            var mesh = renderer switch
+            {
+                MeshRenderer when renderer.GetComponent<MeshFilter>() is { } filter => filter.sharedMesh,
+                SkinnedMeshRenderer skinned => skinned.sharedMesh,
+                _ => null
+            };
+            if (mesh == null || (child != null && !NameMatches(renderer.transform, root, child)))
+                continue;
+            var copy = new GameObject(renderer.name);
+            copy.transform.SetParent(part.transform, false);
+            copy.transform.localPosition = root.InverseTransformPoint(renderer.transform.position);
+            copy.transform.localRotation = Quaternion.Inverse(root.rotation) * renderer.transform.rotation;
+            var rootScale = root.lossyScale;
+            var s = renderer.transform.lossyScale;
+            copy.transform.localScale = new Vector3(s.x / rootScale.x, s.y / rootScale.y, s.z / rootScale.z);
+            copy.AddComponent<MeshFilter>().sharedMesh = mesh;
+            copy.AddComponent<MeshRenderer>().sharedMaterials = renderer.sharedMaterials;
+            copied++;
+        }
+
+        if (copied == 0)
+            Logger.LogWarning($"[Forge] {prefab.name}: no meshes in {sourcePrefab}{(child != null ? $" named like '{child}'" : "")}");
+        return part;
+    }
+
+    private static bool NameMatches(Transform t, Transform root, string child)
+    {
+        for (; t != null && t != root; t = t.parent)
+            if (t.name.IndexOf(child, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+        return false;
+    }
+
     /// <summary>Valheim snap points: direct children tagged "snappoint". <paramref name="replace"/> removes the existing ones first.</summary>
     public static void SnapPoints(GameObject piece, bool replace, params Vector3[] points)
     {

@@ -5,6 +5,7 @@
   - `ForgeTextures.Load/Sprite(assembly, file)`: images from inside the calling mod's DLL (embedded resources), falling back to a file with that name anywhere under the mod's folder, so Hexium/Gale flattening folders can't break them. Loaded once, cached.
   - `ForgeSprites.Add`: flat images (cut-out quads, one or two sided, shared mesh and material per image).
   - `ForgeLook`: materials (tint, textures, glow), body armour material, borrowed meshes, hide mesh, icons, snap points, add/remove components, fire and light colours, glow light, station and piece-table names.
+  - Kitbashing: `ForgeLook.AddPart` (another prefab's meshes on this one, restyle with `Material`) and `ForgeLook.Scale`.
 - **Removed `ArtItemLoader` / `ArtItemContext`** (the Unity asset-bundle art loader, `DrakeModsLibs.Art`). Items are now made with Drakes Asset Forge and the Forge helpers above. Mods built against it must stay pinned to Libs 0.9.x; LockSmith's key is temporarily removed and no longer uses it.
 
 ## 0.9.12

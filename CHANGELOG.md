@@ -1,5 +1,12 @@
 # DrakeModsLibs
 
+## 0.10.0
+- **Forge helpers** (`DrakeModsLibs.Forge`): what Drakes Asset Forge's plain C# export calls to dress items and pieces, as plain statics (nothing runs until a mod calls them).
+  - `ForgeTextures.Load/Sprite(assembly, file)`: images from inside the calling mod's DLL (embedded resources), falling back to a file with that name anywhere under the mod's folder, so Hexium/Gale flattening folders can't break them. Loaded once, cached.
+  - `ForgeSprites.Add`: flat images (cut-out quads, one or two sided, shared mesh and material per image).
+  - `ForgeLook`: materials (tint, textures, glow), body armour material, borrowed meshes, hide mesh, icons, snap points, add/remove components, fire and light colours, glow light, station and piece-table names.
+  - `ArtItemLoader` is unchanged (LockSmith still uses it).
+
 ## 0.9.12
 - **Fix: `DrakeWoodActionMenu` showed no buttons after logout / character swap.** The GUI root is rebuilt then, and the menu kept references to the destroyed buttons, so the new panel never made its own. It now starts a fresh button list whenever it rebuilds the panel. This affected LockSmith's Lock menu and any other mod's action menu.
 - **Fix: `DrakeWoodActionMenu` with many buttons ran past the panel and into Close.** Buttons started from a fixed spot near the middle no matter how tall the panel was. The panel now sizes to its content (up to 640px) and stacks buttons down from just under the title/subtitle, with Close kept in its own footer.

@@ -36,6 +36,8 @@
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(CorlibPath)\UnityEngine.CoreModule.dll</HintPath></Reference>
     <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(CorlibPath)\UnityEngine.IMGUIModule.dll</HintPath></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(CorlibPath)\UnityEngine.UI.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.ImageConversionModule"><HintPath>$(CorlibPath)\UnityEngine.ImageConversionModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(CorlibPath)\UnityEngine.ParticleSystemModule.dll</HintPath></Reference>
     <Reference Include="Unity.TextMeshPro"><HintPath>$(CorlibPath)\Unity.TextMeshPro.dll</HintPath></Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -44,6 +46,9 @@
 
     <Compile Include="Art\ArtItemContext.cs" />
     <Compile Include="Art\ArtItemLoader.cs" />
+    <Compile Include="Forge\ForgeLook.cs" />
+    <Compile Include="Forge\ForgeSprites.cs" />
+    <Compile Include="Forge\ForgeTextures.cs" />
     <Compile Include="API\CustomizationEvents.cs" />
     <Compile Include="API\CustomizeLibsAPI.cs" />
     <Compile Include="Display\IconCatalog.cs" />

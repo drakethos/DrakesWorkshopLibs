@@ -1,6 +1,22 @@
 <img width="256" height="256" alt="DrakeModsLibs icon" src="icon.png" />
 
-# DrakeModsLibs
+# DrakeModsLibs — ⚠️ Moving to Hexium
+
+> [!IMPORTANT]
+> **DrakeMods is moving to Hexium.**
+>
+> This is one of the last updates we'll post on Thunderstore. No new DrakeMods will be released here, and existing mods will get only limited support on Thunderstore from now on.
+>
+> For the latest updates, newest versions and future mods, follow us on **Hexium**:
+> 👉 **[DrakeMods on Hexium](https://valheim.hexium.gg/?q=DrakeMods)**
+>
+> These Thunderstore listings will be deprecated after this.
+
+> [!TIP]
+> ### 🎨 DrakesReskinIt is finally coming, on Hexium!
+> The next mod built on DrakeModsLibs: give any item a new inventory icon, a new equipped model and custom colors, with saveable presets.
+> It plugs into the same Shift + right-click tab menu that LockSmith and DrakesRenameIt already use.
+> 👉 **[DrakesReskinIt on Hexium](https://valheim.hexium.gg/mods/DrakeMods/DrakesReskinIt)**
 
 Shared library for **DrakeMods** Valheim mods. It owns the display Harmony patches, item custom-data helpers, tag gatekeeping, menu binding registry, and **server config sync** so feature mods stay smaller and stay compatible when the game updates.
 

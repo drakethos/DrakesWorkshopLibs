@@ -1,5 +1,9 @@
 # DrakeModsLibs
 
+## 0.9.12
+- **Fix: `DrakeWoodActionMenu` showed no buttons after logout / character swap.** The GUI root is rebuilt then, and the menu kept references to the destroyed buttons, so the new panel never made its own. It now starts a fresh button list whenever it rebuilds the panel. This affected LockSmith's Lock menu and any other mod's action menu.
+- **Fix: `DrakeWoodActionMenu` with many buttons ran past the panel and into Close.** Buttons started from a fixed spot near the middle no matter how tall the panel was. The panel now sizes to its content (up to 640px) and stacks buttons down from just under the title/subtitle, with Close kept in its own footer.
+
 ## 0.9.11
 - **Fix: reskinned equipped models flickered, vanished or shook the camera** (e.g. a hoe made to look like a hammer). The game's equipment state now always keeps the real item; the owner publishes real -> look prefab hashes for every worn item on the player ZDO (any slot, hidden back items, and slots added by other mods) and every client swaps the hash only at the final attach (`VisEquipment.Set*Equipped`). Players without the target model keep the original.
 

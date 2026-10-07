@@ -9,7 +9,7 @@
     <BepInPluginName>DrakeModsLibs</BepInPluginName>
     <BepInGuid>com.drakemods.libs</BepInGuid>
     <ModInfoClass>CustomizeLibsPlugin</ModInfoClass>
-    <Description>Shared DrakeMods library for Valheim - ArtItemLoader, display patches, tags, APIs, and server config sync. Required by LockSmith and DrakesRenameit. Valheim 1.0 compatible.</Description>
+    <Description>Shared DrakeMods library for Valheim - Forge helpers, display patches, tags, APIs, and server config sync. Required by LockSmith and DrakesRenameit. Valheim 1.0 compatible.</Description>
     <WebsiteUrl>https://github.com/drakethos/DrakesWorkshopLibs</WebsiteUrl>
     <DeployAfterTargets>ILRepacker</DeployAfterTargets>
     <!-- Only this project may ILRepack / embed ServerSync -->

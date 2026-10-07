@@ -28,7 +28,7 @@
 | `ItemLookService` + 13 `VisEquipment` hooks | ReskinIt | Stays as a suite hook, but **dormant until ReskinIt registers**. Highest risk today: spawn/equip patches running on every install. |
 | `Progression` (boss-key gating, craft tracking) | ReskinIt | Suite-shareable (any customization mod could gate on progress). Stays; craft tracking dormant until used. |
 | UI kit: action menu, confirm, text prompt, stepper, toggle, tab host, sfx, input block | 1–3 mods each | Stays. **Rebuild on a layout core** (§2). |
-| `CompatHost`, `ArtItemLoader`, permission profiles | 2–3 mods each | Stays. Passive until called. |
+| `CompatHost`, permission profiles | 2–3 mods each | Stays. Passive until called. |
 | `DrakePlayerIdentity`, `ItemIconService`, `ItemDisplayService`, `InventoryContextHints` | Libs only | Mark `internal` unless meant as API. Smaller promise, same code. |
 
 Nothing needs to move out of Libs. The work is to make it **lazy** and make the UI **flexible**.

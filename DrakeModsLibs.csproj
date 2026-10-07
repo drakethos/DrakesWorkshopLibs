@@ -44,8 +44,6 @@
   </ItemGroup>
   <ItemGroup>
 
-    <Compile Include="Art\ArtItemContext.cs" />
-    <Compile Include="Art\ArtItemLoader.cs" />
     <Compile Include="Forge\ForgeLook.cs" />
     <Compile Include="Forge\ForgeSprites.cs" />
     <Compile Include="Forge\ForgeTextures.cs" />

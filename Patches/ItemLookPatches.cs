@@ -12,8 +12,8 @@ namespace DrakeModsLibs.Patches;
 /// <summary>
 /// Equipped-model swaps and tints.
 /// <para>
-/// Model: Valheim 1.0 picks equipped visuals by prefab hash (<c>VisEquipment.SetRightItem(itemHash, quality)</c> etc.).
-/// The prefixes swap that hash for the override's, so the normal equipment sync carries it to every client.
+/// Model: the owner publishes real -> look prefab hashes for every worn item on its ZDO; every client swaps the
+/// hash at the last step (<c>VisEquipment.Set*Equipped</c>), so the game's equipment state never disagrees.
 /// </para>
 /// <para>
 /// Model tint: the owner writes one int per slot to the player's ZDO; every client tints the attached instances.
@@ -71,99 +71,164 @@ internal static class ItemLookPatches
     }
 
     // ── Model swap ──────────────────────────────────────────────────────────
+    //
+    // The game's own equipment state (Humanoid -> VisEquipment fields -> ZDO) always keeps the real prefab hashes.
+    // Only the final attach step sees the override: the owner publishes "real hash -> look hash" pairs for every
+    // item it wears (any slot, hidden hand items, and slots added by other mods), and every client remaps the hash
+    // right before VisEquipment attaches a model. Swapping earlier (in SetRightItem etc.) left the game's paths
+    // disagreeing about the hash, so the model was destroyed and re-attached over and over: no model, flicker,
+    // and equip effects firing every frame (camera shake).
 
-    static void SwapHash(VisEquipment vis, FieldInfo? slot, ref int itemHash, ref int variant, bool hasVariant)
+    const int MaxModelSwaps = 16;
+    const string ModelCountName = "drake_model_n";
+    static readonly int ModelCountKey = ModelCountName.GetStableHashCode();
+    static readonly string[] ModelFromNames = SwapNames("f"), ModelToNames = SwapNames("t"), ModelVariantNames = SwapNames("v");
+    static readonly int[] ModelFromKeys = Hashes(ModelFromNames), ModelToKeys = Hashes(ModelToNames), ModelVariantKeys = Hashes(ModelVariantNames);
+
+    static string[] SwapNames(string part)
     {
-        // A throw here would abort equipment setup (and player spawn), so never let one escape.
+        var names = new string[MaxModelSwaps];
+        for (var i = 0; i < MaxModelSwaps; i++)
+            names[i] = $"drake_model_{part}{i}";
+        return names;
+    }
+
+    static int[] Hashes(string[] names)
+    {
+        var keys = new int[names.Length];
+        for (var i = 0; i < names.Length; i++)
+            keys[i] = names[i].GetStableHashCode();
+        return keys;
+    }
+
+    /// <summary>Everything the humanoid shows on its body: equipped items plus weapons hidden on the back.</summary>
+    static IEnumerable<ItemDrop.ItemData> WornItems(Humanoid humanoid)
+    {
+        var hiddenRight = Read(HiddenRightItem, humanoid);
+        if (hiddenRight != null)
+            yield return hiddenRight;
+        var hiddenLeft = Read(HiddenLeftItem, humanoid);
+        if (hiddenLeft != null)
+            yield return hiddenLeft;
+        var inventory = humanoid.GetInventory();
+        if (inventory == null)
+            yield break;
+        foreach (var item in inventory.GetAllItems())
+            if (item.m_equipped)
+                yield return item;
+    }
+
+    /// <summary>Owner: publish the real -> look hash pairs on the ZDO (only the values that changed).</summary>
+    static void PublishModels(Humanoid humanoid, ZDO zdo)
+    {
+        var count = 0;
+        var seen = new HashSet<int>();
+        foreach (var item in WornItems(humanoid))
+        {
+            if (count >= MaxModelSwaps)
+                break;
+            if (item?.m_dropPrefab == null || !ItemLookService.TryResolveModel(item, out var to, out var variant))
+                continue;
+            var from = item.m_dropPrefab.name.GetStableHashCode();
+            if (from == to || !seen.Add(from))
+                continue;
+            SetIfChanged(zdo, ModelFromKeys[count], ModelFromNames[count], from);
+            SetIfChanged(zdo, ModelToKeys[count], ModelToNames[count], to);
+            SetIfChanged(zdo, ModelVariantKeys[count], ModelVariantNames[count], variant);
+            count++;
+        }
+        SetIfChanged(zdo, ModelCountKey, ModelCountName, count);
+    }
+
+    static void SetIfChanged(ZDO zdo, int key, string name, int value)
+    {
+        if (zdo.GetInt(key, 0) != value)
+            zdo.Set(name, value);
+    }
+
+    /// <summary>Every client: real prefab hash -> published look hash (and its variant), right before attaching.</summary>
+    static void MapModel(VisEquipment vis, ref int hash, ref int variant, bool hasVariant)
+    {
+        // Runs inside the game's per-frame visual update: never let an exception escape.
         try
         {
-            if (itemHash == 0 || vis == null || slot == null)
+            if (hash == 0)
                 return;
-            var humanoid = vis.GetComponent<Humanoid>();
-            var item = humanoid != null ? Read(slot, humanoid) : null;
-            if (item?.m_dropPrefab == null || item.m_dropPrefab.name.GetStableHashCode() != itemHash)
+            var zdo = ZdoOf(vis);
+            if (zdo == null)
                 return;
-            if (!ItemLookService.TryResolveModel(item, out var hash, out var v))
+            var count = Math.Min(zdo.GetInt(ModelCountKey, 0), MaxModelSwaps);
+            for (var i = 0; i < count; i++)
+            {
+                if (zdo.GetInt(ModelFromKeys[i], 0) != hash)
+                    continue;
+                var to = zdo.GetInt(ModelToKeys[i], 0);
+                if (to == 0 || ObjectDB.instance == null || ObjectDB.instance.GetItemPrefab(to) == null)
+                    return; // unknown on this client (missing mod): keep the real model
+                hash = to;
+                if (hasVariant)
+                    variant = zdo.GetInt(ModelVariantKeys[i], 0);
                 return;
-            itemHash = hash;
-            if (hasVariant)
-                variant = v;
+            }
         }
         catch (Exception)
         {
-            // keep the vanilla model
+            // keep the real model
         }
     }
 
-    [HarmonyPatch(typeof(VisEquipment), "SetRightItem")]
-    [HarmonyPrefix]
-    static void SetRight(VisEquipment __instance, ref int itemHash)
+    static void MapModel(VisEquipment vis, ref int hash)
     {
         var none = 0;
-        SwapHash(__instance, RightItem, ref itemHash, ref none, false);
+        MapModel(vis, ref hash, ref none, false);
     }
 
-    [HarmonyPatch(typeof(VisEquipment), "SetLeftItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetRightHandEquipped")]
     [HarmonyPrefix]
-    static void SetLeft(VisEquipment __instance, ref int itemHash, ref int variant) =>
-        SwapHash(__instance, LeftItem, ref itemHash, ref variant, true);
+    static void RightHand(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
 
-    [HarmonyPatch(typeof(VisEquipment), "SetRightBackItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetLeftHandEquipped")]
     [HarmonyPrefix]
-    static void SetRightBack(VisEquipment __instance, ref int itemHash)
+    static void LeftHand(VisEquipment __instance, ref int hash, ref int variant) => MapModel(__instance, ref hash, ref variant, true);
+
+    [HarmonyPatch(typeof(VisEquipment), "SetBackEquipped")]
+    [HarmonyPrefix]
+    static void Back(VisEquipment __instance, ref int leftItem, ref int rightItem, ref int leftVariant)
     {
-        var none = 0;
-        SwapHash(__instance, HiddenRightItem, ref itemHash, ref none, false);
+        MapModel(__instance, ref leftItem, ref leftVariant, true);
+        MapModel(__instance, ref rightItem);
     }
 
-    [HarmonyPatch(typeof(VisEquipment), "SetLeftBackItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetChestEquipped")]
     [HarmonyPrefix]
-    static void SetLeftBack(VisEquipment __instance, ref int itemHash, ref int variant) =>
-        SwapHash(__instance, HiddenLeftItem, ref itemHash, ref variant, true);
+    static void Chest(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
 
-    [HarmonyPatch(typeof(VisEquipment), "SetChestItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetLegEquipped")]
     [HarmonyPrefix]
-    static void SetChest(VisEquipment __instance, ref int itemHash)
-    {
-        var none = 0;
-        SwapHash(__instance, ChestItem, ref itemHash, ref none, false);
-    }
+    static void Legs(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
 
-    [HarmonyPatch(typeof(VisEquipment), "SetLegItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquipped")]
     [HarmonyPrefix]
-    static void SetLegs(VisEquipment __instance, ref int itemHash)
-    {
-        var none = 0;
-        SwapHash(__instance, LegItem, ref itemHash, ref none, false);
-    }
+    static void Helmet(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
 
-    [HarmonyPatch(typeof(VisEquipment), "SetHelmetItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetShoulderEquipped")]
     [HarmonyPrefix]
-    static void SetHelmet(VisEquipment __instance, ref int itemHash)
-    {
-        var none = 0;
-        SwapHash(__instance, HelmetItem, ref itemHash, ref none, false);
-    }
+    static void Shoulder(VisEquipment __instance, ref int hash, ref int variant) => MapModel(__instance, ref hash, ref variant, true);
 
-    [HarmonyPatch(typeof(VisEquipment), "SetShoulderItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetUtilityEquipped")]
     [HarmonyPrefix]
-    static void SetShoulder(VisEquipment __instance, ref int itemHash, ref int variant) =>
-        SwapHash(__instance, ShoulderItem, ref itemHash, ref variant, true);
+    static void Utility(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
 
-    [HarmonyPatch(typeof(VisEquipment), "SetUtilityItem")]
+    [HarmonyPatch(typeof(VisEquipment), "SetTrinketEquipped")]
     [HarmonyPrefix]
-    static void SetUtility(VisEquipment __instance, ref int itemHash)
-    {
-        var none = 0;
-        SwapHash(__instance, UtilityItem, ref itemHash, ref none, false);
-    }
+    static void Trinket(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
 
     // ── Model tint ──────────────────────────────────────────────────────────
 
-    /// <summary>Owner: publish each slot's tint on the player's ZDO (only when it changed).</summary>
+    /// <summary>Owner: publish model swaps and each slot's tint on the player's ZDO (only what changed).</summary>
     [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.SetupVisEquipment))]
     [HarmonyPostfix]
-    static void PublishTints(Humanoid __instance, VisEquipment visEq, bool isRagdoll)
+    static void PublishLook(Humanoid __instance, VisEquipment visEq, bool isRagdoll)
     {
         try
         {
@@ -173,6 +238,7 @@ internal static class ItemLookPatches
             if (nview == null || !nview.IsValid() || !nview.IsOwner())
                 return;
             var zdo = nview.GetZDO();
+            PublishModels(__instance, zdo);
             foreach (var (slot, itemField, _) in Slots)
             {
                 var packed = ItemLookService.PackTint(ItemLookService.GetModelTint(Read(itemField, __instance)));

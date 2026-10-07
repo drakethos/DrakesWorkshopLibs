@@ -1,5 +1,8 @@
 # DrakeModsLibs
 
+## 0.9.11
+- **Fix: reskinned equipped models flickered, vanished or shook the camera** (e.g. a hoe made to look like a hammer). The game's equipment state now always keeps the real item; the owner publishes real -> look prefab hashes for every worn item on the player ZDO (any slot, hidden back items, and slots added by other mods) and every client swaps the hash only at the final attach (`VisEquipment.Set*Equipped`). Players without the target model keep the original.
+
 ## 0.9.10
 - **Item looks** (`ItemLookService`, `CustomizeLibsAPI.Get/SetModelOverride`, `Get/SetIconTint`, `Get/SetModelTint`, `CanReskinModel`, `CanRecolor`): equipped-model swap (same item type) via VisEquipment hash prefixes, model tint synced through the player ZDO, icon tint in inventory grids and hotbar. New ops `ReskinModel` / `ReskinColor`; keys `Drake_ModelOverride` / `Drake_IconTint` / `Drake_ModelTint` (part of stack identity). Game members bound by name at runtime (1.0 signatures differ from CI stubs).
 - **Progression helpers** (`DrakeModsLibs.Progression`): `DrakeProgression.RequiredKey` (boss key per item: anchored materials + recipe ingredients, with aliases/overrides), `IsKeyUnlocked` (global key or player key). `DrakeDiscovery`: `HasSeen` (vanilla known materials), `HasCrafted` / craft tracking (saved per character as `Drake_Crafted`), `IsCraftable`.

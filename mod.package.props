@@ -5,7 +5,7 @@
     <ThunderstoreAuthor>DrakeMods</ThunderstoreAuthor>
     <RootNamespace>DrakeModsLibs</RootNamespace>
     <AssemblyName>DrakeModsLibs</AssemblyName>
-    <Version>0.9.8</Version>
+    <Version>0.9.9</Version>
     <BepInPluginName>DrakeModsLibs</BepInPluginName>
     <BepInGuid>com.drakemods.libs</BepInGuid>
     <ModInfoClass>CustomizeLibsPlugin</ModInfoClass>
@@ -16,7 +16,7 @@
     <EmbedServerSync>true</EmbedServerSync>
   </PropertyGroup>
   <ItemGroup>
-    <ThunderstoreDependency Include="denikson-BepInExPack_Valheim-5.4.2333" />
-    <ThunderstoreDependency Include="ValheimModding-Jotunn-2.29.0" />
+    <ThunderstoreDependency Include="denikson-BepInExPack_Valheim-5.4.2351" />
+    <ThunderstoreDependency Include="ValheimModding-Jotunn-2.30.2" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,9 @@
 # DrakeModsLibs
 
+## 0.9.9
+- **Fix: multiplayer join with pre-release mod versions.** `DrakeConfigSync` now strips SemVer suffixes (`-beta.3`, `+build`) before handing versions to ServerSync, whose `System.Version` parse threw in `VersionCheck.RPC_PeerInfo` and left clients unable to join (e.g. DrakesRenameit 1.2.0-beta.3).
+- Dependencies: BepInExPack_Valheim 5.4.2351, Jotunn 2.30.2.
+
 ## 0.9.8
 - **`DrakeConfirmPanel`:** nested Show over an already-blocked wood panel no longer calls `EnsureUnblocked` on Close (Yes/No/Esc). Fixes cursor disappearing / camera look while a parent editor is still open.
 

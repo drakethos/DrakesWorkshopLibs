@@ -19,10 +19,22 @@ public sealed class DrakeConfigSync
         var inner = new ConfigSync(modId)
         {
             DisplayName = displayName,
-            CurrentVersion = currentVersion,
-            MinimumRequiredVersion = minimumRequiredVersion ?? currentVersion,
+            CurrentVersion = ToSystemVersion(currentVersion),
+            MinimumRequiredVersion = ToSystemVersion(minimumRequiredVersion ?? currentVersion),
         };
         return new DrakeConfigSync(inner);
+    }
+
+    /// <summary>
+    /// ServerSync parses versions with <see cref="System.Version"/>, which throws on SemVer suffixes
+    /// like "1.2.0-beta.3" and drops the joining peer. Strip pre-release/build metadata.
+    /// </summary>
+    static string ToSystemVersion(string version)
+    {
+        if (string.IsNullOrEmpty(version))
+            return version;
+        var core = version.Split('-', '+')[0];
+        return System.Version.TryParse(core, out var parsed) ? parsed.ToString() : "0.0.0";
     }
 
     public bool IsSourceOfTruth => _inner.IsSourceOfTruth;

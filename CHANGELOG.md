@@ -1,5 +1,9 @@
 # DrakeModsLibs
 
+## 0.10.1
+- **Fix: a player could gain VIP by editing their local config on a self-hosted or remote server.** `DrakePermissionProfile` read its `VipList` straight from the local file. A remote client now only trusts `VipList` once the host's synced config is the source of truth, the same rule RenameIt uses. Host and offline play are unchanged.
+- No API changes. Consumers pinned to 0.10.0 keep working.
+
 ## 0.10.0
 - **UI layout core** (`DrakeModsLibs.UI`): wood panels size to their content instead of fixed heights.
   - `DrakePanelOptions` (new, optional constructor argument on `DrakeConfirmPanel` and `DrakeWoodActionMenu`): `Width`, `MinHeight`, `MaxHeight`, `ButtonWidth`, `ButtonHeight`, `RowGap`. Defaults match the old sizes.

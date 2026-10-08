@@ -36,6 +36,7 @@ public sealed class DrakePermissionProfile
     ConfigEntry<string>? _excludedNames;
     ConfigEntry<string>? _excludedCategory;
     ConfigEntry<string>? _allowlist;
+    DrakeConfigSync? _sync;
 
     string? _vipRaw;
     HashSet<string> _vips = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -70,6 +71,7 @@ public sealed class DrakePermissionProfile
         out int syncedEntryCount)
     {
         _log = log;
+        _sync = sync;
         var sources = new[] { SourceOwn }.Concat(linkTargets).ToArray();
         var exclusionSources = sources.Concat(linkTargets.Length > 0 ? new[] { ExclusionMerge } : Array.Empty<string>()).ToArray();
         var linkHelp = linkTargets.Length > 0 ? string.Join(" / ", linkTargets) : "another Drake mod";
@@ -169,6 +171,8 @@ public sealed class DrakePermissionProfile
 
     bool IsOnVipList(Player player)
     {
+        if (!VipListTrusted())
+            return false;
         var raw = _vipList?.Value ?? "";
         if (!string.Equals(raw, _vipRaw, StringComparison.Ordinal))
         {
@@ -177,6 +181,18 @@ public sealed class DrakePermissionProfile
                 StringComparer.OrdinalIgnoreCase);
         }
         return _vips.Count > 0 && DrakePlayerIdentity.Keys(player).Any(_vips.Contains);
+    }
+
+    /// <summary>
+    /// A remote client may only trust VipList once the host's synced config is the source of truth.
+    /// Otherwise the local cfg is a file the player can edit (same rule as RenameIt's RenameitPermission).
+    /// </summary>
+    bool VipListTrusted()
+    {
+        var znet = ZNet.instance;
+        if (znet == null || znet.IsServer())
+            return true;
+        return _sync != null && _sync.IsSourceOfTruth;
     }
 
     DrakePermissionProfile? ResolveLink(string? value)

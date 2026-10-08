@@ -276,6 +276,8 @@ internal static class ItemLookPatches
                                 Tint(g, packed);
                 }
             }
+            // Skin-tight chest/leg armor is painted onto the body, not attached: tint those textures too.
+            BodyTextureTint.Apply(__instance, zdo.GetInt(TintHash("chest"), 0), zdo.GetInt(TintHash("legs"), 0));
         }
         catch (Exception)
         {

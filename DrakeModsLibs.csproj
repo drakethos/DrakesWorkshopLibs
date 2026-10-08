@@ -51,6 +51,7 @@
     <Compile Include="API\CustomizeLibsAPI.cs" />
     <Compile Include="Display\IconCatalog.cs" />
     <Compile Include="Display\ItemIconService.cs" />
+    <Compile Include="Display\BodyTextureTint.cs" />
     <Compile Include="Display\ItemLookService.cs" />
     <Compile Include="Patches\ItemLookPatches.cs" />
     <Compile Include="Patches\ItemIconPatches.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="UI\Layout\DrakeLayout.cs" />
     <Compile Include="UI\Layout\DrakePanelOptions.cs" />
     <Compile Include="UI\DrakeNumericStepper.cs" />
+    <Compile Include="UI\DrakeSlider.cs" />
     <Compile Include="UI\DrakeTabHost.cs" />
     <Compile Include="UI\DrakeTabPageContext.cs" />
     <Compile Include="UI\DrakeTabRegistration.cs" />

@@ -1,5 +1,11 @@
 # DrakeModsLibs
 
+## 0.10.2
+- **Recolor skin-tight armor.** Chest and leg armor that Valheim paints onto the body (bear, wolf, troll leather, ...) now takes the model tint. Tinted copies of `_ChestTex` / `_LegsTex` are made once per texture and color, cached, and freed when unused. Bare skin is never tinted.
+- **Tint brightness boost** (`ItemLookService.MaxTintBoost`, `BoostOf`): tints can exceed white up to 4x to lighten dark textures. Stored as `RRGGBB*2.50` and synced in spare bits of the per-slot tint; older versions read just the base color.
+- **`DrakeSlider`** (`DrakeModsLibs.UI`): labeled float slider row, layout-driven.
+- New API only, nothing removed. Consumers pinned to 0.10.x keep working.
+
 ## 0.10.1
 - **Fix: a player could gain VIP by editing their local config on a self-hosted or remote server.** `DrakePermissionProfile` read its `VipList` straight from the local file. A remote client now only trusts `VipList` once the host's synced config is the source of truth, the same rule RenameIt uses. Host and offline play are unchanged.
 - No API changes. Consumers pinned to 0.10.0 keep working.

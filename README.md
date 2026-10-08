@@ -161,6 +161,7 @@ RenameIt-looking chrome lives in `DrakeModsLibs.UI`:
 - `DrakeWoodActionMenu`, `DrakeConfirmPanel` (300×178 at default size), `DrakeTextPromptPanel`
 - **`DrakePanelOptions`** (`Width`, `MinHeight`, `MaxHeight`, `ButtonWidth`, `ButtonHeight`, `RowGap`) — optional constructor argument on `DrakeWoodActionMenu` and `DrakeConfirmPanel`. Panels size to their content between min and max; content past max scrolls. Omit it for today's sizes.
 - `DrakeGuiInput` / `DrakeButtonSfx`
+- **`DrakeSlider`**: labeled float slider (label / track / value text), layout-driven; `Create(parent, pos, label, min, max, initial, onChanged, format, width)`. Used by ReskinIt's brightness boost.
 - **`DrakeNumericStepper`** (− / field / +) with `SetRange` / `SetInteractable`
 - **`DrakeTabHost`** — Craft|Upgrade-style **top-right** tabs; only **registered** (installed) mods get a tab. Rename baseline priority is low; feature mods claim default (e.g. Lock on keys). Defer/suppress hides Rename entirely.
 
@@ -172,6 +173,10 @@ Cross-mod knobs: BepInEx config section **`Integration`** (`DrakeIntegrationConf
 Do not put those phrases in Libs — register getters from each feature mod. Tab strip appears only when usable count ≥ 2.
 
 **RenameIt handoff:** Register tab `renameit` with your localized hint; `IsAvailable` must respect suppress **and** TagBypass (admin may get usable=2 on Locksmith keys). Drop competing “for options” tooltip/open once Libs consumes usable ≥ 1.
+
+## Item looks (ReskinIt)
+
+- **`ItemLookService.MaxTintBoost` / `BoostOf`**: model and icon tints may carry a brightness boost (channels above 1, up to 4x), saved as `RRGGBB*2.50`. Used by ReskinIt's brightness slider. Skin-tight chest/leg armor (painted on the body) is tinted too.
 
 ## Install
 

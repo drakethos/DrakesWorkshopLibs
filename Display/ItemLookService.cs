@@ -70,34 +70,69 @@ public static class ItemLookService
         return true;
     }
 
-    /// <summary><c>RRGGBB</c> -> color; null for empty/invalid.</summary>
-    public static Color? ParseColor(string? hex)
+    /// <summary>
+    /// Highest brightness boost a tint can carry. A boosted tint is the base color times the boost (channels above 1),
+    /// which pushes a texture toward white instead of only darkening it.
+    /// </summary>
+    public const float MaxTintBoost = 4f;
+
+    const int BoostSteps = 127; // 7 bits in the network form
+
+    /// <summary>Boost carried by a tint: its brightest channel, clamped to 1..<see cref="MaxTintBoost"/>.</summary>
+    public static float BoostOf(Color color) => Mathf.Clamp(Mathf.Max(color.r, Mathf.Max(color.g, color.b)), 1f, MaxTintBoost);
+
+    /// <summary><c>RRGGBB</c> or boosted <c>RRGGBB*2.50</c> -> color (channels may exceed 1); null for empty/invalid.</summary>
+    public static Color? ParseColor(string? value)
     {
-        if (string.IsNullOrEmpty(hex) || hex!.Length != 6
-            || !int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var rgb))
+        if (string.IsNullOrEmpty(value))
             return null;
-        return new Color(((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f, 1f);
+        var hex = value!;
+        var boost = 1f;
+        var star = hex.IndexOf('*');
+        if (star >= 0)
+        {
+            if (!float.TryParse(hex.Substring(star + 1), NumberStyles.Float, CultureInfo.InvariantCulture, out boost))
+                return null;
+            boost = Mathf.Clamp(boost, 1f, MaxTintBoost);
+            hex = hex.Substring(0, star);
+        }
+        if (hex.Length != 6 || !int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var rgb))
+            return null;
+        return new Color(((rgb >> 16) & 0xFF) / 255f * boost, ((rgb >> 8) & 0xFF) / 255f * boost, (rgb & 0xFF) / 255f * boost, 1f);
     }
 
+    /// <summary>Color -> <c>RRGGBB</c>, or <c>RRGGBB*boost</c> when a channel exceeds 1. Older readers see only the base color.</summary>
     public static string? FormatColor(Color? color)
     {
         if (color == null)
             return null;
-        var c = (Color32)color.Value;
-        return $"{c.r:X2}{c.g:X2}{c.b:X2}";
+        var boost = BoostOf(color.Value);
+        var c = BaseColor(color.Value, boost);
+        var hex = $"{c.r:X2}{c.g:X2}{c.b:X2}";
+        return boost > 1.005f ? hex + "*" + boost.ToString("0.00", CultureInfo.InvariantCulture) : hex;
     }
 
-    /// <summary>Network form: 0 = no tint, otherwise 0x01RRGGBB.</summary>
+    /// <summary>Network form: 0 = no tint, otherwise boost step (bits 25-31) | 0x01RRGGBB. Older readers ignore the boost bits.</summary>
     internal static int PackTint(Color? color)
     {
         if (color == null)
             return 0;
-        var c = (Color32)color.Value;
-        return (1 << 24) | (c.r << 16) | (c.g << 8) | c.b;
+        var boost = BoostOf(color.Value);
+        var step = Mathf.Clamp(Mathf.RoundToInt((boost - 1f) / (MaxTintBoost - 1f) * BoostSteps), 0, BoostSteps);
+        var c = BaseColor(color.Value, boost);
+        return (step << 25) | (1 << 24) | (c.r << 16) | (c.g << 8) | c.b;
     }
 
-    internal static Color? UnpackTint(int packed) =>
-        packed == 0 ? null : new Color(((packed >> 16) & 0xFF) / 255f, ((packed >> 8) & 0xFF) / 255f, (packed & 0xFF) / 255f, 1f);
+    internal static Color? UnpackTint(int packed)
+    {
+        if (packed == 0)
+            return null;
+        var boost = 1f + ((packed >> 25) & BoostSteps) * (MaxTintBoost - 1f) / BoostSteps;
+        return new Color(((packed >> 16) & 0xFF) / 255f * boost, ((packed >> 8) & 0xFF) / 255f * boost, (packed & 0xFF) / 255f * boost, 1f);
+    }
+
+    static Color32 BaseColor(Color color, float boost) =>
+        new Color(color.r / boost, color.g / boost, color.b / boost, 1f);
 
     static string? Get(ItemDrop.ItemData? item, string key)
     {

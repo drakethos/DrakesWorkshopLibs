@@ -108,6 +108,8 @@
     <Compile Include="UI\DrakeConfirmPanel.cs" />
     <Compile Include="UI\DrakeGuiInput.cs" />
     <Compile Include="UI\DrakeMenuAction.cs" />
+    <Compile Include="UI\Layout\DrakeLayout.cs" />
+    <Compile Include="UI\Layout\DrakePanelOptions.cs" />
     <Compile Include="UI\DrakeNumericStepper.cs" />
     <Compile Include="UI\DrakeTabHost.cs" />
     <Compile Include="UI\DrakeTabPageContext.cs" />

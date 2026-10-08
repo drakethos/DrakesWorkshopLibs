@@ -8,17 +8,26 @@ namespace DrakeModsLibs.UI;
 
 /// <summary>
 /// RenameIt-standard wood confirm dialog (Are you sure?).
-/// Metrics match RenameIt reset-all: 300×178, Yes/No at ±55,35.
+/// Sizes to its text: at default <see cref="DrakePanelOptions"/> short text is 300×178 with Yes/No at ±55,35.
+/// Longer text grows the panel up to <c>MaxHeight</c>, then scrolls.
 /// </summary>
 public sealed class DrakeConfirmPanel
 {
-    const float Width = 300f;
-    const float Height = 178f;
-    const float TextWidth = 272f;
+    // Body top sits this far below the panel top; the footer keeps room for the buttons below the body.
+    const float BodyTop = 76f;
+    const float BodyMinHeight = 64f;
+    const float FooterHeight = 38f;
+    const float TextInset = 14f;
+    const float ButtonBottom = 35f;
 
     readonly string _panelName;
+    readonly DrakePanelOptions _options;
     GameObject? _panel;
+    RectTransform? _panelRt;
     Text? _titleText;
+    ScrollRect? _bodyScroll;
+    RectTransform? _bodyScrollRt;
+    RectTransform? _bodyContent;
     Text? _bodyText;
     Button? _yesButton;
     Button? _noButton;
@@ -30,12 +39,15 @@ public sealed class DrakeConfirmPanel
     /// </summary>
     bool _releaseInputOnClose;
 
-    public DrakeConfirmPanel(string panelName = "drake_confirm_panel")
+    public DrakeConfirmPanel(string panelName = "drake_confirm_panel", DrakePanelOptions? options = null)
     {
         _panelName = string.IsNullOrEmpty(panelName) ? "drake_confirm_panel" : panelName;
+        _options = options ?? new DrakePanelOptions();
     }
 
     public bool IsOpen => _panel && _panel.activeSelf;
+
+    float TextWidth => _options.Width - TextInset * 2f;
 
     public void Show(
         string title,
@@ -59,6 +71,7 @@ public sealed class DrakeConfirmPanel
 
         SetButtonLabel(_yesButton, yesLabel);
         SetButtonLabel(_noButton, noLabel);
+        Layout();
 
         // If a parent wood panel already blocked input, Close must leave that block in place.
         _releaseInputOnClose = !DrakeGuiInput.IsBlocked;
@@ -78,6 +91,29 @@ public sealed class DrakeConfirmPanel
         _onNo = null;
     }
 
+    /// <summary>
+    /// Measures the body at its wrap width, then sizes the body viewport and the panel to fit.
+    /// Text taller than the max height scrolls inside the viewport.
+    /// </summary>
+    void Layout()
+    {
+        if (!_panelRt || !_bodyText || !_bodyScrollRt || !_bodyScroll || !_bodyContent)
+            return;
+
+        var bodyRt = _bodyText.rectTransform;
+        bodyRt.sizeDelta = new Vector2(TextWidth, bodyRt.sizeDelta.y);
+        var textHeight = Mathf.Max(DrakeLayout.MeasureHeight(_bodyText), BodyMinHeight);
+
+        var maxBody = Mathf.Max(BodyMinHeight, _options.MaxHeight - BodyTop - FooterHeight);
+        var viewport = Mathf.Clamp(textHeight, BodyMinHeight, maxBody);
+        var panelHeight = Mathf.Clamp(BodyTop + viewport + FooterHeight, _options.MinHeight, _options.MaxHeight);
+
+        _panelRt.sizeDelta = new Vector2(_options.Width, panelHeight);
+        _bodyScrollRt.sizeDelta = new Vector2(TextWidth, viewport);
+        bodyRt.sizeDelta = new Vector2(TextWidth, textHeight);
+        DrakeLayout.SetContentHeight(_bodyScroll, textHeight, viewport);
+    }
+
     void Ensure()
     {
         if (_panel || GUIManager.Instance == null || !GUIManager.CustomGUIFront)
@@ -88,10 +124,11 @@ public sealed class DrakeConfirmPanel
             anchorMin: new Vector2(0.5f, 0.5f),
             anchorMax: new Vector2(0.5f, 0.5f),
             position: Vector2.zero,
-            width: Width,
-            height: Height,
+            width: _options.Width,
+            height: _options.MinHeight,
             draggable: false);
         _panel.name = _panelName;
+        _panelRt = _panel.GetComponent<RectTransform>();
 
         _titleText = GUIManager.Instance.CreateText(
             text: "",
@@ -109,20 +146,30 @@ public sealed class DrakeConfirmPanel
             addContentSizeFitter: false).GetComponent<Text>();
         _titleText.alignment = TextAnchor.MiddleCenter;
 
+        _bodyScroll = DrakeLayout.CreateScrollArea(
+            _panel.transform,
+            "body",
+            TextWidth,
+            BodyMinHeight,
+            new Vector2(0f, -BodyTop),
+            out _bodyContent);
+        _bodyScrollRt = (RectTransform)_bodyScroll.transform;
+
         _bodyText = GUIManager.Instance.CreateText(
             text: "",
-            parent: _panel.transform,
+            parent: _bodyContent.transform,
             anchorMin: new Vector2(0.5f, 1f),
             anchorMax: new Vector2(0.5f, 1f),
-            position: new Vector2(0f, -108f),
+            position: Vector2.zero,
             font: GUIManager.Instance.AveriaSerifBold,
             fontSize: 14,
             color: Color.white,
             outline: true,
             outlineColor: Color.black,
             width: TextWidth,
-            height: 64f,
+            height: BodyMinHeight,
             addContentSizeFitter: false).GetComponent<Text>();
+        _bodyText.rectTransform.pivot = new Vector2(0.5f, 1f);
         _bodyText.alignment = TextAnchor.UpperCenter;
         _bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
         _bodyText.verticalOverflow = VerticalWrapMode.Overflow;
@@ -132,9 +179,9 @@ public sealed class DrakeConfirmPanel
             parent: _panel.transform,
             anchorMin: new Vector2(0.5f, 0f),
             anchorMax: new Vector2(0.5f, 0f),
-            position: new Vector2(-55f, 35f),
-            width: 110f,
-            height: 30f));
+            position: new Vector2(-_options.ButtonWidth / 2f, ButtonBottom),
+            width: _options.ButtonWidth,
+            height: _options.ButtonHeight));
         _yesButton.onClick.AddListener(() =>
         {
             var yes = _onYes;
@@ -147,9 +194,9 @@ public sealed class DrakeConfirmPanel
             parent: _panel.transform,
             anchorMin: new Vector2(0.5f, 0f),
             anchorMax: new Vector2(0.5f, 0f),
-            position: new Vector2(55f, 35f),
-            width: 110f,
-            height: 30f));
+            position: new Vector2(_options.ButtonWidth / 2f, ButtonBottom),
+            width: _options.ButtonWidth,
+            height: _options.ButtonHeight));
         _noButton.onClick.AddListener(() =>
         {
             var no = _onNo;

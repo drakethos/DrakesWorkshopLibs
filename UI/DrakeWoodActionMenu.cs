@@ -9,18 +9,13 @@ namespace DrakeModsLibs.UI;
 
 /// <summary>
 /// RenameIt-style centered wood action menu (Jotunn CreateWoodpanel / CreateButton).
-/// Consumers supply title, optional subtitle, and action rows. Tab host comes later —
+/// Consumers supply title, optional subtitle, and action rows. The panel sizes to its rows
+/// up to <c>MaxHeight</c>; rows past that scroll. Tab host comes later —
 /// this is the shared chrome LockSmith (and eventually RenameIt) can reuse.
 /// </summary>
 public sealed class DrakeWoodActionMenu
 {
-    const float ButtonWidth = 200f;
-    const float ButtonHeight = 32f;
     const float CancelWidth = 64f;
-    const float RowGap = 40f;
-    const float PanelWidth = 320f;
-    const float MinPanelHeight = 240f;
-    const float MaxPanelHeight = 640f;
     // Title (center -40, 36 tall) ends 58 down; subtitle (center -72, 28 tall) ends 86 down.
     const float HeaderTitleOnly = 58f;
     const float HeaderWithSubtitle = 86f;
@@ -30,18 +25,32 @@ public sealed class DrakeWoodActionMenu
     const float ContentPadding = 8f;
 
     readonly string _panelName;
+    readonly DrakePanelOptions _options;
     GameObject? _panel;
+    RectTransform? _panelRt;
     Text? _titleText;
     Text? _subtitleText;
+    ScrollRect? _scroll;
+    RectTransform? _scrollRt;
+    RectTransform? _content;
     readonly List<Button> _actionButtons = new List<Button>();
     Button? _cancelButton;
     EscapeCloser? _escapeCloser;
     Action? _onClosed;
     bool _showCancel;
 
-    public DrakeWoodActionMenu(string panelName = "drake_wood_action_menu")
+    public DrakeWoodActionMenu(string panelName = "drake_wood_action_menu", DrakePanelOptions? options = null)
     {
         _panelName = string.IsNullOrEmpty(panelName) ? "drake_wood_action_menu" : panelName;
+        _options = options ?? new DrakePanelOptions
+        {
+            Width = 320f,
+            MinHeight = 240f,
+            MaxHeight = 640f,
+            ButtonWidth = 200f,
+            ButtonHeight = 32f,
+            RowGap = 40f,
+        };
     }
 
     public bool IsOpen => _panel && _panel.activeSelf;
@@ -59,7 +68,7 @@ public sealed class DrakeWoodActionMenu
 
         _onClosed = onClosed;
         _showCancel = showCancel;
-        EnsurePanel(Math.Max(actions?.Count ?? 0, 1));
+        EnsurePanel();
         if (!_panel || _titleText == null)
             return;
 
@@ -73,6 +82,7 @@ public sealed class DrakeWoodActionMenu
         }
 
         var list = actions ?? Array.Empty<DrakeMenuAction>();
+        EnsureActionButtonCount(list.Count);
         for (var i = 0; i < _actionButtons.Count; i++)
         {
             var btn = _actionButtons[i];
@@ -143,13 +153,10 @@ public sealed class DrakeWoodActionMenu
         closed?.Invoke();
     }
 
-    void EnsurePanel(int actionSlots)
+    void EnsurePanel()
     {
         if (_panel)
-        {
-            EnsureActionButtonCount(actionSlots);
             return;
-        }
 
         if (GUIManager.Instance == null || !GUIManager.CustomGUIFront)
             return;
@@ -158,16 +165,16 @@ public sealed class DrakeWoodActionMenu
         // Keeping their refs made the new panel think it had buttons and show none.
         _actionButtons.Clear();
 
-        var height = 160f + actionSlots * RowGap;
         _panel = GUIManager.Instance.CreateWoodpanel(
             parent: GUIManager.CustomGUIFront.transform,
             anchorMin: new Vector2(0.5f, 0.5f),
             anchorMax: new Vector2(0.5f, 0.5f),
             position: new Vector2(0f, 0f),
-            width: 320f,
-            height: Mathf.Clamp(height, 280f, 480f),
+            width: _options.Width,
+            height: _options.MinHeight,
             draggable: false);
         _panel.name = _panelName;
+        _panelRt = _panel.GetComponent<RectTransform>();
 
         _titleText = GUIManager.Instance.CreateText(
             text: "",
@@ -180,7 +187,7 @@ public sealed class DrakeWoodActionMenu
             color: GUIManager.Instance.ValheimOrange,
             outline: true,
             outlineColor: Color.black,
-            width: ButtonWidth + 40f,
+            width: _options.ButtonWidth + 40f,
             height: 36f,
             addContentSizeFitter: false).GetComponent<Text>();
         _titleText.alignment = TextAnchor.MiddleCenter;
@@ -196,13 +203,22 @@ public sealed class DrakeWoodActionMenu
             color: new Color(1f, 0f, 1f),
             outline: true,
             outlineColor: Color.black,
-            width: ButtonWidth + 40f,
+            width: _options.ButtonWidth + 40f,
             height: 28f,
             addContentSizeFitter: false).GetComponent<Text>();
         _subtitleText.alignment = TextAnchor.MiddleCenter;
         _subtitleText.gameObject.SetActive(false);
 
-        EnsureActionButtonCount(actionSlots);
+        // Rows live in a scroll area between the header and the footer; Cancel stays on the panel.
+        _scroll = DrakeLayout.CreateScrollArea(
+            _panel.transform,
+            "rows",
+            _options.Width,
+            0f,
+            Vector2.zero,
+            out var content);
+        _content = content;
+        _scrollRt = (RectTransform)_scroll.transform;
 
         _cancelButton = DrakeButtonSfx.SoftenButton(GUIManager.Instance.CreateButton(
             text: "Cancel",
@@ -223,41 +239,42 @@ public sealed class DrakeWoodActionMenu
 
     void EnsureActionButtonCount(int needed)
     {
-        if (!_panel || GUIManager.Instance == null)
+        if (!_content || GUIManager.Instance == null)
             return;
 
         while (_actionButtons.Count < needed)
         {
             var btn = DrakeButtonSfx.SoftenButton(GUIManager.Instance.CreateButton(
                 text: "",
-                parent: _panel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
+                parent: _content.transform,
+                anchorMin: new Vector2(0.5f, 1f),
+                anchorMax: new Vector2(0.5f, 1f),
                 position: Vector2.zero,
-                width: ButtonWidth,
-                height: ButtonHeight));
+                width: _options.ButtonWidth,
+                height: _options.ButtonHeight));
             _actionButtons.Add(btn);
         }
     }
 
     void Layout(int actionCount, bool hasSubtitle, bool showCancel)
     {
-        if (!_panel)
+        if (!_panelRt || !_scrollRt || !_scroll || !_content)
             return;
 
-        // Size the panel to its content first, then stack buttons down from just under the
-        // header. (Starting from a fixed offset off-center made long lists run into Cancel.)
+        // Size the panel to its rows first. Rows stack down from just under the header,
+        // and the scroll area takes whatever room is left between header and footer.
         var header = (hasSubtitle ? HeaderWithSubtitle : HeaderTitleOnly) + ContentPadding;
         var footer = (showCancel ? FooterWithCancel : FooterNoCancel) + ContentPadding;
-        var rows = Math.Max(actionCount, 1);
-        var h = Mathf.Clamp(header + rows * RowGap + footer, MinPanelHeight, MaxPanelHeight);
+        var rowsHeight = Math.Max(actionCount, 1) * _options.RowGap;
+        var h = Mathf.Clamp(header + rowsHeight + footer, _options.MinHeight, _options.MaxHeight);
+        var viewportHeight = h - header - footer;
 
-        var panelRt = _panel.GetComponent<RectTransform>();
-        if (panelRt)
-            panelRt.sizeDelta = new Vector2(PanelWidth, h);
+        _panelRt.sizeDelta = new Vector2(_options.Width, h);
+        _scrollRt.anchoredPosition = new Vector2(0f, -header);
+        _scrollRt.sizeDelta = new Vector2(_options.Width, viewportHeight);
+        DrakeLayout.SetContentHeight(_scroll, rowsHeight, viewportHeight);
 
-        // Buttons are center-anchored: first row's center sits RowGap/2 below the header.
-        var firstY = h / 2f - header - RowGap / 2f;
+        // Buttons are top-anchored inside the content: row i's center sits RowGap/2 + i*RowGap below its top.
         for (var i = 0; i < _actionButtons.Count; i++)
         {
             var btn = _actionButtons[i];
@@ -266,8 +283,8 @@ public sealed class DrakeWoodActionMenu
             var rt = btn.GetComponent<RectTransform>();
             if (!rt)
                 continue;
-            rt.anchoredPosition = new Vector2(0f, firstY - i * RowGap);
-            rt.sizeDelta = new Vector2(ButtonWidth, ButtonHeight);
+            rt.anchoredPosition = new Vector2(0f, -(_options.RowGap / 2f + i * _options.RowGap));
+            rt.sizeDelta = new Vector2(_options.ButtonWidth, _options.ButtonHeight);
         }
     }
 

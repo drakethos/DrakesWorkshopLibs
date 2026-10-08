@@ -158,7 +158,8 @@ When two items disagree, **Never** wins over **ByIdentity** over **None**.
 
 RenameIt-looking chrome lives in `DrakeModsLibs.UI`:
 
-- `DrakeWoodActionMenu`, `DrakeConfirmPanel` (300×178), `DrakeTextPromptPanel`
+- `DrakeWoodActionMenu`, `DrakeConfirmPanel` (300×178 at default size), `DrakeTextPromptPanel`
+- **`DrakePanelOptions`** (`Width`, `MinHeight`, `MaxHeight`, `ButtonWidth`, `ButtonHeight`, `RowGap`) — optional constructor argument on `DrakeWoodActionMenu` and `DrakeConfirmPanel`. Panels size to their content between min and max; content past max scrolls. Omit it for today's sizes.
 - `DrakeGuiInput` / `DrakeButtonSfx`
 - **`DrakeNumericStepper`** (− / field / +) with `SetRange` / `SetInteractable`
 - **`DrakeTabHost`** — Craft|Upgrade-style **top-right** tabs; only **registered** (installed) mods get a tab. Rename baseline priority is low; feature mods claim default (e.g. Lock on keys). Defer/suppress hides Rename entirely.

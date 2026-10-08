@@ -1,6 +1,11 @@
 # DrakeModsLibs
 
 ## 0.10.0
+- **UI layout core** (`DrakeModsLibs.UI`): wood panels size to their content instead of fixed heights.
+  - `DrakePanelOptions` (new, optional constructor argument on `DrakeConfirmPanel` and `DrakeWoodActionMenu`): `Width`, `MinHeight`, `MaxHeight`, `ButtonWidth`, `ButtonHeight`, `RowGap`. Defaults match the old sizes.
+  - `DrakeConfirmPanel`: body text is measured. The panel grows with it up to `MaxHeight`, then the text scrolls. Fixes the cut-off "warning is too long to read" popup.
+  - `DrakeWoodActionMenu`: rows sit in a scroll area between the header and Cancel. Long lists scroll instead of running into Cancel.
+  - Public signatures are unchanged. No consumer change needed.
 - **Forge helpers** (`DrakeModsLibs.Forge`): what Drakes Asset Forge's plain C# export calls to dress items and pieces, as plain statics (nothing runs until a mod calls them).
   - `ForgeTextures.Load/Sprite(assembly, file)`: images from inside the calling mod's DLL (embedded resources), falling back to a file with that name anywhere under the mod's folder, so Hexium/Gale flattening folders can't break them. Loaded once, cached.
   - `ForgeSprites.Add`: flat images (cut-out quads, one or two sided, shared mesh and material per image).

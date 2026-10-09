@@ -1,5 +1,12 @@
 # DrakeModsLibs
 
+## 0.11.0
+- **Custom models from Drakes Asset Forge** (`DrakeModsLibs.Forge`):
+  - `ForgeLook.Model(assembly, prefab, file)`: shows a .glb model embedded in the calling mod's DLL (or beside it) instead of the prefab's own meshes, like Forge's `look.mesh.file`. Each submesh becomes a renderer named `glb{i}_{mesh name}`, with a copy of the base's material named after the .glb material, so `ForgeLook.Material` can restyle it by that name.
+  - `ForgeLook.CollisionBox(prefab, center, size)`: one box collider instead of the prefab's solid colliders (Forge's `look.collision` box). The originals are switched off; triggers stay.
+  - Drakes Asset Forge's plain C# export with "Use DrakeModsLibs" now writes these calls. Used by DrakesItemShop's display cases.
+- New API only, nothing removed. Consumers pinned to 0.10.x keep working.
+
 ## 0.10.2
 - **Recolor skin-tight armor.** Chest and leg armor that Valheim paints onto the body (bear, wolf, troll leather, ...) now takes the model tint. Tinted copies of `_ChestTex` / `_LegsTex` are made once per texture and color, cached, and freed when unused. Bare skin is never tinted.
 - **Tint brightness boost** (`ItemLookService.MaxTintBoost`, `BoostOf`): tints can exceed white up to 4x to lighten dark textures. Stored as `RRGGBB*2.50` and synced in spare bits of the per-slot tint; older versions read just the base color.

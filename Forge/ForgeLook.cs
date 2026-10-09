@@ -181,6 +181,103 @@ public static class ForgeLook
         }
     }
 
+    /// <summary>
+    /// Shows a .glb model (embedded in <paramref name="owner"/> or beside it, like images) instead of the prefab's own
+    /// meshes, as the Forge runtime does for look.mesh.file. Each submesh becomes a child renderer named
+    /// "glb{i}_{mesh name}" under "forge_visual"; its material is a copy of the base's first material (vanilla shader)
+    /// named after the .glb material, so <see cref="Material"/> can target it by that name afterwards.
+    /// </summary>
+    public static GameObject? Model(Assembly owner, GameObject prefab, string file)
+    {
+        var bytes = ForgeTextures.ReadEmbedded(owner, file) ?? ForgeTextures.ReadLoose(owner, file);
+        if (bytes == null)
+        {
+            Logger.LogWarning($"[Forge] {owner.GetName().Name}: model {file} not found (embedded or beside the DLL).");
+            return null;
+        }
+
+        Gltf.GlbModel model;
+        try
+        {
+            model = Gltf.GlbReader.Read(bytes);
+        }
+        catch (Gltf.GlbException ex)
+        {
+            Logger.LogWarning($"[Forge] {prefab.name}: model {file}: {ex.Message}");
+            return null;
+        }
+        foreach (var warning in model.Warnings)
+            Logger.LogWarning($"[Forge] {prefab.name}: model {file}: {warning}");
+
+        var donors = Renderers(prefab).ToList();
+        var template = donors.SelectMany(r => r.sharedMaterials).FirstOrDefault(m => m != null);
+        foreach (var donor in donors)
+            donor.enabled = false;
+
+        var visual = new GameObject("forge_visual");
+        visual.transform.SetParent(VisualRoot(prefab), false);
+        var materials = model.Materials.Select((m, i) => GlbMaterial(m, m.Name ?? $"glb material {i}", template, file)).ToList();
+        var fallback = GlbMaterial(new Gltf.GlbMaterial(), "glb default", template, file);
+        for (var i = 0; i < model.Submeshes.Count; i++)
+        {
+            var sub = model.Submeshes[i];
+            var part = new GameObject($"glb{i}_{sub.Name ?? "mesh"}");
+            part.transform.SetParent(visual.transform, false);
+
+            var mesh = new Mesh { name = part.name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+            mesh.vertices = Vectors(sub.Positions);
+            if (sub.Normals.Length > 0)
+                mesh.normals = Vectors(sub.Normals);
+            if (sub.Uvs.Length > 0)
+                mesh.uv = Enumerable.Range(0, sub.Uvs.Length / 2).Select(v => new Vector2(sub.Uvs[v * 2], sub.Uvs[v * 2 + 1])).ToArray();
+            mesh.triangles = sub.Indices;
+            if (sub.Normals.Length == 0)
+                mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            part.AddComponent<MeshFilter>().sharedMesh = mesh;
+            part.AddComponent<MeshRenderer>().sharedMaterial = sub.Material >= 0 && sub.Material < materials.Count ? materials[sub.Material] : fallback;
+        }
+
+        return visual;
+    }
+
+    private static Material GlbMaterial(Gltf.GlbMaterial source, string name, Material? template, string file)
+    {
+        var material = template != null ? new Material(template) : new Material(Shader.Find("Standard"));
+        material.name = name;
+        if (material.HasProperty("_Color") && source.BaseColor.Length == 4)
+            material.SetColor("_Color", new Color(source.BaseColor[0], source.BaseColor[1], source.BaseColor[2], source.BaseColor[3]));
+        if (material.HasProperty("_MainTex"))
+            material.SetTexture("_MainTex", source.BaseColorImage != null ? ForgeTextures.FromBytes(source.BaseColorImage, $"{file} texture") : null);
+        return material;
+    }
+
+    private static Vector3[] Vectors(float[] xyz)
+    {
+        var result = new Vector3[xyz.Length / 3];
+        for (var i = 0; i < result.Length; i++)
+            result[i] = new Vector3(xyz[i * 3], xyz[i * 3 + 1], xyz[i * 3 + 2]);
+        return result;
+    }
+
+    /// <summary>
+    /// One box instead of the prefab's solid colliders (look.collision "box"). The originals are switched off, not
+    /// removed; triggers stay. Same layer as the originals, so placing, building on top and hits behave the same.
+    /// </summary>
+    public static BoxCollider CollisionBox(GameObject prefab, Vector3 center, Vector3 size)
+    {
+        var solids = prefab.GetComponentsInChildren<Collider>(true).Where(c => !c.isTrigger && c.enabled).ToList();
+        var holder = new GameObject("forge_collision") { layer = solids.FirstOrDefault()?.gameObject.layer ?? prefab.layer };
+        holder.transform.SetParent(prefab.transform, false);
+        var box = holder.AddComponent<BoxCollider>();
+        box.center = center;
+        box.size = size;
+        foreach (var solid in solids)
+            solid.enabled = false;
+        return box;
+    }
+
     /// <summary>Where the visible model lives: items show <c>attach</c> both dropped and held, pieces their root.</summary>
     public static Transform VisualRoot(GameObject prefab) =>
         prefab.GetComponent<ItemDrop>() != null && prefab.transform.Find("attach") is { } attach ? attach : prefab.transform;

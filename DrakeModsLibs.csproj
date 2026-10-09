@@ -47,6 +47,9 @@
     <Compile Include="Forge\ForgeLook.cs" />
     <Compile Include="Forge\ForgeSprites.cs" />
     <Compile Include="Forge\ForgeTextures.cs" />
+    <Compile Include="Forge\Gltf\GlbMath.cs" />
+    <Compile Include="Forge\Gltf\GlbReader.cs" />
+    <Compile Include="Forge\Gltf\JsonValue.cs" />
     <Compile Include="API\CustomizationEvents.cs" />
     <Compile Include="API\CustomizeLibsAPI.cs" />
     <Compile Include="Display\IconCatalog.cs" />

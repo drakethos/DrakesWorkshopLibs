@@ -59,6 +59,13 @@ public static class ForgeTextures
         return texture;
     }
 
+    /// <summary>A PNG/JPG already in memory (e.g. a .glb's embedded texture). Not cached.</summary>
+    internal static Texture2D? FromBytes(byte[] bytes, string name)
+    {
+        var texture = new Texture2D(2, 2, TextureFormat.RGBA32, true) { name = name };
+        return LoadImage(texture, bytes) ? texture : null;
+    }
+
     /// <summary>The image as a centred sprite (item and piece icons). Cached.</summary>
     public static Sprite? Sprite(Assembly owner, string file)
     {
@@ -78,7 +85,7 @@ public static class ForgeTextures
     }
 
     /// <summary>Embedded resources are named "&lt;RootNamespace&gt;.&lt;folders&gt;.&lt;file&gt;"; match the file name at the end.</summary>
-    private static byte[]? ReadEmbedded(Assembly owner, string file)
+    internal static byte[]? ReadEmbedded(Assembly owner, string file)
     {
         var leaf = Path.GetFileName(file.Replace('\\', '/'));
         var name = owner.GetManifestResourceNames().FirstOrDefault(n => n.Equals(leaf, StringComparison.OrdinalIgnoreCase) ||
@@ -94,7 +101,7 @@ public static class ForgeTextures
     }
 
     /// <summary>A loose file: the exact relative path first, then the same file name anywhere under the mod's folder.</summary>
-    private static byte[]? ReadLoose(Assembly owner, string file)
+    internal static byte[]? ReadLoose(Assembly owner, string file)
     {
         var dir = Path.GetDirectoryName(owner.Location);
         if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))

@@ -114,6 +114,7 @@
     <Compile Include="UI\Toolkit\DrakeUiMode.cs" />
     <Compile Include="UI\Toolkit\UkDialogViews.cs" />
     <Compile Include="UI\Toolkit\UkSlider.cs" />
+    <Compile Include="UI\Toolkit\UkStepper.cs" />
     <Compile Include="UI\Toolkit\UkWindow.cs" />
     <Compile Include="UI\Toolkit\UkTheme.cs" />
     <Compile Include="UI\Toolkit\UkRuntime.cs" />

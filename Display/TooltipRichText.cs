@@ -13,7 +13,9 @@ internal static class TooltipRichText
     private enum RtKind
     {
         Color,
-        Size
+        Size,
+        Bold,
+        Italic
     }
 
     /// <summary>
@@ -52,6 +54,16 @@ internal static class TooltipRichText
                     if (stack.Count > 0 && stack.Peek() == RtKind.Size)
                         stack.Pop();
                 }
+                else if (tag.Equals("</b>", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (stack.Count > 0 && stack.Peek() == RtKind.Bold)
+                        stack.Pop();
+                }
+                else if (tag.Equals("</i>", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (stack.Count > 0 && stack.Peek() == RtKind.Italic)
+                        stack.Pop();
+                }
             }
             else if (tag.StartsWith("<color", StringComparison.OrdinalIgnoreCase))
             {
@@ -65,6 +77,14 @@ internal static class TooltipRichText
             {
                 stack.Push(RtKind.Size);
             }
+            else if (tag.Equals("<b>", StringComparison.OrdinalIgnoreCase))
+            {
+                stack.Push(RtKind.Bold);
+            }
+            else if (tag.Equals("<i>", StringComparison.OrdinalIgnoreCase))
+            {
+                stack.Push(RtKind.Italic);
+            }
 
             i = end + 1;
         }
@@ -76,7 +96,7 @@ internal static class TooltipRichText
         while (stack.Count > 0)
         {
             var k = stack.Pop();
-            sb.Append(k == RtKind.Color ? "</color>" : "</size>");
+            sb.Append(k switch { RtKind.Color => "</color>", RtKind.Size => "</size>", RtKind.Bold => "</b>", _ => "</i>" });
         }
 
         return sb.ToString();

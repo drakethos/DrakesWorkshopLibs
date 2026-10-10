@@ -257,7 +257,8 @@ public sealed class UkRichToolbar
 
     static Texture2D? _rainbow;
 
-    static Texture2D RainbowTexture()
+    /// <summary>The shared "any colour" disc texture (a diagonal hue sweep), for buttons that open a colour picker.</summary>
+    public static Texture2D RainbowTexture()
     {
         if (_rainbow != null)
             return _rainbow;

@@ -58,6 +58,8 @@
     <Compile Include="Display\IconCatalog.cs" />
     <Compile Include="Display\ItemIconService.cs" />
     <Compile Include="Display\BodyTextureTint.cs" />
+    <Compile Include="Display\WorldLook.cs" />
+    <Compile Include="Patches\ItemWorldLookPatches.cs" />
     <Compile Include="Display\ItemLookService.cs" />
     <Compile Include="Patches\ItemLookPatches.cs" />
     <Compile Include="Patches\ItemIconPatches.cs" />

@@ -376,7 +376,7 @@ public static class ItemStandPatch
     /// Real attached item (durability + custom data) from the stand ZDO into a deep <see cref="ItemDrop.ItemData.Clone"/>.
     /// Never mutates ObjectDB prefabs. Falls back to container occupant when there is no vanilla attachment.
     /// </summary>
-    private static ItemDrop.ItemData? TryGetStandItemForDisplay(ItemStand stand, out bool loadedInstance)
+    internal static ItemDrop.ItemData? TryGetStandItemForDisplay(ItemStand stand, out bool loadedInstance)
     {
         loadedInstance = false;
         if (stand == null)

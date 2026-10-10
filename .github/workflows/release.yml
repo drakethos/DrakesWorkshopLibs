@@ -226,64 +226,24 @@ jobs:
     if: ${{ !cancelled() && needs.build-and-release.result == 'success' && (needs.publish-thunderstore.result == 'success' || needs.publish-thunderstore.result == 'skipped') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout publish script
+        uses: actions/checkout@v4
+
       - name: Download Thunderstore zip
         uses: actions/download-artifact@v4
         with:
           name: thunderstore-zip
           path: dist
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Install tcli
-        run: dotnet tool install -g tcli
-
+      # publish-hexium.py (not tcli) so Hexium can receive -beta.N versions.
       - name: Publish package to Hexium
         env:
-          VERSION: ${{ needs.build-and-release.outputs.version }}
-          DESCRIPTION: ${{ needs.build-and-release.outputs.description }}
-          WEBSITE_URL: ${{ needs.build-and-release.outputs.website_url }}
-          ZIP_NAME: ${{ needs.build-and-release.outputs.zip }}
           HEXIUM_TOKEN: ${{ secrets.HEXIUM_TOKEN }}
+          ZIP_NAME: ${{ needs.build-and-release.outputs.zip }}
         run: |
           set -euo pipefail
           if [ -z "${HEXIUM_TOKEN}" ]; then
             echo "::error::HEXIUM_TOKEN secret is not set" >&2
             exit 1
           fi
-
-          # Escape description for TOML double-quoted string
-          DESC_ESC=$(printf '%s' "$DESCRIPTION" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
-          WEB_ESC=$(printf '%s' "$WEBSITE_URL" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
-
-          cat > thunderstore.toml <<EOF
-          [config]
-          schemaVersion = "0.0.1"
-
-          [package]
-          namespace = "DrakeMods"
-          name = "DrakeModsLibs"
-          versionNumber = "${VERSION}"
-          description = "${DESC_ESC}"
-          websiteUrl = "${WEB_ESC}"
-          containsNsfwContent = false
-
-          [publish]
-          repository = "https://valheim.hexium.gg"
-          communities = ["valheim"]
-
-          [publish.categories]
-          valheim = ["Quality of Life", "Valheim 1.0"]
-          EOF
-
-          # Strip leading indentation from heredoc
-          sed -i 's/^          //' thunderstore.toml
-          cat thunderstore.toml
-
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          tcli publish \
-            --config-path thunderstore.toml \
-            --file "dist/${ZIP_NAME}" \
-            --token "${HEXIUM_TOKEN}"
+          python3 .github/scripts/publish-hexium.py             --file "dist/${ZIP_NAME}"             --repository "https://valheim.hexium.gg"             --namespace "DrakeMods"             --communities "valheim"             --categories "Quality of Life,Valheim 1.0"

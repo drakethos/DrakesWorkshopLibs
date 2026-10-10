@@ -888,6 +888,44 @@ public static class UkIcons
         };
         return icon;
     }
+
+    /// <summary>The recycle mark: three chasing arrows round a circle, drawn (the font has no such glyph).</summary>
+    public static VisualElement Recycle(float size, Color color)
+    {
+        var icon = new VisualElement { pickingMode = PickingMode.Ignore };
+        icon.style.width = icon.style.height = size;
+        icon.generateVisualContent += ctx =>
+        {
+            var p = ctx.painter2D;
+            var c = new Vector2(size * 0.5f, size * 0.5f);
+            var r = size * 0.36f;
+            p.lineWidth = Mathf.Max(1.8f, size * 0.11f);
+            p.strokeColor = color;
+            p.fillColor = color;
+            p.lineCap = LineCap.Round;
+            for (var i = 0; i < 3; i++)
+            {
+                var start = i * 120f + 14f;
+                var end = start + 82f;
+                p.BeginPath();
+                p.Arc(c, r, start, end);
+                p.Stroke();
+                // Arrow head at the end of each arc, pointing along the circle.
+                var a = end * Mathf.Deg2Rad;
+                var tip = c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r;
+                var tangent = new Vector2(-Mathf.Sin(a), Mathf.Cos(a));
+                var normal = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                var head = size * 0.17f;
+                p.BeginPath();
+                p.MoveTo(tip + tangent * head);
+                p.LineTo(tip + normal * head * 0.8f);
+                p.LineTo(tip - normal * head * 0.8f);
+                p.ClosePath();
+                p.Fill();
+            }
+        };
+        return icon;
+    }
 }
 
 /// <summary>

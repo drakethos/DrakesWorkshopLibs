@@ -1,0 +1,25 @@
+---
+description: Never bump mod/package versions unless the user explicitly asks
+alwaysApply: true
+---
+
+# Version bumps require consent
+
+Do **not** change version numbers unless the user explicitly asks (e.g. “bump to 0.3.10”, “cut a release”).
+
+## Do not touch without asking
+
+- `mod.package.props` `<Version>`
+- Thunderstore / Hexium dependency version pins (`DrakeMods-DrakeModsLibs-…`, etc.)
+- `CHANGELOG.md` version headings that imply a new release number
+- Any other package/manifest version fields (`manifest_template.json`, etc.)
+
+## When implementing features/fixes
+
+- Ship code + docs under the **current** version already in the repo.
+- You may add bullets under the **existing** top changelog section if it is clearly still unreleased / in progress — do not invent a new `## x.y.z` section.
+- If a dependency version pin must change for the build to work, **ask first** and wait.
+
+## Why
+
+The maintainer owns release numbering. Agents that auto-bump fight manual version fixes and create noisy diffs.

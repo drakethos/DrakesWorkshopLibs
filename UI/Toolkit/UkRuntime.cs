@@ -77,6 +77,11 @@ public static class UkFonts
 /// </summary>
 public sealed class UkScreen : MonoBehaviour
 {
+    /// <summary>Highest sorting order a window or dialog gets (<see cref="RaiseAboveCanvases"/> stops here).</summary>
+    public const int TopSorting = 31000;
+    /// <summary>The message stack (<see cref="DrakeModsLibs.UI.DrakeMessage"/>): above every window and dialog.</summary>
+    public const int MessageSorting = 32000;
+
     PanelSettings _settings = null!;
 
     public VisualElement Root { get; private set; } = null!;
@@ -94,7 +99,7 @@ public sealed class UkScreen : MonoBehaviour
                 top = canvas.sortingOrder;
         }
 
-        _settings.sortingOrder = Mathf.Min(Mathf.Max(top + extra, 100), 32000);
+        _settings.sortingOrder = Mathf.Min(Mathf.Max(top + extra, 100), TopSorting);
     }
 
     public float SortingOrder => _settings.sortingOrder;

@@ -121,13 +121,14 @@ public static class CustomizeLibsAPI
         CanPerform(CustomizeOperation.EditCraftedBy, item, player);
 
     /// <summary>
-    /// <c>Character.Message</c> that works on Valheim 1.0 (5-arg) and older refs (4-arg). Call this instead of
-    /// <c>Message</c> directly: a direct call compiled against CI stubs throws MissingMethodException at JIT time.
+    /// Shows a message to the player on the shared card (<see cref="DrakeModsLibs.UI.DrakeMessage"/>). <paramref name="type"/> is
+    /// ignored now that every message uses the card; kept so existing callers still compile. Falls back to Valheim's own
+    /// message only when the new look is turned off.
     /// </summary>
     public static void ShowHudMessage(Character? character, MessageHud.MessageType type, string? text)
     {
         if (character != null && !string.IsNullOrEmpty(text))
-            CharacterMessageInvoker.Show(character, type, text!, 0, null);
+            DrakeModsLibs.UI.DrakeMessage.Show(text!);
     }
 
     public static bool CanReskinIcon(ItemDrop.ItemData? item, Player? player) =>

@@ -1,5 +1,12 @@
 # DrakeModsLibs
 
+## 1.0.0-beta.1
+- First 1.0 beta. Nothing removed or changed: consumers on 0.11.x keep working. Adds the message card below.
+- **New message card: `DrakeMessage.Show(text, kind, title, seconds)`** (`DrakeModsLibs.UI`). A dark wood card near the top of the screen with a coloured edge (info, success, warning, error) that fades out on its own, in place of Valheim's yellow centre text. Drawn above every Drake window and dialog and never takes clicks. Falls back to the centre text when `UseToolkitUi` is off.
+- `UkScreen.TopSorting` caps window sorting so the message layer always stays above.
+- `CustomizeLibsAPI.ShowHudMessage` now shows on the same card (its `type` argument is ignored). Existing callers keep compiling.
+- New API only, nothing removed.
+
 ## 0.11.2
 - **Fix: the 0.10.1 VIP check was inverted.** `IsSourceOfTruth` is true while the local config is in charge and turns false once the host's synced config arrives. 0.10.1 trusted a remote client's `VipList` only while it was still true, so an unsynced client could still grant itself VIP, and real VIPs on a remote or dedicated server lost VIP once synced. A remote client now trusts `VipList` only after the host's config has taken over. Host and offline play are unchanged.
 - No API changes.

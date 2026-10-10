@@ -115,6 +115,7 @@
     <Compile Include="Tags\ItemNameMatch.cs" />
     <Compile Include="UI\Toolkit\DrakeUiMode.cs" />
     <Compile Include="UI\Toolkit\UkDialogViews.cs" />
+    <Compile Include="UI\Toolkit\UkMessageView.cs" />
     <Compile Include="UI\Toolkit\UkSlider.cs" />
     <Compile Include="UI\Toolkit\UkStepper.cs" />
     <Compile Include="UI\Toolkit\UkWindow.cs" />
@@ -126,6 +127,7 @@
     <Compile Include="UI\Toolkit\UkRichToolbar.cs" />
     <Compile Include="UI\DrakeButtonSfx.cs" />
     <Compile Include="UI\DrakeConfirmPanel.cs" />
+    <Compile Include="UI\DrakeMessage.cs" />
     <Compile Include="UI\DrakeGuiInput.cs" />
     <Compile Include="UI\DrakeMenuAction.cs" />
     <Compile Include="UI\Layout\DrakeLayout.cs" />

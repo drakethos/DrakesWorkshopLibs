@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.ver.outputs.version }}
+      is_prerelease: ${{ steps.ver.outputs.is_prerelease }}
       tag: ${{ steps.ver.outputs.tag }}
       zip: ${{ steps.pkg.outputs.zip }}
       description: ${{ steps.pkg.outputs.description }}
@@ -39,6 +40,11 @@ jobs:
             echo "::error::Tag ${TAG} (${TAG_VERSION}) does not match mod.package.props (${PKG_VERSION}). Tag v${PKG_VERSION} or update <Version>." >&2
             exit 1
           fi
+          # A -beta.N / -alpha.N / -rc.N version is a pre-release: GitHub prerelease + Hexium only (Thunderstore skipped).
+          case "$PKG_VERSION" in
+            *-*) echo "is_prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "is_prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
           echo "version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Release version: $PKG_VERSION (mod.package.props)"
@@ -163,7 +169,7 @@ jobs:
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: "DrakeModsLibs ${{ steps.ver.outputs.version }}"
-          prerelease: false
+          prerelease: ${{ steps.ver.outputs.is_prerelease == 'true' }}
           body: |
             ## DrakeModsLibs v${{ steps.ver.outputs.version }}
 
@@ -188,6 +194,8 @@ jobs:
 
   publish-thunderstore:
     needs: build-and-release
+    # Betas go to Hexium only.
+    if: needs.build-and-release.outputs.is_prerelease != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download Thunderstore zip
@@ -214,6 +222,8 @@ jobs:
 
   publish-hexium:
     needs: [build-and-release, publish-thunderstore]
+    # Runs after Thunderstore for a stable release, on its own for a beta (Thunderstore is skipped then).
+    if: ${{ !cancelled() && needs.build-and-release.result == 'success' && (needs.publish-thunderstore.result == 'success' || needs.publish-thunderstore.result == 'skipped') }}
     runs-on: ubuntu-latest
     steps:
       - name: Download Thunderstore zip

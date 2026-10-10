@@ -214,6 +214,8 @@ public sealed class UkWindow
 
         EnsureRunner();
         _screen.RaiseAboveCanvases(_layer);
+        // The title is built with the window; if that was before the fonts existed it has no heading font yet.
+        UkFonts.ApplyHeading(_title);
         _scrim.Show(true);
         ApplyOffset();
     }

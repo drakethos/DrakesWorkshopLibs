@@ -18,10 +18,16 @@ public static class UkFonts
     {
         get
         {
+            // Settle only once Jotunn actually has the font: a window built early (before GUIManager loads its fonts) must
+            // not pin the font to null for the whole session, which left every Drake window without text.
             if (!_bodyTried)
             {
-                _bodyTried = true;
-                _body = From(GUIManager.Instance != null ? GUIManager.Instance.AveriaSerif : null);
+                var font = GUIManager.Instance != null ? GUIManager.Instance.AveriaSerif : null;
+                if (font != null)
+                {
+                    _bodyTried = true;
+                    _body = From(font);
+                }
             }
 
             return _body;
@@ -34,11 +40,15 @@ public static class UkFonts
         {
             if (!_headingTried)
             {
-                _headingTried = true;
-                _heading = From(GUIManager.Instance != null ? GUIManager.Instance.AveriaSerifBold : null) ?? Body;
+                var font = GUIManager.Instance != null ? GUIManager.Instance.AveriaSerifBold : null;
+                if (font != null)
+                {
+                    _headingTried = true;
+                    _heading = From(font);
+                }
             }
 
-            return _heading;
+            return _heading ?? Body;
         }
     }
 
@@ -92,6 +102,8 @@ public sealed class UkScreen : MonoBehaviour
     /// </summary>
     public void RaiseAboveCanvases(int extra = 10)
     {
+        // A screen built before the fonts existed has none on its root; give it the body font now (it is inherited).
+        UkFonts.ApplyBody(Root);
         var top = 0;
         foreach (var canvas in FindObjectsOfType<Canvas>())
         {

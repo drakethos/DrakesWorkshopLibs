@@ -2,6 +2,7 @@
 
 ## 1.0.0-beta.1
 - First 1.0 beta. Nothing removed or changed: consumers on 0.11.x keep working. Adds the message card below.
+- **Fix: menus with no text.** The UI Toolkit fonts were looked up once; a window built before the game had loaded its fonts (a mod creating its window early) pinned them to nothing, so every Drake window lost its text for the session. The lookup now waits for the font, and a window built early picks its fonts up when it opens.
 - **New message card: `DrakeMessage.Show(text, kind, title, seconds)`** (`DrakeModsLibs.UI`). A dark wood card near the top of the screen with a coloured edge (info, success, warning, error) that fades out on its own, in place of Valheim's yellow centre text. Drawn above every Drake window and dialog and never takes clicks. Falls back to the centre text when `UseToolkitUi` is off.
 - `UkScreen.TopSorting` caps window sorting so the message layer always stays above.
 - `CustomizeLibsAPI.ShowHudMessage` now shows on the same card (its `type` argument is ignored). Existing callers keep compiling.

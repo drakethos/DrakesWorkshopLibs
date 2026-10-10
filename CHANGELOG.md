@@ -1,5 +1,9 @@
 # DrakeModsLibs
 
+## 0.11.1
+- **Fix: synced settings changed while the game runs never reached players on Valheim 1.0.** The bundled ServerSync was built when `ZRoutedRpc.Everybody` was a static field; Valheim 1.0 made it a constant, so ServerSync's broadcast threw `MissingFieldException` on every synced setting change (an admin editing config, or a mod migrating a value at startup). The bundled ServerSync is patched to use the constant, as a rebuild against 1.0 would (DrakesWorkshop `scripts/Patch-ServerSyncEverybody.ps1`).
+- No API changes. Consumers pinned to 0.10.x or 0.11.0 keep working and get the fix by updating Libs.
+
 ## 0.11.0
 - **Custom models from Drakes Asset Forge** (`DrakeModsLibs.Forge`):
   - `ForgeLook.Model(assembly, prefab, file)`: shows a .glb model embedded in the calling mod's DLL (or beside it) instead of the prefab's own meshes, like Forge's `look.mesh.file`. Each submesh becomes a renderer named `glb{i}_{mesh name}`, with a copy of the base's material named after the .glb material, so `ForgeLook.Material` can restyle it by that name.

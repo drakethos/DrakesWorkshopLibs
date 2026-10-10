@@ -1,4 +1,5 @@
 using System;
+using DrakeModsLibs.UI.Toolkit;
 using Jotunn.Managers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,6 +34,7 @@ public sealed class DrakeConfirmPanel
     Button? _noButton;
     Action? _onYes;
     Action? _onNo;
+    UkConfirmView? _toolkit;
     /// <summary>
     /// True when <see cref="Show"/> acquired the BlockInput lock (nothing else was already blocking).
     /// Nested confirms over an open editor must not release the parent's lock on Close.
@@ -45,7 +47,7 @@ public sealed class DrakeConfirmPanel
         _options = options ?? new DrakePanelOptions();
     }
 
-    public bool IsOpen => _panel && _panel.activeSelf;
+    public bool IsOpen => (_toolkit != null && _toolkit.IsOpen) || (_panel && _panel.activeSelf);
 
     float TextWidth => _options.Width - TextInset * 2f;
 
@@ -57,6 +59,20 @@ public sealed class DrakeConfirmPanel
         string yesLabel = "Yes",
         string noLabel = "No")
     {
+        if (DrakeUiMode.Toolkit)
+        {
+            try
+            {
+                _toolkit ??= new UkConfirmView();
+                _toolkit.Show(title, body, onYes, onNo, yesLabel, noLabel);
+                return;
+            }
+            catch (Exception ex)
+            {
+                DrakeUiMode.ReportFailure(ex);
+            }
+        }
+
         if (GUIManager.Instance == null || !GUIManager.CustomGUIFront)
             return;
 
@@ -82,6 +98,12 @@ public sealed class DrakeConfirmPanel
 
     public void Close()
     {
+        if (_toolkit != null && _toolkit.IsOpen)
+        {
+            _toolkit.Close();
+            return;
+        }
+
         if (_panel)
             _panel.SetActive(false);
         if (_releaseInputOnClose)

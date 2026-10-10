@@ -15,6 +15,7 @@ public static class DrakeIntegrationConfig
     static ConfigEntry<string>? _tabPriorityOverrides;
     static ConfigEntry<string>? _forceDefaultTabId;
     static ConfigEntry<bool>? _disableClaimDefault;
+    static ConfigEntry<bool>? _useToolkitUi;
 
     /// <summary>Shared inventory menu chord when tab host is wired (e.g. Shift).</summary>
     public static string InventoryOpenModifier =>
@@ -31,6 +32,12 @@ public static class DrakeIntegrationConfig
     }
 
     public static bool DisableClaimDefault => _disableClaimDefault?.Value ?? false;
+
+    /// <summary>
+    /// Draw the shared menus, confirm and prompt dialogs in the new look (UI Toolkit) instead of the classic wood panels.
+    /// One switch for every mod that uses them. Per-client; applies the next time a dialog opens.
+    /// </summary>
+    public static bool UseToolkitUi => _useToolkitUi?.Value ?? true;
 
     public static void Bind(ConfigFile config)
     {
@@ -60,6 +67,12 @@ public static class DrakeIntegrationConfig
             "DisableClaimDefault",
             false,
             "When true, ignore ClaimDefault predicates and pick the highest-priority available tab.");
+
+        _useToolkitUi = config.Bind(
+            "UI",
+            "UseToolkitUi",
+            true,
+            "Draw shared menus, confirm and prompt dialogs (LockSmith, ReskinIt, ...) in the new look instead of the classic wood panels. Per-client; applies the next time a dialog opens.");
     }
 
     /// <summary>Parse TabPriorityOverrides for a tab id.</summary>

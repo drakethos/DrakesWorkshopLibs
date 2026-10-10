@@ -1,4 +1,5 @@
 using System;
+using DrakeModsLibs.UI.Toolkit;
 using Jotunn.Managers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,13 +20,14 @@ public sealed class DrakeTextPromptPanel
     Button? _okButton;
     Button? _cancelButton;
     Action<string>? _onOk;
+    UkPromptView? _toolkit;
 
     public DrakeTextPromptPanel(string panelName = "drake_text_prompt")
     {
         _panelName = string.IsNullOrEmpty(panelName) ? "drake_text_prompt" : panelName;
     }
 
-    public bool IsOpen => _panel && _panel.activeSelf;
+    public bool IsOpen => (_toolkit != null && _toolkit.IsOpen) || (_panel && _panel.activeSelf);
 
     public void Show(
         string title,
@@ -36,6 +38,20 @@ public sealed class DrakeTextPromptPanel
         string okLabel = "Ok",
         string cancelLabel = "Cancel")
     {
+        if (DrakeUiMode.Toolkit)
+        {
+            try
+            {
+                _toolkit ??= new UkPromptView();
+                _toolkit.Show(title, initialText, onOk, onCancel, charLimit, okLabel, cancelLabel);
+                return;
+            }
+            catch (Exception ex)
+            {
+                DrakeUiMode.ReportFailure(ex);
+            }
+        }
+
         if (GUIManager.Instance == null || !GUIManager.CustomGUIFront)
             return;
 
@@ -75,6 +91,12 @@ public sealed class DrakeTextPromptPanel
 
     public void Close()
     {
+        if (_toolkit != null && _toolkit.IsOpen)
+        {
+            _toolkit.Close();
+            return;
+        }
+
         if (_panel)
             _panel.SetActive(false);
         DrakeGuiInput.EnsureUnblocked();

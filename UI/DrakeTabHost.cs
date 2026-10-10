@@ -326,6 +326,9 @@ public static class DrakeTabHost
         _stripRoot.SetActive(false);
     }
 
+    /// <summary>A window in the new look has its own tab row; hide this strip while it is up (it returns for tabs that haven't moved).</summary>
+    internal static void HideStripForToolkit() => HideStrip();
+
     static void HideStrip()
     {
         if (_stripRoot)

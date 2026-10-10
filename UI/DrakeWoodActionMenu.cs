@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DrakeModsLibs.UI.Toolkit;
 using Jotunn.Managers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,6 +39,7 @@ public sealed class DrakeWoodActionMenu
     EscapeCloser? _escapeCloser;
     Action? _onClosed;
     bool _showCancel;
+    UkActionMenuView? _toolkit;
 
     public DrakeWoodActionMenu(string panelName = "drake_wood_action_menu", DrakePanelOptions? options = null)
     {
@@ -53,7 +55,7 @@ public sealed class DrakeWoodActionMenu
         };
     }
 
-    public bool IsOpen => _panel && _panel.activeSelf;
+    public bool IsOpen => (_toolkit != null && _toolkit.IsOpen) || (_panel && _panel.activeSelf);
 
     public void Open(
         string title,
@@ -63,6 +65,23 @@ public sealed class DrakeWoodActionMenu
         Action? onClosed = null,
         bool showCancel = true)
     {
+        // New look first (one switch for every mod); the classic wood panel below is the fallback.
+        if (DrakeUiMode.Toolkit)
+        {
+            try
+            {
+                if (_panel)
+                    _panel.SetActive(false);
+                _toolkit ??= new UkActionMenuView();
+                _toolkit.Open(title ?? "", subtitle, actions ?? Array.Empty<DrakeMenuAction>(), cancelLabel, onClosed, showCancel);
+                return;
+            }
+            catch (Exception ex)
+            {
+                DrakeUiMode.ReportFailure(ex);
+            }
+        }
+
         if (GUIManager.Instance == null || !GUIManager.CustomGUIFront)
             return;
 
@@ -143,6 +162,12 @@ public sealed class DrakeWoodActionMenu
 
     void Close(bool invokeClosed)
     {
+        if (_toolkit != null && _toolkit.IsOpen)
+        {
+            _toolkit.Close(invokeClosed);
+            return;
+        }
+
         if (_panel)
             _panel.SetActive(false);
         DrakeGuiInput.EnsureUnblocked();

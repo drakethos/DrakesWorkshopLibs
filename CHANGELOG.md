@@ -1,5 +1,9 @@
 # DrakeModsLibs
 
+## 0.11.2
+- **Fix: the 0.10.1 VIP check was inverted.** `IsSourceOfTruth` is true while the local config is in charge and turns false once the host's synced config arrives. 0.10.1 trusted a remote client's `VipList` only while it was still true, so an unsynced client could still grant itself VIP, and real VIPs on a remote or dedicated server lost VIP once synced. A remote client now trusts `VipList` only after the host's config has taken over. Host and offline play are unchanged.
+- No API changes.
+
 ## 0.11.1
 - **Fix: synced settings changed while the game runs never reached players on Valheim 1.0.** The bundled ServerSync was built when `ZRoutedRpc.Everybody` was a static field; Valheim 1.0 made it a constant, so ServerSync's broadcast threw `MissingFieldException` on every synced setting change (an admin editing config, or a mod migrating a value at startup). The bundled ServerSync is patched to use the constant, as a rebuild against 1.0 would (DrakesWorkshop `scripts/Patch-ServerSyncEverybody.ps1`).
 - No API changes. Consumers pinned to 0.10.x or 0.11.0 keep working and get the fix by updating Libs.

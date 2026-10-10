@@ -184,15 +184,16 @@ public sealed class DrakePermissionProfile
     }
 
     /// <summary>
-    /// A remote client may only trust VipList once the host's synced config is the source of truth.
-    /// Otherwise the local cfg is a file the player can edit (same rule as RenameIt's RenameitPermission).
+    /// A remote client may only trust VipList once the host's synced config has replaced the local one
+    /// (IsSourceOfTruth turns false then). Otherwise the local cfg is a file the player can edit
+    /// (same rule as RenameIt's RenameitPermission).
     /// </summary>
     bool VipListTrusted()
     {
         var znet = ZNet.instance;
         if (znet == null || znet.IsServer())
             return true;
-        return _sync != null && _sync.IsSourceOfTruth;
+        return _sync != null && !_sync.IsSourceOfTruth;
     }
 
     DrakePermissionProfile? ResolveLink(string? value)

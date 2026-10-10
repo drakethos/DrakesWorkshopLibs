@@ -310,8 +310,17 @@ public sealed class UkField
         if (_rich)
             return;
         _rich = true;
-        Input.textSelection.selectAllOnFocus = false;
-        Input.textSelection.selectAllOnMouseUp = false;
+        // Set by reflection: the CI reference assemblies hide these ITextSelection members, the game has them.
+        foreach (var name in new[] { "selectAllOnFocus", "selectAllOnMouseUp" })
+        {
+            object selection = Input.textSelection;
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+            var property = selection.GetType().GetProperty(name, flags);
+            if (property != null)
+                property.SetValue(selection, false);
+            else
+                selection.GetType().GetField(name, flags)?.SetValue(selection, false);
+        }
         // The coloured copy below is what shows; the box keeps only the caret and the selection highlight.
         _box.style.color = Color.clear;
 

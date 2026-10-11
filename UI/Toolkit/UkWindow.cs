@@ -194,6 +194,26 @@ public sealed class UkWindow
 
     // ---------------------------------------------------------------- open / close
 
+    /// <summary>
+    /// Start the next opening against the right screen edge instead of the middle, so what's behind the window stays visible
+    /// (the player can still drag it). Applied once the layout is known.
+    /// </summary>
+    public void DockRight()
+    {
+        void Place(GeometryChangedEvent e)
+        {
+            var rootW = _scrim.resolvedStyle.width;
+            var cardW = Card.resolvedStyle.width;
+            if (rootW <= 0f || cardW <= 0f)
+                return;
+            Card.UnregisterCallback<GeometryChangedEvent>(Place);
+            _offset.x = (rootW - cardW) * 0.5f - 48f;
+            ApplyOffset();
+        }
+
+        Card.RegisterCallback<GeometryChangedEvent>(Place);
+    }
+
     public void Open()
     {
         if (IsOpen)

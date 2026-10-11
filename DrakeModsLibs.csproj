@@ -94,6 +94,7 @@
     <Compile Include="Integration\DrakeIntegrationConfig.cs" />
     <Compile Include="Integration\InventoryContextHints.cs" />
     <Compile Include="Integration\InventoryContextLocalization.cs" />
+    <Compile Include="Integration\PieceMenuTabs.cs" />
     <Compile Include="Patches\DecoratedNamePatches.cs" />
     <Compile Include="Patches\InventoryContextHintPatch.cs" />
     <Compile Include="Patches\InventoryContextOpenPatch.cs" />

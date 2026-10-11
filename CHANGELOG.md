@@ -1,6 +1,11 @@
 # DrakeModsLibs
 
-## 1.0.0-beta.1
+## 1.0.0-beta.2
+- Adds two things, nothing removed or changed.
+- **Lock menu tabs: `PieceMenuTabs`** (`DrakeModsLibs.Integration`). A feature mod registers a `PieceMenuTab` and LockSmith shows it as an extra tab in its Lock menu for matching chests. Nothing runs unless a mod registers one. DrakesItemShop uses it for the Mailbox sign.
+- **`UkWindow.DockRight()`**: opens the window against the right screen edge instead of the middle, so what is behind it stays visible (still draggable). DrakesItemShop uses it for the mailbox send window.
+
+
 - First 1.0 beta. Nothing removed or changed: consumers on 0.11.x keep working. Adds the message card below.
 - **Fix: menus with no text.** The UI Toolkit fonts were looked up once; a window built before the game had loaded its fonts (a mod creating its window early) pinned them to nothing, so every Drake window lost its text for the session. The lookup now waits for the font, and a window built early picks its fonts up when it opens.
 - **New message card: `DrakeMessage.Show(text, kind, title, seconds)`** (`DrakeModsLibs.UI`). A dark wood card near the top of the screen with a coloured edge (info, success, warning, error) that fades out on its own, in place of Valheim's yellow centre text. Drawn above every Drake window and dialog and never takes clicks. Falls back to the centre text when `UseToolkitUi` is off.

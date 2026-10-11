@@ -186,6 +186,10 @@ UI Toolkit controls in one theme (dark wood, brass accent, Valheim's own fonts),
   All Drake mods use it: `CustomizeLibsAPI.ShowHudMessage` and the mods' own helpers route here.
 - **One switch for the shared dialogs:** `DrakeWoodActionMenu`, `DrakeConfirmPanel` and `DrakeTextPromptPanel` draw in the new look when `UseToolkitUi` (config section `UI`, default on) is on, with no change for the mods that use them; off, or if the new look fails to build, they draw the classic wood panels (`DrakeUiMode`).
 
+**Lock menu tabs (`PieceMenuTabs`)** — a feature mod registers a `PieceMenuTab` and LockSmith shows it as an extra tab in its Lock menu for matching chests (DrakesItemShop uses it for the Mailbox sign). Nothing runs unless a mod registers one.
+
+**`UkWindow.DockRight()`** — opens a window against the right screen edge instead of the middle so the scene behind it stays visible (DrakesItemShop mailbox send window).
+
 ## Item looks (ReskinIt)
 
 - **`ItemLookService.MaxTintBoost` / `BoostOf`**: model and icon tints may carry a brightness boost (channels above 1, up to 4x), saved as `RRGGBB*2.50`. Used by ReskinIt's brightness slider. Skin-tight chest/leg armor (painted on the body) is tinted too.

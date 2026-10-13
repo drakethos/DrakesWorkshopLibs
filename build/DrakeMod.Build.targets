@@ -3,6 +3,13 @@
        invoke a parallel Libs build and VS locks bin\Debug\DrakeModsLibs.dll. ProjectReference
        dependency order is enough for solution and single-.csproj builds. -->
 
+  <!-- Opt out of active suite build/deploy. Override with -p:DrakeModForceBuild=true (still no deploy while DrakeModRetired). -->
+  <Target Name="BlockRetiredModBuild"
+          BeforeTargets="PrepareForBuild;CoreCompile;Build"
+          Condition="'$(DrakeModRetired)' == 'true' and '$(DrakeModForceBuild)' != 'true'">
+    <Error Text="$(MSBuildProjectName) is retired from the active suite (no build/deploy). Set -p:DrakeModForceBuild=true to compile locally, or clear DrakeModRetired in mod.package.props when bringing it back." />
+  </Target>
+
   <Target Name="PrepareModPackageMetadata" BeforeTargets="GenerateModInfo;ResolveThunderstorePaths;WriteThunderstoreManifest">
     <PropertyGroup>
       <ThunderstoreAuthor Condition="'$(ThunderstoreAuthor)' == ''">$(CompanyName)</ThunderstoreAuthor>
@@ -101,7 +108,7 @@
   <Target Name="VerifyNoEmbeddedServerSync"
           AfterTargets="$(DeployAfterTargets)"
           DependsOnTargets="StripLeakedServerSync"
-          Condition="'$(EmbedServerSync)' != 'true' and Exists('$(TargetPath)')">
+          Condition="'$(EmbedServerSync)' != 'true' and '$(CI_SKIP_POST_BUILD)' == '' and Exists('$(TargetPath)')">
     <Error Condition="Exists('$(TargetDir)ServerSync.dll')"
            Text="ServerSync.dll was copied to $(TargetDir). Consumer mods must not reference ServerSync directly; use DrakeModsLibs only." />
     <Error Condition="Exists('$(R2ModDeployPath)\ServerSync.dll')"
@@ -194,7 +201,7 @@
   <Target Name="DeployThunderstoreZipToProfiles"
           AfterTargets="PackageMod"
           DependsOnTargets="ResolveThunderstorePaths"
-          Condition="'$(DeployViaThunderstoreZip)' == 'true' and '$(SkipPackageMod)' != 'true' and '$(InstallThunderstoreZipScript)' != '' and Exists('$(InstallThunderstoreZipScript)') and Exists('$(ZipOutput)')">
+          Condition="'$(DeployViaThunderstoreZip)' == 'true' and '$(SkipPackageMod)' != 'true' and '$(CI_SKIP_POST_BUILD)' == '' and '$(InstallThunderstoreZipScript)' != '' and Exists('$(InstallThunderstoreZipScript)') and Exists('$(ZipOutput)')">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(InstallThunderstoreZipScript)&quot; -ZipPath &quot;$(ZipOutput)&quot; -DestDir &quot;$(R2ModDeployPath)&quot;"
           Condition="'$(R2ModDeployPath)' != ''" />
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(InstallThunderstoreZipScript)&quot; -ZipPath &quot;$(ZipOutput)&quot; -DestDir &quot;$(GaleModDeployPath)&quot;"

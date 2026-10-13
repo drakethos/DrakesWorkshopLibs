@@ -26,6 +26,10 @@
     <UseCiValheimRefs Condition="'$(UseCiValheimRefs)' == '' and '$(CI_SKIP_POST_BUILD)' == ''">true</UseCiValheimRefs>
     <!-- Deploy profile plugins by extracting the Thunderstore zip (not a piecemeal copy). -->
     <DeployViaThunderstoreZip Condition="'$(DeployViaThunderstoreZip)' == ''">true</DeployViaThunderstoreZip>
+    <!-- Retired mods: no package/deploy/yml unless DrakeModForceBuild=true (still no deploy while retired). -->
+    <CI_SKIP_POST_BUILD Condition="'$(DrakeModRetired)' == 'true'">true</CI_SKIP_POST_BUILD>
+    <SkipPackageMod Condition="'$(DrakeModRetired)' == 'true'">true</SkipPackageMod>
+    <UpdateR2ModsYml Condition="'$(DrakeModRetired)' == 'true'">false</UpdateR2ModsYml>
   </PropertyGroup>
   <!-- Consumer mods reference Libs at runtime; do not copy Libs or ServerSync into bin or profile output. -->
   <ItemDefinitionGroup Condition="'$(EmbedServerSync)' != 'true'">

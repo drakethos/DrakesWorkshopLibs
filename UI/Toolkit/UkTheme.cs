@@ -23,6 +23,13 @@ public static class UkTheme
     public static readonly Color AccentHover = Hex("f0c06a");
     public static readonly Color AccentText = Hex("1a1208");
     public static readonly Color Gold = Hex("f3c873");
+    /// <summary>Cool parchment-teal for smart-tab children (Buy, Layout, Ward…) so they never read as brass roots.</summary>
+    public static readonly Color ChildAccent = Hex("6fa8a0");
+    public static readonly Color ChildAccentHover = Hex("86c0b7");
+    public static readonly Color ChildText = Hex("c5e4de");
+    public static readonly Color ChildLine = Hex("4a7a73");
+    public static readonly Color ChildActive = Hex("1e2e2b");
+
     public static readonly Color Danger = Hex("c9583a");
     public static readonly Color DangerText = Hex("f0a184");
     public static readonly Color DangerBg = Hex("2a1712");

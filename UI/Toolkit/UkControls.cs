@@ -18,6 +18,10 @@ public enum UkButtonKind
     DangerFilled,
     /// <summary>The chosen one of a group: lit text on a raised tile. Stays lit under hover.</summary>
     Selected,
+    /// <summary>A related child tab in a smart group (cool teal outline) — not the brass root.</summary>
+    Child,
+    /// <summary>The active child tab in a smart group (teal fill).</summary>
+    ChildSelected,
 }
 
 /// <summary>Small factory for the shared look. Anything layout-driven: sizes come from content and the caller, no pixel placement.</summary>
@@ -108,6 +112,16 @@ public static class UkControls
                 bg = UkTheme.Active;
                 fg = UkTheme.Accent;
                 line = hover ? UkTheme.Accent : UkTheme.Line;
+                break;
+            case UkButtonKind.Child:
+                bg = hover ? UkTheme.ChildActive : Color.clear;
+                fg = hover ? UkTheme.ChildText : UkTheme.ChildAccent;
+                line = hover ? UkTheme.ChildAccentHover : UkTheme.ChildLine;
+                break;
+            case UkButtonKind.ChildSelected:
+                bg = UkTheme.ChildActive;
+                fg = UkTheme.ChildAccentHover;
+                line = hover ? UkTheme.ChildAccentHover : UkTheme.ChildAccent;
                 break;
             case UkButtonKind.Ghost:
                 bg = hover ? UkTheme.Active : Color.clear;

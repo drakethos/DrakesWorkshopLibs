@@ -186,7 +186,7 @@ UI Toolkit controls in one theme (dark wood, brass accent, Valheim's own fonts),
   All Drake mods use it: `CustomizeLibsAPI.ShowHudMessage` and the mods' own helpers route here.
 - **One switch for the shared dialogs:** `DrakeWoodActionMenu`, `DrakeConfirmPanel` and `DrakeTextPromptPanel` draw in the new look when `UseToolkitUi` (config section `UI`, default on) is on, with no change for the mods that use them; off, or if the new look fails to build, they draw the classic wood panels (`DrakeUiMode`).
 
-**Lock menu tabs (`PieceMenuTabs`)** — a feature mod registers a `PieceMenuTab` and LockSmith shows it as an extra tab in its Lock menu for matching chests (DrakesItemShop uses it for the Mailbox sign). Nothing runs unless a mod registers one.
+**Lock menu tabs (`PieceMenuTabs`)** — a feature mod registers a `PieceMenuTab` and LockSmith shows it as an extra tab in its Lock menu for matching chests (DrakesItemShop uses it for the Mailbox sign). Nothing runs unless a mod registers one. Optional `Group` / `IsRoot` drive smart tabs (roots always visible; children only while that group is active; child chrome is teal `UkButtonKind.Child` / `ChildSelected`). ItemShop: Shop/Buy/Layout; LockSmith hosts Lock/Ward/Groups.
 
 **`UkWindow.DockRight()`** — opens a window against the right screen edge instead of the middle so the scene behind it stays visible (DrakesItemShop mailbox send window).
 

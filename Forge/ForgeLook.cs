@@ -244,13 +244,31 @@ public static class ForgeLook
 
     private static Material GlbMaterial(Gltf.GlbMaterial source, string name, Material? template, string file)
     {
-        var material = template != null ? new Material(template) : new Material(Shader.Find("Standard"));
+        // Valheim often has no bare Shader.Find("Standard") — empty visual hosts (buy cards) must not throw.
+        var material = template != null
+            ? new Material(template)
+            : new Material(FallbackShader());
         material.name = name;
         if (material.HasProperty("_Color") && source.BaseColor.Length == 4)
             material.SetColor("_Color", new Color(source.BaseColor[0], source.BaseColor[1], source.BaseColor[2], source.BaseColor[3]));
         if (material.HasProperty("_MainTex"))
             material.SetTexture("_MainTex", source.BaseColorImage != null ? ForgeTextures.FromBytes(source.BaseColorImage, $"{file} texture") : null);
         return material;
+    }
+
+    private static Shader FallbackShader()
+    {
+        foreach (var name in new[] { "Standard", "Legacy Shaders/Diffuse", "Sprites/Default", "Unlit/Texture", "UI/Default" })
+        {
+            var found = Shader.Find(name);
+            if (found != null)
+                return found;
+        }
+        var any = Resources.FindObjectsOfTypeAll<Material>().FirstOrDefault(m => m != null && m.shader != null)?.shader;
+        if (any != null)
+            return any;
+        Logger.LogWarning("[Forge] No usable shader for .glb materials — visuals may be pink/missing.");
+        return Shader.Find("Hidden/InternalErrorShader") ?? Shader.Find("Sprites/Default")!;
     }
 
     private static Vector3[] Vectors(float[] xyz)

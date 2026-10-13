@@ -1,5 +1,11 @@
 # DrakeModsLibs
 
+## 1.0.0-beta.3
+- **Smart Lock-menu tabs:** `PieceMenuTab` gains optional `Group` / `IsRoot`. LockSmith shows group roots always and expands children only while that group is active. Child chrome uses new `UkButtonKind.Child` / `ChildSelected` (teal theme tokens). Used by ItemShop (Shop/Buy/Layout) and LockSmith (Lock/Ward/Groups).
+- **`ForgeLook`:** .glb materials no longer call bare `Shader.Find("Standard")` (missing in Valheim); falls back through known shaders so empty visual hosts (e.g. buy cards) do not throw.
+- **Build:** `DrakeModRetired` blocks suite build/deploy for retired mods (QuestItems, VRP) unless `DrakeModForceBuild=true`.
+- New API only, nothing removed. Consumers on 1.0.0-beta.2 keep working.
+
 ## 1.0.0-beta.2
 - Adds two things, nothing removed or changed.
 - **Lock menu tabs: `PieceMenuTabs`** (`DrakeModsLibs.Integration`). A feature mod registers a `PieceMenuTab` and LockSmith shows it as an extra tab in its Lock menu for matching chests. Nothing runs unless a mod registers one. DrakesItemShop uses it for the Mailbox sign.

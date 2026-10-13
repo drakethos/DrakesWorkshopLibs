@@ -8,18 +8,43 @@ namespace DrakeModsLibs.Integration;
 /// One extra tab in LockSmith's Lock menu for a chest, added by a feature mod (a Mail tab on mailboxes, say). Nothing happens
 /// until a mod registers one and LockSmith is installed to show it; Libs only keeps the list.
 /// </summary>
+/// <remarks>
+/// Tabs with the same <see cref="Group"/> expand together: LockSmith always shows group roots, and only shows
+/// children while that group is the active one (Buy/Layout under Shop, etc.).
+/// </remarks>
 public sealed class PieceMenuTab
 {
     public PieceMenuTab(string id, string title, Func<Container, bool> appliesTo, Action<PieceMenuTabContext> build)
+        : this(id, title, appliesTo, build, group: null, isRoot: true)
+    {
+    }
+
+    /// <param name="group">Shared key for smart tabs. Null or empty uses <paramref name="id"/> (own root).</param>
+    /// <param name="isRoot">True = always visible as a sibling root; false = only while this group is active.</param>
+    public PieceMenuTab(
+        string id,
+        string title,
+        Func<Container, bool> appliesTo,
+        Action<PieceMenuTabContext> build,
+        string? group,
+        bool isRoot)
     {
         Id = string.IsNullOrEmpty(id) ? throw new ArgumentException("Tab id required.", nameof(id)) : id;
         Title = string.IsNullOrEmpty(title) ? id : title;
         AppliesTo = appliesTo ?? (_ => false);
         Build = build ?? (_ => { });
+        Group = string.IsNullOrEmpty(group) ? Id : group!;
+        IsRoot = isRoot;
     }
 
     public string Id { get; }
     public string Title { get; }
+
+    /// <summary>Smart-tab group id. Roots and children that share this expand together.</summary>
+    public string Group { get; }
+
+    /// <summary>True when this tab is always shown; false when it only appears while <see cref="Group"/> is active.</summary>
+    public bool IsRoot { get; }
 
     /// <summary>Whether this tab shows for the given chest.</summary>
     public Func<Container, bool> AppliesTo { get; }
@@ -53,6 +78,9 @@ public sealed class PieceMenuTabContext
 
 public static class PieceMenuTabs
 {
+    /// <summary>LockSmith's own Lock / Ward / Groups group id (host-side; not a registered extra).</summary>
+    public const string LockSmithGroup = "locksmith";
+
     static readonly List<PieceMenuTab> Tabs = new();
 
     /// <summary>Add a tab (a second tab with the same id replaces the first).</summary>

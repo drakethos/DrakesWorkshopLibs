@@ -1,5 +1,10 @@
 # DrakeModsLibs
 
+## 1.0.1
+- **Fixed (reskinned items on item stands):** a reskinned item put on an item stand came back off it as the item whose look it wore (a stone axe reskinned as a flint axe was taken off as a real flint axe). The stand now keeps the real item and only shows the look.
+- **Fixed (look catalog):** a game item could be missing from the Reskin grid when another item used the same icon (the Bronze Helmet lost its slot to an unused copy). Real, craftable items keep their place.
+- Cross-mod DrakesTestLab suites in `Tests/` (not part of the release). Fixes only, no API change.
+
 ## 1.0.0
 - **1.0 release** of the 1.0.0 betas (message card, Lock-menu tabs, smart tab groups, `UkWindow.DockRight`, font fix). Hexium only from now on.
 - **Mods with their own menu key keep their tabs:** `MenuBindingRegistry.LinkTab(bindingId, tabId)` ties a mod's own inventory menu binding to its tabs. When the shared `InventoryOpenModifier` opens the tab host, linked tabs are left out unless that mod's key is held (or uses the same keys), so changing e.g. RenameIt's `MenuOpenModifier` really changes it. `DrakeTabHost.OpenForItem` gains an overload with `excludeTabIds`. Found by DrakesTestLab's automated RenameIt tests.

@@ -173,7 +173,7 @@ jobs:
           body: |
             ## DrakeModsLibs v${{ steps.ver.outputs.version }}
 
-            Thunderstore zip attached. CI also publishes to **Thunderstore** then **Hexium**.
+            Zip attached. CI publishes to **Hexium** ([DrakeMods on Hexium](https://valheim.hexium.gg/?q=DrakeMods)); DrakeMods no longer publishes to Thunderstore.
 
             ### Install
             Drop the zip into **r2modman**, **Thunderstore Mod Manager**, or **Gale** via "Import local mod", or extract into:
@@ -194,8 +194,8 @@ jobs:
 
   publish-thunderstore:
     needs: build-and-release
-    # Betas go to Hexium only.
-    if: needs.build-and-release.outputs.is_prerelease != 'true'
+    # DrakeMods is Hexium-only since 2026-10: Thunderstore is skipped for every release (the Hexium job runs after the skip).
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Download Thunderstore zip

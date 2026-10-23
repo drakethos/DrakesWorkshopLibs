@@ -1,5 +1,10 @@
 # DrakeModsLibs
 
+## 1.0.0
+- **1.0 release** of the 1.0.0 betas (message card, Lock-menu tabs, smart tab groups, `UkWindow.DockRight`, font fix). Hexium only from now on.
+- **Mods with their own menu key keep their tabs:** `MenuBindingRegistry.LinkTab(bindingId, tabId)` ties a mod's own inventory menu binding to its tabs. When the shared `InventoryOpenModifier` opens the tab host, linked tabs are left out unless that mod's key is held (or uses the same keys), so changing e.g. RenameIt's `MenuOpenModifier` really changes it. `DrakeTabHost.OpenForItem` gains an overload with `excludeTabIds`. Found by DrakesTestLab's automated RenameIt tests.
+- New API only, nothing removed. Consumers on 1.0.0-beta.x and 0.11.x keep working.
+
 ## 1.0.0-beta.3
 - **Smart Lock-menu tabs:** `PieceMenuTab` gains optional `Group` / `IsRoot`. LockSmith shows group roots always and expands children only while that group is active. Child chrome uses new `UkButtonKind.Child` / `ChildSelected` (teal theme tokens). Used by ItemShop (Shop/Buy/Layout) and LockSmith (Lock/Ward/Groups).
 - **`ForgeLook`:** .glb materials no longer call bare `Shader.Find("Standard")` (missing in Valheim); falls back through known shaders so empty visual hosts (e.g. buy cards) do not throw.

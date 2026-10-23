@@ -1,0 +1,70 @@
+{
+  "name": "I-30 tag rules: NoRename blocks renaming, not reskinning",
+  "description": "",
+  "steps": [
+    {
+      "do": "craft",
+      "prefab": "AxeStone"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.setData",
+      "args": {
+        "prefab": "AxeStone",
+        "key": "Drake_NoRename",
+        "value": "1"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.can",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name"
+      },
+      "expect": false,
+      "label": "the NoRename tag blocks renaming"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.can",
+      "args": {
+        "prefab": "AxeStone",
+        "kind": "icon"
+      },
+      "expect": true,
+      "label": "reskinning is a different operation"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.setData",
+      "args": {
+        "prefab": "AxeStone",
+        "key": "Drake_NoRename",
+        "value": ""
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.can",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name"
+      },
+      "expect": true,
+      "label": "tag removed: renaming allowed again"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    }
+  ]
+}

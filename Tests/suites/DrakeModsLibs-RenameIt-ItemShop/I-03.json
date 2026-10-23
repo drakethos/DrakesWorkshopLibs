@@ -1,0 +1,115 @@
+{
+  "name": "I-03 a written page sent by mail keeps its text",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_Mailbox",
+      "dz": 2.5,
+      "as": "box"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Bob",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "give",
+      "prefab": "Drakes_PieceOfPaper",
+      "count": 1
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "Drakes_PieceOfPaper",
+        "op": "name",
+        "text": "Love Letter"
+      },
+      "expect": true,
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "Drakes_Paper_Written",
+        "op": "desc",
+        "text": "Meet me at the shop"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "mail.send",
+      "args": {
+        "target": "box",
+        "prefab": "Drakes_Paper_Written",
+        "count": 1
+      },
+      "expect": "",
+      "label": "Alice posts the page",
+      "stop": true
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "hook",
+      "name": "mail.takeAll",
+      "args": {
+        "target": "box"
+      },
+      "expect": 1,
+      "label": "Bob takes his mail"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.name",
+      "args": {
+        "prefab": "Drakes_Paper_Written"
+      },
+      "contains": "Love Letter",
+      "label": "the page keeps its name"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.desc",
+      "args": {
+        "prefab": "Drakes_Paper_Written"
+      },
+      "contains": "Meet me at the shop",
+      "label": "and its text"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

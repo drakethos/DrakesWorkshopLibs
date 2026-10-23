@@ -1,0 +1,91 @@
+{
+  "name": "I-02 a renamed item on display shows its name",
+  "description": "How the case presents the renamed goods: screenshot plus the crosshair text.",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "dx": 0,
+      "as": "shop"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "craft",
+      "prefab": "SwordBronze"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "SwordBronze",
+        "op": "name",
+        "text": "Shop Sword"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.putIn",
+      "args": {
+        "target": "shop",
+        "prefab": "SwordBronze",
+        "price": "c:5"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.open",
+      "args": {
+        "target": "shop",
+        "on": true
+      },
+      "expect": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "lookAt",
+      "target": "shop",
+      "distance": 2
+    },
+    {
+      "do": "check",
+      "check": "crosshair",
+      "notContains": "\u0001",
+      "label": "observed: what the crosshair shows on the case (informational)"
+    },
+    {
+      "do": "screenshot",
+      "name": "renamed-on-display"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

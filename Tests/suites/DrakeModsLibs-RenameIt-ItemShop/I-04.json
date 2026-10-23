@@ -1,0 +1,151 @@
+{
+  "name": "I-04 renamed and plain stacks stay apart on the shelf and after buying",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "dx": 0,
+      "as": "shop"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "give",
+      "prefab": "Wood",
+      "count": 20
+    },
+    {
+      "do": "hook",
+      "name": "renameit.split",
+      "args": {
+        "prefab": "Wood",
+        "amount": 10
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "Wood",
+        "index": 0,
+        "op": "name",
+        "text": "Oak Planks"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.putIn",
+      "args": {
+        "target": "shop",
+        "prefab": "Wood",
+        "index": 0,
+        "price": "c:1"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.putIn",
+      "args": {
+        "target": "shop",
+        "prefab": "Wood",
+        "index": 0,
+        "price": "c:1"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.open",
+      "args": {
+        "target": "shop",
+        "on": true
+      },
+      "expect": true
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "give",
+      "prefab": "Coins",
+      "count": 2
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.stockCount",
+      "args": {
+        "target": "shop",
+        "prefab": "Wood"
+      },
+      "expect": 20,
+      "label": "all 20 wood on the shelf"
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.buy",
+      "args": {
+        "target": "shop",
+        "prefab": "Wood",
+        "index": 0
+      },
+      "expect": "",
+      "label": "Bob buys one from the first stack"
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.buy",
+      "args": {
+        "target": "shop",
+        "prefab": "Wood",
+        "index": 1
+      },
+      "expect": "",
+      "label": "and one from the second"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.stackCount",
+      "args": {
+        "prefab": "Wood"
+      },
+      "expect": 2,
+      "label": "renamed and plain wood stay separate stacks (SeparateStacks)"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.name",
+      "args": {
+        "prefab": "Wood",
+        "match": "Oak"
+      },
+      "contains": "Oak Planks",
+      "label": "one of them is the Oak Planks"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "name": "I-01 a renamed item sold in a shop arrives renamed",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "dx": 0,
+      "as": "shop"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "craft",
+      "prefab": "AxeStone"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name",
+        "text": "Alice Axe"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "desc",
+        "text": "Forged with care"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.putIn",
+      "args": {
+        "target": "shop",
+        "prefab": "AxeStone",
+        "price": "c:5"
+      },
+      "expect": true,
+      "label": "Alice puts her renamed axe on the shelf",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.open",
+      "args": {
+        "target": "shop",
+        "on": true
+      },
+      "expect": true
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "give",
+      "prefab": "Coins",
+      "count": 5
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.buy",
+      "args": {
+        "target": "shop",
+        "prefab": "AxeStone"
+      },
+      "expect": "",
+      "label": "Bob buys it",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.name",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "contains": "Alice Axe",
+      "label": "the name came with it"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.desc",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "contains": "Forged with care",
+      "label": "and the description"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.owner",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "expect": "Alice",
+      "label": "the crafter is still Alice"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.can",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name"
+      },
+      "expect": false,
+      "label": "so Bob cannot rename it (owner lock)"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

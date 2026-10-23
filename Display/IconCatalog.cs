@@ -95,13 +95,33 @@ public static class IconCatalog
         }
     }
 
+    static bool IsJotunnItem(string prefabName)
+    {
+        try
+        {
+            return Jotunn.Managers.ItemManager.Instance.GetItem(prefabName) != null;
+        }
+        catch (System.Exception)
+        {
+            return false;
+        }
+    }
+
     static void Build(ObjectDB db)
     {
         Entries.Clear();
         _builtFor = db;
         _builtItemCount = db.m_items.Count;
 
-        var seen = new HashSet<Sprite>();
+        // Each icon is listed once. When items share an icon, the one a player can actually have keeps the slot: a game item over a
+        // mod item (registered with Jotunn, or a runtime object in a scene), then a craftable item over one nobody can make
+        // (e.g. the unused FW_HelmetBronze shares the bronze helmet's icon and comes first in the item list).
+        var craftable = new HashSet<string>();
+        foreach (var r in db.m_recipes)
+            if (r != null && r.m_enabled && r.m_item != null)
+                craftable.Add(r.m_item.gameObject.name);
+        var seen = new Dictionary<Sprite, int>();
+        var rank = new List<int>();
         foreach (var go in db.m_items)
         {
             if (!go)
@@ -111,12 +131,25 @@ public static class IconCatalog
             if (shared == null || icons == null)
                 continue;
             var category = CategoryOf(shared.m_itemType);
+            var score = (go.scene.IsValid() || IsJotunnItem(go.name) ? 0 : 2) + (craftable.Contains(go.name) ? 1 : 0);
             for (var v = 0; v < icons.Length; v++)
             {
                 var sprite = icons[v];
-                if (!sprite || !seen.Add(sprite))
+                if (!sprite)
                     continue;
-                Entries.Add(new IconCatalogEntry(go.name, v, sprite, shared.m_name ?? go.name, category, shared.m_itemType));
+                var entry = new IconCatalogEntry(go.name, v, sprite, shared.m_name ?? go.name, category, shared.m_itemType);
+                if (seen.TryGetValue(sprite, out var at))
+                {
+                    if (score > rank[at])
+                    {
+                        Entries[at] = entry;
+                        rank[at] = score;
+                    }
+                    continue;
+                }
+                seen[sprite] = Entries.Count;
+                Entries.Add(entry);
+                rank.Add(score);
             }
         }
     }

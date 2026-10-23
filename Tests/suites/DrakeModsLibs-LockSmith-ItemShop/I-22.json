@@ -1,0 +1,166 @@
+{
+  "name": "I-22 a LockSmith guest on a shop may open its chest but not run the shop",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "dx": 0,
+      "as": "shop"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.stock",
+      "args": {
+        "target": "shop",
+        "prefab": "SwordBronze",
+        "count": 1,
+        "price": "c:5"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.open",
+      "args": {
+        "target": "shop",
+        "on": true
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "lock.openJoin",
+      "args": {
+        "target": "shop",
+        "on": true
+      },
+      "expect": true
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.canOpenChest",
+      "args": {
+        "target": "shop"
+      },
+      "expect": false,
+      "label": "a stranger cannot open the shop chest"
+    },
+    {
+      "do": "hook",
+      "name": "lock.openMenu",
+      "args": {
+        "target": "shop"
+      },
+      "expect": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "check",
+      "check": "uiEnabled",
+      "name": "Open for business",
+      "expect": false,
+      "label": "a stranger sees the Shop tab but cannot switch it"
+    },
+    {
+      "do": "click",
+      "button": "Lock"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.3
+    },
+    {
+      "do": "click",
+      "button": "Join access"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    },
+    {
+      "do": "hook",
+      "name": "lock.isGuest",
+      "args": {
+        "target": "shop"
+      },
+      "expect": true,
+      "label": "Bob joined as a LockSmith guest"
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.canOpenChest",
+      "args": {
+        "target": "shop"
+      },
+      "expect": true,
+      "label": "a guest may open the chest (LockSmith)"
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.canManage",
+      "args": {
+        "target": "shop"
+      },
+      "expect": false,
+      "label": "but may not run the shop (ward permit needed)"
+    },
+    {
+      "do": "give",
+      "prefab": "Coins",
+      "count": 5
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.buy",
+      "args": {
+        "target": "shop",
+        "prefab": "SwordBronze"
+      },
+      "expect": "",
+      "label": "and can still buy"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

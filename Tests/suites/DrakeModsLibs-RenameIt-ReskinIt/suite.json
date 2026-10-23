@@ -1,0 +1,108 @@
+{
+  "name": "DrakeModsLibs-RenameIt-ReskinIt",
+  "description": "Shared item data: tag rules that block renaming, a renamed + reskinned item on a stand and on the ground.",
+  "requireMods": [
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakesworkshop.reskinit",
+      "minVersion": "0.1.0"
+    }
+  ],
+  "configOverrides": [
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "01 Admin",
+      "key": "AllowAdminOverride",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "07 UnlockCost",
+      "key": "UnlockCostEnabled",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "05 General",
+      "key": "LockToOwner",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "06 Stacks",
+      "key": "SeparateStacks",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "06 Stacks",
+      "key": "SeparateStacksHardLock",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "03 Exclusions",
+      "key": "ExcludedNames",
+      "value": ""
+    },
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "03 Exclusions",
+      "key": "ExcludedCategory",
+      "value": ""
+    },
+    {
+      "guid": "com.drakesworkshop.renameit",
+      "section": "11 UI-NotSynced",
+      "key": "MenuOpenModifier",
+      "value": ""
+    },
+    {
+      "guid": "com.drakesworkshop.reskinit",
+      "section": "02 - Admin",
+      "key": "AdminSource",
+      "value": "Own"
+    },
+    {
+      "guid": "com.drakesworkshop.reskinit",
+      "section": "02 - Admin",
+      "key": "AllowAdminOverride",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakesworkshop.reskinit",
+      "section": "03 - Features",
+      "key": "RequireDiscovery",
+      "value": "Off"
+    },
+    {
+      "guid": "com.drakesworkshop.reskinit",
+      "section": "03 - Features",
+      "key": "ProgressionGate",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakesworkshop.reskinit",
+      "section": "05 - Cost",
+      "key": "CostEnabled",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakesworkshop.reskinit",
+      "section": "04 - Exclusions",
+      "key": "ExclusionSource",
+      "value": "Own"
+    }
+  ],
+  "setup": {
+    "timeOfDay": 0.5,
+    "freezeTime": 1,
+    "god": 1,
+    "noBuild": "off",
+    "hideUnlockPopups": 1
+  },
+  "resetBetweenTests": true
+}

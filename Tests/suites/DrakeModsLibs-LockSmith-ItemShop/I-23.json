@@ -1,0 +1,111 @@
+{
+  "name": "I-23 LockSmith public on a shop and on a mailbox",
+  "description": "Whether LockSmith public should apply to a mailbox is a design question; this test records what happens.",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "dx": 0,
+      "as": "shop"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "lock.setPublic",
+      "args": {
+        "target": "shop",
+        "on": true
+      },
+      "expect": true,
+      "label": "Alice makes the shop chest public"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_Mailbox",
+      "dz": 3,
+      "dx": 2.5,
+      "as": "box"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.canOpenChest",
+      "args": {
+        "target": "shop"
+      },
+      "expect": true,
+      "label": "anyone may open a public shop chest"
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.canManage",
+      "args": {
+        "target": "shop"
+      },
+      "expect": false,
+      "label": "but not run the shop"
+    },
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "hook",
+      "name": "lock.setPublic",
+      "args": {
+        "target": "box",
+        "on": true
+      },
+      "label": "observed: may a mailbox be made public with LockSmith? (informational)"
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "hook",
+      "name": "mail.canOpen",
+      "args": {
+        "target": "box"
+      },
+      "label": "observed: can a stranger then read the mail? (informational: privacy question)"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

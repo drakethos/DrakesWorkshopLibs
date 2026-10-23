@@ -1,0 +1,137 @@
+{
+  "name": "I-20 the Lock menu on a shop shows the Shop group; Buy and Layout open under it",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "dx": 0,
+      "as": "shop"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "lock.openMenu",
+      "args": {
+        "target": "shop"
+      },
+      "expect": true,
+      "label": "AltPlace+E on the case opens the Lock menu",
+      "stop": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Shop",
+      "exact": true,
+      "label": "the Shop tab is there"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Layout",
+      "exact": true,
+      "label": "next to Layout"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Lock",
+      "exact": true,
+      "label": "and the Lock tab (LockSmith)"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Buy",
+      "exact": true,
+      "expect": false,
+      "label": "no Buy tab while buying is off"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    },
+    {
+      "do": "hook",
+      "name": "buy.addOffer",
+      "args": {
+        "target": "shop",
+        "want": "Wood",
+        "amount": 10,
+        "pay": 5
+      },
+      "expect": true,
+      "label": "turn on buying (an offer for wood)"
+    },
+    {
+      "do": "hook",
+      "name": "lock.openMenu",
+      "args": {
+        "target": "shop"
+      },
+      "expect": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "click",
+      "button": "Shop"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.3
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Buy",
+      "exact": true,
+      "label": "with buying on, the Buy tab joins the Shop group"
+    },
+    {
+      "do": "screenshot",
+      "name": "lock-menu-shop-tabs"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

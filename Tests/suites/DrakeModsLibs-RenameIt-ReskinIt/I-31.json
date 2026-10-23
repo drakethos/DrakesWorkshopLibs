@@ -1,0 +1,148 @@
+{
+  "name": "I-31 a renamed + reskinned item on a stand and on the ground",
+  "description": "",
+  "steps": [
+    {
+      "do": "craft",
+      "prefab": "AxeStone"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name",
+        "text": "Twin Axe"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "reskin.apply",
+      "args": {
+        "prefab": "AxeStone",
+        "model": "AxeFlint",
+        "modelTint": "#ff00ff"
+      },
+      "expect": ""
+    },
+    {
+      "do": "place",
+      "prefab": "itemstandh",
+      "dz": 2.5,
+      "as": "stand"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.standPut",
+      "args": {
+        "prefab": "AxeStone",
+        "target": "stand"
+      },
+      "expect": true,
+      "stop": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "renameit.standHover",
+      "args": {
+        "target": "stand"
+      },
+      "contains": "Twin Axe",
+      "label": "the stand shows the custom name"
+    },
+    {
+      "do": "screenshot",
+      "name": "stand-renamed-reskinned"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.standTake",
+      "args": {
+        "target": "stand"
+      },
+      "expect": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "check",
+      "check": "hasItem",
+      "prefab": "AxeStone",
+      "label": "the stone axe came back off the stand"
+    },
+    {
+      "do": "check",
+      "check": "noItem",
+      "prefab": "AxeFlint",
+      "label": "not a flint axe (the look is only a look)"
+    },
+    {
+      "do": "check",
+      "check": "objectNear",
+      "target": "AxeFlint",
+      "radius": 5,
+      "expect": false,
+      "label": "nothing left lying around the stand"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.model",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "contains": "AxeFlint",
+      "label": "the look survived the stand"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.name",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "contains": "Twin Axe",
+      "label": "and the name"
+    },
+    {
+      "do": "drop",
+      "prefab": "AxeStone",
+      "as": "ground",
+      "dz": 1.5
+    },
+    {
+      "do": "wait",
+      "seconds": 0.8
+    },
+    {
+      "do": "lookAt",
+      "target": "ground",
+      "distance": 1.5
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Twin Axe",
+      "label": "the item on the ground shows its custom name"
+    },
+    {
+      "do": "screenshot",
+      "name": "ground-renamed-reskinned"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    }
+  ]
+}

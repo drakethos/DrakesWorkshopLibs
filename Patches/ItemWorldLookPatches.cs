@@ -34,38 +34,24 @@ internal static class ItemWorldLookPatches
     }
 
     // ---- item stands ----
-
-    [HarmonyPatch(typeof(ItemStand), "SetVisualItem")]
-    [HarmonyPrefix]
-    static void StandModel(ItemStand __instance, ref int itemHash)
-    {
-        try
-        {
-            if (itemHash == 0)
-                return;
-            var item = ItemStandPatch.TryGetStandItemForDisplay(__instance, out _);
-            if (item?.m_customData != null && ItemLookService.TryResolveModel(item, out var to, out _))
-                itemHash = to;
-        }
-        catch (Exception)
-        {
-            // fall back to the real model
-        }
-    }
+    // The stand keeps the REAL item hash: SetVisualItem's hash is what the stand drops when the item is taken off (and what
+    // boss altars check), so swapping it turned a reskinned stone axe into a real flint axe. Only the visual's meshes change.
 
     static readonly System.Reflection.FieldInfo? VisualItem = AccessTools.Field(typeof(ItemStand), "m_visualItem");
 
     [HarmonyPatch(typeof(ItemStand), "SetVisualItem")]
     [HarmonyPostfix]
-    static void StandTint(ItemStand __instance)
+    static void StandLook(ItemStand __instance)
     {
         try
         {
             if (VisualItem?.GetValue(__instance) is not GameObject visual || !visual)
                 return;
             var item = ItemStandPatch.TryGetStandItemForDisplay(__instance, out _);
-            if (item?.m_customData != null)
-                WorldLook.TintFor(visual, item);
+            if (item?.m_customData == null || (ItemLookService.GetModelOverride(item) == null && ItemLookService.GetModelTint(item) == null))
+                return;
+            var look = visual.GetComponent<DroppedLook>() ?? visual.AddComponent<DroppedLook>();
+            look.Apply(item, attachedOnly: true);
         }
         catch (Exception)
         {
@@ -74,7 +60,7 @@ internal static class ItemWorldLookPatches
     }
 }
 
-/// <summary>Added only to ground items that carry a reskin: swaps the model once and colours it.</summary>
+/// <summary>Added only to ground items (and item stand visuals) that carry a reskin: swaps the model's meshes once and colours it.</summary>
 internal sealed class DroppedLook : MonoBehaviour
 {
     string _signature = "";
@@ -82,8 +68,12 @@ internal sealed class DroppedLook : MonoBehaviour
     readonly List<Renderer> _hidden = new List<Renderer>();
     readonly List<LODGroup> _lods = new List<LODGroup>();
 
-    public void Apply(ItemDrop.ItemData item)
+    bool _attachedOnly;
+
+    /// <param name="attachedOnly">An item stand shows only the prefab's "attach" child, so the swap uses the source's attach child too.</param>
+    public void Apply(ItemDrop.ItemData item, bool attachedOnly = false)
     {
+        _attachedOnly = attachedOnly;
         var tint = ItemLookService.GetModelTint(item);
         var sig = (ItemLookService.GetModelOverride(item) ?? "") + "|" + ItemLookService.FormatColor(tint);
         if (sig == _signature)
@@ -101,8 +91,16 @@ internal sealed class DroppedLook : MonoBehaviour
     {
         if (!source)
             return;
+        var reference = source!.transform;
+        if (_attachedOnly)
+        {
+            var attach = source.transform.Find("attach");
+            if (attach == null)
+                return;
+            reference = attach;
+        }
         var parts = new List<MeshFilter>();
-        var lodGroup = source!.GetComponent<LODGroup>();
+        var lodGroup = reference.GetComponent<LODGroup>();
         if (lodGroup != null && lodGroup.GetLODs().Length > 0)
         {
             foreach (var r in lodGroup.GetLODs()[0].renderers)
@@ -111,7 +109,7 @@ internal sealed class DroppedLook : MonoBehaviour
         }
         else
         {
-            foreach (var mf in source.GetComponentsInChildren<MeshFilter>(true))
+            foreach (var mf in reference.GetComponentsInChildren<MeshFilter>(true))
                 if (mf.sharedMesh != null && mf.GetComponent<MeshRenderer>() != null)
                     parts.Add(mf);
         }
@@ -141,7 +139,7 @@ internal sealed class DroppedLook : MonoBehaviour
         {
             var go = new GameObject(mf.name);
             go.transform.SetParent(_swapped.transform, false);
-            var m = source.transform.worldToLocalMatrix * mf.transform.localToWorldMatrix;
+            var m = reference.worldToLocalMatrix * mf.transform.localToWorldMatrix;
             go.transform.localPosition = m.GetColumn(3);
             go.transform.localRotation = m.rotation;
             go.transform.localScale = m.lossyScale;

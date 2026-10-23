@@ -1,0 +1,145 @@
+{
+  "name": "I-10 a reskinned item sold in a shop keeps its look",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "dx": 0,
+      "as": "shop"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "craft",
+      "prefab": "AxeStone"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.apply",
+      "args": {
+        "prefab": "AxeStone",
+        "icon": "AxeFlint",
+        "model": "AxeFlint",
+        "iconTint": "#ff0000",
+        "modelTint": "#00ff00"
+      },
+      "expect": ""
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.putIn",
+      "args": {
+        "target": "shop",
+        "prefab": "AxeStone",
+        "price": "c:5"
+      },
+      "expect": true,
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.open",
+      "args": {
+        "target": "shop",
+        "on": true
+      },
+      "expect": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "screenshot",
+      "name": "reskinned-on-display"
+    },
+    {
+      "do": "playAs",
+      "who": "Bob"
+    },
+    {
+      "do": "give",
+      "prefab": "Coins",
+      "count": 5
+    },
+    {
+      "do": "hook",
+      "name": "itemshop.buy",
+      "args": {
+        "target": "shop",
+        "prefab": "AxeStone"
+      },
+      "expect": "",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "reskin.icon",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "contains": "AxeFlint",
+      "label": "icon override arrived"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.iconTint",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "expect": "#FF0000"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.equip",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "expect": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "reskin.wornModel",
+      "args": {
+        "slot": "right"
+      },
+      "expect": "AxeFlint",
+      "label": "Bob holds the flint axe model"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.wornTint",
+      "args": {
+        "slot": "right"
+      },
+      "expect": "#00FF00",
+      "label": "drawn green"
+    },
+    {
+      "do": "playAs",
+      "who": "me"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

@@ -113,12 +113,16 @@ public static class DrakeTabHost
     /// Opens the best available tab for <paramref name="item"/>. Returns false when no
     /// registered mod claims the item (caller should fall through to vanilla).
     /// </summary>
-    public static bool OpenForItem(ItemDrop.ItemData? item, string? preferredTabId = null, Action? onClosed = null)
+    public static bool OpenForItem(ItemDrop.ItemData? item, string? preferredTabId = null, Action? onClosed = null) =>
+        OpenForItem(item, preferredTabId, onClosed, null);
+
+    /// <summary>Same as <see cref="OpenForItem(ItemDrop.ItemData?, string?, Action?)"/>, leaving out the tabs in <paramref name="excludeTabIds"/>.</summary>
+    public static bool OpenForItem(ItemDrop.ItemData? item, string? preferredTabId, Action? onClosed, ICollection<string>? excludeTabIds)
     {
         if (item == null || GUIManager.Instance == null || !GUIManager.CustomGUIFront)
             return false;
 
-        var available = GetAvailable(item).ToList();
+        var available = GetAvailable(item).Where(r => excludeTabIds == null || !excludeTabIds.Contains(r.Id)).ToList();
         if (available.Count == 0)
             return false;
 

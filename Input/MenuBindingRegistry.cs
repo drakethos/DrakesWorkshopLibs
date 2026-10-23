@@ -41,6 +41,39 @@ public static class MenuBindingRegistry
         WarnOnBindingConflict(reg);
     }
 
+    static readonly Dictionary<string, HashSet<string>> LinkedTabs = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Tie a mod's own menu binding to its tab(s). When the shared Libs modifier opens the tab host, a linked tab is left out
+    /// unless its own binding is held (or uses the same keys as the shared one), so changing that mod's key really changes it.
+    /// </summary>
+    public static void LinkTab(string bindingId, string tabId)
+    {
+        if (string.IsNullOrEmpty(bindingId) || string.IsNullOrEmpty(tabId))
+            return;
+        if (!LinkedTabs.TryGetValue(bindingId, out var set))
+            LinkedTabs[bindingId] = set = new HashSet<string>(StringComparer.Ordinal);
+        set.Add(tabId);
+    }
+
+    /// <summary>Tabs whose own binding in <paramref name="scope"/> differs from <paramref name="sharedBindingId"/>'s keys and is not held now.</summary>
+    public static HashSet<string> TabsWaitingForOwnKey(string scope, string sharedBindingId)
+    {
+        var result = new HashSet<string>(StringComparer.Ordinal);
+        var shared = Registrations.FirstOrDefault(r => r.Scope == scope && r.Id == sharedBindingId);
+        var sharedKeys = Normalize(shared?.GetBindingString());
+        foreach (var reg in Registrations)
+        {
+            if (reg.Scope != scope || reg.Id == sharedBindingId || !LinkedTabs.TryGetValue(reg.Id, out var tabs))
+                continue;
+            if (Normalize(reg.GetBindingString()) == sharedKeys || MenuKeyBinding.IsHeld(reg.GetBindingString()))
+                continue;
+            result.UnionWith(tabs);
+        }
+
+        return result;
+    }
+
     public static bool IsHeld(string scope, string id)
     {
         var reg = Registrations.FirstOrDefault(r => r.Scope == scope && r.Id == id);

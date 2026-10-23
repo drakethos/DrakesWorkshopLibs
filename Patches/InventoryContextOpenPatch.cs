@@ -26,9 +26,11 @@ public static class InventoryContextOpenPatch
         {
             try
             {
+                // Tabs whose mod has its own key (linked with MenuBindingRegistry.LinkTab) wait for that key.
                 if (item != null
                     && MenuKeyBinding.IsHeld(DrakeIntegrationConfig.InventoryOpenModifier)
-                    && DrakeTabHost.TryOpenInventoryContext(item))
+                    && DrakeTabHost.OpenForItem(item, null, null,
+                        MenuBindingRegistry.TabsWaitingForOwnKey(MenuBindingRegistry.InventoryContextScope, InventoryContextHints.BindingId)))
                 {
                     return;
                 }

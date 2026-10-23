@@ -174,6 +174,7 @@ Cross-mod knobs: BepInEx config section **`Integration`** (`DrakeIntegrationConf
 Do not put those phrases in Libs — register getters from each feature mod. Tab strip appears only when usable count ≥ 2.
 
 **RenameIt handoff:** Register tab `renameit` with your localized hint; `IsAvailable` must respect suppress **and** TagBypass (admin may get usable=2 on Locksmith keys). Drop competing “for options” tooltip/open once Libs consumes usable ≥ 1.
+- `MenuBindingRegistry.LinkTab(bindingId, tabId)` / `TabsWaitingForOwnKey`, `DrakeTabHost.OpenForItem(..., excludeTabIds)`: a mod with its own menu key keeps its tabs out of the shared-modifier tab host unless that key is held. Used by RenameIt.
 
 ## New-look UI (DrakeModsLibs.UI.Toolkit, preview)
 

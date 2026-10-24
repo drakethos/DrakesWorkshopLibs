@@ -1,5 +1,8 @@
 # DrakeModsLibs
 
+## 1.0.2
+- **New (type-ahead suggestions):** `UkField.SetSuggestions(overlayHost, provider)` adds an autocomplete drop-down under a text field: up to six matches as you type, Up/Down to pick, Tab / Enter to fill, Esc to close, click to fill. Used by RenameIt 1.4.0-beta.2 for saved names. Additive only: nothing changed for existing consumers, and fields that never call it behave as before.
+
 ## 1.0.1
 - **Fixed (reskinned items on item stands):** a reskinned item put on an item stand came back off it as the item whose look it wore (a stone axe reskinned as a flint axe was taken off as a real flint axe). The stand now keeps the real item and only shows the look.
 - **Fixed (look catalog):** a game item could be missing from the Reskin grid when another item used the same icon (the Bronze Helmet lost its slot to an unused copy). Real, craftable items keep their place.

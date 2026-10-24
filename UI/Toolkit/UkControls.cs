@@ -182,6 +182,9 @@ public static class UkControls
     }
 }
 
+/// <summary>Suggestions for what the player has typed so far: the text to fill in (rich fields: with tags) and a short note shown muted at the end of the row.</summary>
+public delegate System.Collections.Generic.IEnumerable<(string Text, string Note)> UkSuggestProvider(string typed);
+
 /// <summary>
 /// A labelled text input: title, live character count, optional reset, an error line, and a read-only look for "not allowed".
 /// With <see cref="EnableRich"/> it becomes a rich text field that never shows tags: the box holds the plain words, a style model
@@ -265,6 +268,8 @@ public sealed class UkField
         Input.RegisterValueChangedCallback(OnInputChanged);
         Input.RegisterCallback<KeyDownEvent>(e =>
         {
+            if (HandleSuggestKey(e))
+                return;
             if (!multiline && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter))
             {
                 e.StopPropagation();
@@ -280,7 +285,13 @@ public sealed class UkField
             _poll = Input.schedule.Execute(TrackSelection).Every(40);
         });
         // No final read on blur: by then the field may already have collapsed its selection. The last timed read is the real one.
-        Input.RegisterCallback<FocusOutEvent>(_ => _poll?.Pause());
+        Input.RegisterCallback<FocusOutEvent>(_ =>
+        {
+            _poll?.Pause();
+            // A click on a suggestion picks it on pointer-down, before this; closing is only for clicking elsewhere.
+            if (_popup != null)
+                Input.schedule.Execute(CloseSuggestions).StartingIn(120);
+        });
         // The coloured overlay (rich fields) goes beside the text field, never inside it: a text change inside the field's own
         // subtree bubbles up as an edit of the field and loops forever.
         _fieldHost = new VisualElement();
@@ -409,6 +420,166 @@ public sealed class UkField
 
         UpdateCount();
         Changed?.Invoke(Value);
+        RefreshSuggestions();
+    }
+
+    // ---- Suggestions (autocomplete drop-down under the box) ----
+
+    UkSuggestProvider? _suggest;
+    VisualElement? _popup;
+    VisualElement? _popupHost;
+    readonly System.Collections.Generic.List<string> _suggestTexts = new();
+    readonly System.Collections.Generic.List<VisualElement> _suggestRows = new();
+    int _suggestIndex = -1;
+
+    /// <summary>
+    /// Turns on the suggestion list: as the player types, <paramref name="provider"/> is asked for matches and up to six show in a
+    /// drop-down under the box (Up/Down to pick, Tab fills the first or the picked one, Enter fills a picked one, Esc closes, a
+    /// click fills). The list lives in <paramref name="overlayHost"/> (a high element of the panel) so rows below cannot cover it.
+    /// Pass a null provider to turn it off again.
+    /// </summary>
+    public void SetSuggestions(VisualElement overlayHost, UkSuggestProvider? provider)
+    {
+        _suggest = provider;
+        if (provider == null)
+        {
+            CloseSuggestions();
+            return;
+        }
+
+        if (_popup != null)
+            return;
+        _popupHost = overlayHost;
+        _popup = new VisualElement().Column().Fill(UkTheme.PanelDeep).Round(UkTheme.Radius).Border(UkTheme.Line).Pad(4);
+        _popup.style.position = Position.Absolute;
+        _popup.Show(false);
+        overlayHost.Add(_popup);
+    }
+
+    public bool SuggestionsOpen => _popup != null && _popup.style.display == DisplayStyle.Flex;
+
+    void RefreshSuggestions()
+    {
+        if (_suggest == null || _popup == null || !_editable)
+            return;
+        ShowSuggestions(Input.value ?? "");
+    }
+
+    void ShowSuggestions(string typed)
+    {
+        _suggestTexts.Clear();
+        _suggestRows.Clear();
+        _popup!.Clear();
+        _suggestIndex = -1;
+        var shown = 0;
+        foreach (var (text, note) in _suggest!(typed))
+        {
+            if (shown >= 6)
+                break;
+            var index = shown++;
+            _suggestTexts.Add(text);
+            var row = new VisualElement().Row().Pad(6, 10);
+            row.Round(5);
+            row.Add(UkControls.Text(text, 16, UkTheme.Text, wrap: false));
+            row.Add(UkControls.Spacer());
+            if (!string.IsNullOrEmpty(note))
+                row.Add(UkControls.Text(note, 12, UkTheme.TextMuted, wrap: false));
+            row.RegisterCallback<PointerEnterEvent>(_ => HighlightSuggestion(index));
+            row.RegisterCallback<PointerDownEvent>(e =>
+            {
+                e.StopPropagation();
+                PickSuggestion(index);
+            });
+            _suggestRows.Add(row);
+            _popup.Add(row);
+        }
+
+        if (shown == 0)
+        {
+            CloseSuggestions();
+            return;
+        }
+
+        var box = Input.worldBound;
+        var host = _popupHost!;
+        var local = host.WorldToLocal(new Vector2(box.xMin, box.yMax + 2f));
+        _popup.style.left = local.x;
+        _popup.style.top = local.y;
+        _popup.style.width = box.width;
+        _popup.Show(true);
+    }
+
+    void HighlightSuggestion(int index)
+    {
+        _suggestIndex = index;
+        for (var i = 0; i < _suggestRows.Count; i++)
+            _suggestRows[i].style.backgroundColor = i == index ? UkTheme.Field : Color.clear;
+    }
+
+    public void CloseSuggestions()
+    {
+        _suggestIndex = -1;
+        _popup?.Show(false);
+    }
+
+    void PickSuggestion(int index)
+    {
+        if (index < 0 || index >= _suggestTexts.Count)
+            return;
+        var text = _suggestTexts[index];
+        CloseSuggestions();
+        SetValue(text);
+        Input.Focus();
+        Input.textSelection.SelectRange(Input.value.Length, Input.value.Length);
+        Changed?.Invoke(Value);
+    }
+
+    /// <summary>Keys while the list is open. True when the key was used here (the caller then does nothing more with it).</summary>
+    bool HandleSuggestKey(KeyDownEvent e)
+    {
+        if (_suggest == null || _popup == null)
+            return false;
+        var open = SuggestionsOpen;
+        switch (e.keyCode)
+        {
+            case KeyCode.DownArrow:
+                if (!open)
+                    ShowSuggestions(Input.value ?? "");
+                if (SuggestionsOpen)
+                    HighlightSuggestion(Mathf.Min(_suggestIndex + 1, _suggestTexts.Count - 1));
+                break;
+            case KeyCode.UpArrow:
+                if (!open)
+                    return false;
+                HighlightSuggestion(Mathf.Max(_suggestIndex - 1, 0));
+                break;
+            case KeyCode.Tab:
+                if (!open)
+                    return false;
+                PickSuggestion(_suggestIndex >= 0 ? _suggestIndex : 0);
+                break;
+            case KeyCode.Return:
+            case KeyCode.KeypadEnter:
+                if (!open || _suggestIndex < 0)
+                {
+                    CloseSuggestions();
+                    return false;
+                }
+
+                PickSuggestion(_suggestIndex);
+                break;
+            case KeyCode.Escape:
+                if (!open)
+                    return false;
+                CloseSuggestions();
+                break;
+            default:
+                return false;
+        }
+
+        e.StopImmediatePropagation();
+        e.PreventDefault();
+        return true;
     }
 
     void RefreshOverlay()

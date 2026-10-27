@@ -1,5 +1,8 @@
 # DrakeModsLibs
 
+## 1.0.3
+- **New (piece interaction claims):** `DrakeModsLibs.API.PieceInteractionClaims.Register(owner, Func<Piece,bool>)`. A mod whose own pieces use Shift+Use (alt-interact) claims them so RenameIt's piece rename leaves them alone: DrakesServerTeams' Team Ward opens its own admin settings with Shift+E, and RenameIt used to take that key over. Other mods can register by reflection without depending on Libs. Dormant (a static list, no patches); additive only, nothing changed for existing consumers. Used by RenameIt (next release) and DrakesServerTeams.
+
 ## 1.0.2
 - **New (type-ahead suggestions):** `UkField.SetSuggestions(overlayHost, provider)` adds an autocomplete drop-down under a text field: up to six matches as you type, Up/Down to pick, Tab / Enter to fill, Esc to close, click to fill. Used by RenameIt 1.4.0-beta.2 for saved names. Additive only: nothing changed for existing consumers, and fields that never call it behave as before.
 

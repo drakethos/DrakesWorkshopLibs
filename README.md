@@ -57,6 +57,7 @@ Use `BindClientOnly` for per-client settings (never registered with ServerSync).
 
 Optional foreign mods (WardIsLove, ProtectiveWards, Arcane Ward, DevCommands, …) are **never** hard dependencies. DrakeModsLibs provides per-plugin scaffolding:
 
+- `DrakeModsLibs.API.PieceInteractionClaims.Register(owner, Func<Piece,bool>)`: a mod whose own pieces use Shift+Use (alt-interact) claims them so RenameIt's piece rename leaves them alone (used by DrakesServerTeams' Team Ward, soft via reflection)
 - `DrakeModsLibs.Compat.ICompatModule` / `CompatPriority`
 - `CompatHost` / `CompatHosts.GetOrCreate(ownerGuid, log)` — **one host per Drake plugin GUID**
 

@@ -54,6 +54,7 @@
     <Compile Include="Forge\Gltf\GlbReader.cs" />
     <Compile Include="Forge\Gltf\JsonValue.cs" />
     <Compile Include="API\CustomizationEvents.cs" />
+    <Compile Include="API\PieceInteractionClaims.cs" />
     <Compile Include="API\CustomizeLibsAPI.cs" />
     <Compile Include="Display\IconCatalog.cs" />
     <Compile Include="Display\ItemIconService.cs" />

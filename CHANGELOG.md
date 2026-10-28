@@ -1,12 +1,7 @@
 # DrakeModsLibs
 
-## Unreleased
-
-### Fixed
-
-- Packaging only: the Hexium/Thunderstore zip now puts the DLL and every data folder under `plugins/`, so Gale and r2modman
-  keep the folder structure (they flatten anything outside `plugins/`). A CI guard (`check-gale-layout.py`) fails the build
-  if that ever regresses. No code or behaviour change for players.
+## 1.0.4
+- **Packaging fix:** the zip now ships the DLL under `plugins/` so Gale and r2modman keep the folder layout (they flatten anything outside `plugins/, patchers/, monomod/, core/, config/`). A build guard (`check-gale-layout.py`) fails the release if that ever regresses. No code or API change.
 
 ## 1.0.3
 - **New (piece interaction claims):** `DrakeModsLibs.API.PieceInteractionClaims.Register(owner, Func<Piece,bool>)`. A mod whose own pieces use Shift+Use (alt-interact) claims them so RenameIt's piece rename leaves them alone: DrakesServerTeams' Team Ward opens its own admin settings with Shift+E, and RenameIt used to take that key over. Other mods can register by reflection without depending on Libs. Dormant (a static list, no patches); additive only, nothing changed for existing consumers. Used by RenameIt (next release) and DrakesServerTeams.

@@ -1,5 +1,13 @@
 # DrakeModsLibs
 
+## Unreleased
+
+### Fixed
+
+- Packaging only: the Hexium/Thunderstore zip now puts the DLL and every data folder under `plugins/`, so Gale and r2modman
+  keep the folder structure (they flatten anything outside `plugins/`). A CI guard (`check-gale-layout.py`) fails the build
+  if that ever regresses. No code or behaviour change for players.
+
 ## 0.11.2
 - **Fix: the 0.10.1 VIP check was inverted.** `IsSourceOfTruth` is true while the local config is in charge and turns false once the host's synced config arrives. 0.10.1 trusted a remote client's `VipList` only while it was still true, so an unsynced client could still grant itself VIP, and real VIPs on a remote or dedicated server lost VIP once synced. A remote client now trusts `VipList` only after the host's config has taken over. Host and offline play are unchanged.
 - No API changes.

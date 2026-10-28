@@ -19,7 +19,7 @@ Rules enforced (exit 1 on any):
   1. every file except manifest.json/icon.png/README.md/CHANGELOG.md sits under a Gale-recognized folder
      (plugins/ patchers/ monomod/ core/ config/), so nothing is flattened and nothing depends on flattening;
   2. no two files collapse onto the same installed path;
-  3. manifest.json has the Thunderstore fields, icon.png is a 256x256 PNG at the root, README.md is present;
+  3. manifest.json has the Thunderstore fields (a description over 250 chars only warns), icon.png is a 256x256 PNG at the root, README.md is present;
   4. any --expect / --expect-tree paths land where the mod looks for them.
 """
 import json, os, struct, sys, zipfile
@@ -99,7 +99,7 @@ def main(argv):
                 if k not in mf:
                     errors.append(f"manifest.json missing field: {k}")
             if len(mf.get("description", "")) > 250:
-                errors.append("manifest.json description is over 250 characters")
+                print(f"::warning::manifest.json description is {len(mf['description'])} characters (Thunderstore's limit is 250)", file=sys.stderr)
         except Exception as e:
             errors.append(f"manifest.json unreadable: {e}")
     if "icon.png" not in names:

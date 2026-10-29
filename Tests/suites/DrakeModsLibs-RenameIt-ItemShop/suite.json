@@ -3,59 +3,59 @@
   "description": "Renamed items in shops and mail: names, descriptions, crafter and paper text travel with the item; separate stacks on shelves.",
   "requireMods": [
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "minVersion": "0.1.0"
     },
     {
-      "guid": "com.drakesworkshop.itemshop",
+      "guid": "com.drakemods.itemshop",
       "minVersion": "0.1.0"
     }
   ],
   "configOverrides": [
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "01 Admin",
       "key": "AllowAdminOverride",
       "value": "false"
     },
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "07 UnlockCost",
       "key": "UnlockCostEnabled",
       "value": "false"
     },
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "05 General",
       "key": "LockToOwner",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "06 Stacks",
       "key": "SeparateStacks",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "06 Stacks",
       "key": "SeparateStacksHardLock",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "03 Exclusions",
       "key": "ExcludedNames",
       "value": ""
     },
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "03 Exclusions",
       "key": "ExcludedCategory",
       "value": ""
     },
     {
-      "guid": "com.drakesworkshop.renameit",
+      "guid": "com.drakemods.renameit",
       "section": "11 UI-NotSynced",
       "key": "MenuOpenModifier",
       "value": ""

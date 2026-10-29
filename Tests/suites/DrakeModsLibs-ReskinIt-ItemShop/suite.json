@@ -3,47 +3,47 @@
   "description": "Reskinned items in shops: the look (icon, model, colours) travels with the item and shows on display.",
   "requireMods": [
     {
-      "guid": "com.drakesworkshop.reskinit",
+      "guid": "com.drakemods.reskinit",
       "minVersion": "0.1.0"
     },
     {
-      "guid": "com.drakesworkshop.itemshop",
+      "guid": "com.drakemods.itemshop",
       "minVersion": "0.1.0"
     }
   ],
   "configOverrides": [
     {
-      "guid": "com.drakesworkshop.reskinit",
+      "guid": "com.drakemods.reskinit",
       "section": "02 - Admin",
       "key": "AdminSource",
       "value": "Own"
     },
     {
-      "guid": "com.drakesworkshop.reskinit",
+      "guid": "com.drakemods.reskinit",
       "section": "02 - Admin",
       "key": "AllowAdminOverride",
       "value": "false"
     },
     {
-      "guid": "com.drakesworkshop.reskinit",
+      "guid": "com.drakemods.reskinit",
       "section": "03 - Features",
       "key": "RequireDiscovery",
       "value": "Off"
     },
     {
-      "guid": "com.drakesworkshop.reskinit",
+      "guid": "com.drakemods.reskinit",
       "section": "03 - Features",
       "key": "ProgressionGate",
       "value": "false"
     },
     {
-      "guid": "com.drakesworkshop.reskinit",
+      "guid": "com.drakemods.reskinit",
       "section": "05 - Cost",
       "key": "CostEnabled",
       "value": "false"
     },
     {
-      "guid": "com.drakesworkshop.reskinit",
+      "guid": "com.drakemods.reskinit",
       "section": "04 - Exclusions",
       "key": "ExclusionSource",
       "value": "Own"

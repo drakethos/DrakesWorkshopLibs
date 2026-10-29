@@ -1,0 +1,174 @@
+{
+  "name": "I-54 rename, reskin and repair all keep the same item",
+  "description": "",
+  "steps": [
+    {
+      "do": "setConfig",
+      "guid": "com.drakemods.betterrepair",
+      "values": {
+        "4 - Repair cost (coins)/UseCoinRepair": true
+      }
+    },
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "craft",
+      "prefab": "AxeStone"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.edit",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name",
+        "text": "Twin Axe"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "reskin.apply",
+      "args": {
+        "prefab": "AxeStone",
+        "model": "AxeFlint"
+      },
+      "expect": ""
+    },
+    {
+      "do": "hook",
+      "name": "reskin.tabAvailable",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "expect": true,
+      "label": "Reskin still offers its tab"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.can",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name"
+      },
+      "expect": true,
+      "label": "Rename still offers its tab"
+    },
+    {
+      "do": "place",
+      "prefab": "piece_workbench",
+      "dz": 2.5,
+      "as": "bench"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "repair.damage",
+      "args": {
+        "prefab": "AxeStone",
+        "percent": 40
+      }
+    },
+    {
+      "do": "give",
+      "prefab": "Coins",
+      "count": 200
+    },
+    {
+      "do": "hook",
+      "name": "repair.useStation",
+      "args": {
+        "prefab": "piece_workbench"
+      }
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "repair.perform",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "expect": true,
+      "label": "it repairs"
+    },
+    {
+      "do": "hook",
+      "name": "repair.durability",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "expect": 100
+    },
+    {
+      "do": "hook",
+      "name": "renameit.name",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "contains": "Twin Axe",
+      "label": "the name survived"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.model",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "contains": "AxeFlint",
+      "label": "the look survived"
+    },
+    {
+      "do": "hook",
+      "name": "reskin.tabAvailable",
+      "args": {
+        "prefab": "AxeStone"
+      },
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.can",
+      "args": {
+        "prefab": "AxeStone",
+        "op": "name"
+      },
+      "expect": true
+    },
+    {
+      "do": "closeUi"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesServerTeams"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesBetterRepair"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

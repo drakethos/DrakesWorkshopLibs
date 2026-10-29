@@ -1,0 +1,90 @@
+{
+  "name": "I-44 Shift+E on a Karve opens the workshop on the piece name, not that name plus E",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "spawn",
+      "prefab": "Karve",
+      "dz": 3,
+      "as": "ship"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "renameit.armPieceOpeningKey"
+    },
+    {
+      "do": "holdKey",
+      "key": "E"
+    },
+    {
+      "do": "interact",
+      "target": "ship",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.2
+    },
+    {
+      "do": "pressKey",
+      "button": "Use",
+      "frames": 8
+    },
+    {
+      "do": "releaseKeys"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": true,
+      "label": "the workshop opened",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": false,
+      "label": "a ship has no Lock menu"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindowName",
+      "label": "the name is the default, with no stray E"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.closeWindows"
+    },
+    {
+      "do": "closeUi"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

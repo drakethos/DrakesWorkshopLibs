@@ -1,0 +1,124 @@
+{
+  "name": "DrakeModsLibs-RenameIt-LockSmith",
+  "description": "Shift+E on a placed piece goes through the player, the way the game does it. LockSmith and ItemShop tabs stay, and rename is the Name tab. A piece with no Lock menu still opens the RenameIt workshop.",
+  "requireMods": [
+    {
+      "guid": "com.drakemods.renameit",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakemods.itemshop",
+      "minVersion": "0.1.0"
+    }
+  ],
+  "configOverrides": [
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "01 Admin",
+      "key": "AllowAdminOverride",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "07 UnlockCost",
+      "key": "UnlockCostEnabled",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "05 General",
+      "key": "LockToOwner",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "06 Stacks",
+      "key": "SeparateStacks",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "06 Stacks",
+      "key": "SeparateStacksHardLock",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "03 Exclusions",
+      "key": "ExcludedNames",
+      "value": ""
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "03 Exclusions",
+      "key": "ExcludedCategory",
+      "value": ""
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "11 UI-NotSynced",
+      "key": "MenuOpenModifier",
+      "value": ""
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "12 Pieces",
+      "key": "PieceRenameEnabled",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "11 UI-NotSynced",
+      "key": "UseToolkitUi",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableDesignate",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableChests",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableDoors",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableManagedAccess",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "RequireActiveWard",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "04 Display",
+      "key": "UseWheel",
+      "value": "false"
+    }
+  ],
+  "setup": {
+    "timeOfDay": 0.5,
+    "freezeTime": 1,
+    "god": 1,
+    "noBuild": "off",
+    "hideUnlockPopups": 1
+  },
+  "resetBetweenTests": true
+}

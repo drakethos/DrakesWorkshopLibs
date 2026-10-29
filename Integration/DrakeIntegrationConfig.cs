@@ -16,6 +16,11 @@ public static class DrakeIntegrationConfig
     static ConfigEntry<string>? _forceDefaultTabId;
     static ConfigEntry<bool>? _disableClaimDefault;
     static ConfigEntry<bool>? _useToolkitUi;
+    static ConfigEntry<string>? _pieceTabOrder;
+
+    /// <summary>Default piece-menu tab order. Empty config uses this. Unknown ids sort after these, in registration order.</summary>
+    public const string DefaultPieceTabOrder =
+        "teams.ward;locksmith;locksmith.ward;locksmith.groups;renameit.piece;drakes.shop;drakes.buy;drakes.layout;drakes.mail";
 
     /// <summary>Shared inventory menu chord when tab host is wired (e.g. Shift).</summary>
     public static string InventoryOpenModifier =>
@@ -38,6 +43,19 @@ public static class DrakeIntegrationConfig
     /// One switch for every mod that uses them. Per-client; applies the next time a dialog opens.
     /// </summary>
     public static bool UseToolkitUi => _useToolkitUi?.Value ?? true;
+
+    /// <summary>
+    /// Piece Shift+E tab ids, first to last. One menu (LockSmith hosts it). Inventory tabs stay on
+    /// <see cref="TryGetPriorityOverride"/> — that chord is not Shift+E.
+    /// </summary>
+    public static string PieceTabOrder
+    {
+        get
+        {
+            var v = _pieceTabOrder?.Value?.Trim();
+            return string.IsNullOrEmpty(v) ? DefaultPieceTabOrder : v!;
+        }
+    }
 
     public static void Bind(ConfigFile config)
     {
@@ -67,6 +85,14 @@ public static class DrakeIntegrationConfig
             "DisableClaimDefault",
             false,
             "When true, ignore ClaimDefault predicates and pick the highest-priority available tab.");
+
+        _pieceTabOrder = config.Bind(
+            Section,
+            "PieceTabOrder",
+            DefaultPieceTabOrder,
+            "Order of tabs on the one piece Shift+E menu (Lock, Ward, Name, Shop, Team, ...). " +
+            "Semicolon-separated tab ids, first shown first. Empty uses the default. " +
+            "Inventory item tabs (Rename, Reskin) use TabPriorityOverrides instead; that menu is not Shift+E.");
 
         _useToolkitUi = config.Bind(
             "UI",

@@ -212,6 +212,8 @@ public sealed class UkField
     bool _editable = true;
     bool _changed;
     bool _hasError;
+    int _openFocus;
+    bool _swallowUseKey;
 
     public VisualElement Root { get; }
     /// <summary>The row holding the input and its reset button; other controls (a label picker) can sit at the start of it.</summary>
@@ -268,6 +270,14 @@ public sealed class UkField
         Input.RegisterValueChangedCallback(OnInputChanged);
         Input.RegisterCallback<KeyDownEvent>(e =>
         {
+            // Shift+E opens the piece workshop on this same key. Swallow that E so it is not typed into the name.
+            if (_swallowUseKey && (e.keyCode == KeyCode.E || e.character == 'e' || e.character == 'E'))
+            {
+                _swallowUseKey = false;
+                e.StopImmediatePropagation();
+                e.PreventDefault();
+                return;
+            }
             if (HandleSuggestKey(e))
                 return;
             if (!multiline && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter))
@@ -688,6 +698,58 @@ public sealed class UkField
     }
 
     public void Focus() => Input.Focus();
+
+    /// <summary>
+    /// Focus once the key that opened the menu is up. A ship opened with Shift+E would otherwise type that E into the name.
+    /// If the E still lands, it is taken back out.
+    /// </summary>
+    public void FocusAfterOpen()
+    {
+        var generation = ++_openFocus;
+        var saved = Value;
+        var plain = _rich ? _model.Plain : (Input.value ?? "");
+        var until = Time.unscaledTime + 1.5f;
+        void Wait()
+        {
+            if (generation != _openFocus)
+                return;
+            if (OpeningKeyHeld() && Time.unscaledTime < until)
+            {
+                Root.schedule.Execute(Wait).ExecuteLater(40);
+                return;
+            }
+
+            _swallowUseKey = true;
+            Input.Focus();
+            Root.schedule.Execute(() =>
+            {
+                if (generation != _openFocus)
+                    return;
+                _swallowUseKey = false;
+                var now = _rich ? _model.Plain : (Input.value ?? "");
+                if (now.Length == plain.Length + 1
+                    && now.StartsWith(plain, StringComparison.Ordinal)
+                    && (now[now.Length - 1] == 'E' || now[now.Length - 1] == 'e'))
+                    SetValue(saved);
+            }).ExecuteLater(80);
+        }
+
+        Root.schedule.Execute(Wait).ExecuteLater(40);
+    }
+
+    static bool OpeningKeyHeld()
+    {
+        if (UnityEngine.Input.GetKey(KeyCode.E))
+            return true;
+        try
+        {
+            return ZInput.GetButton("Use");
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 
     void Paint()
     {

@@ -1,5 +1,10 @@
 # DrakeModsLibs
 
+## 1.0.5
+- **Piece menu tabs:** `PieceMenuTab.Leads` (default true). A root with it false stays on the row and does not take the opening tab. Used by RenameIt's Name tab.
+- **`UkField.FocusAfterOpen()`** waits until Use is released, so Shift+E does not type an E into the name. Used by RenameIt's piece and animal workshops.
+- **Windows that leave the player free:** `UkWindow.BlocksInput` (default true), `DockAside()`, `SetCardOpacity`. Opening one does not release a window that is holding input, and Esc closes only a window that is holding input. Used by ItemShop's trade request.
+
 ## 1.0.4
 - **Packaging fix:** the zip now ships the DLL under `plugins/` so Gale and r2modman keep the folder layout (they flatten anything outside `plugins/, patchers/, monomod/, core/, config/`). A build guard (`check-gale-layout.py`) fails the release if that ever regresses. No code or API change.
 

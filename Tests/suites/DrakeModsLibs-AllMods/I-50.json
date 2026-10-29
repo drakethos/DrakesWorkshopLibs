@@ -1,0 +1,101 @@
+{
+  "name": "I-50 a chest Shift+E is the Lock menu, in the Libs tab order, and the workshop stays closed",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "piece_chest_wood",
+      "dz": 2.5,
+      "as": "chest"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "interact",
+      "target": "chest",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": true,
+      "label": "one Lock menu",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": false,
+      "label": "rename did not take Shift+E"
+    },
+    {
+      "do": "hook",
+      "name": "lock.tabOrder",
+      "contains": "Lock,Ward",
+      "label": "Lock before Ward before Name"
+    },
+    {
+      "do": "hook",
+      "name": "lock.tabOrder",
+      "notContains": "Ward,Lock",
+      "label": "Ward is not in front of Lock"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Name",
+      "exact": true,
+      "label": "Name is on that menu"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesServerTeams"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesBetterRepair"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "name": "I-40 Shift+E on a chest opens the Lock menu, with Name and Ward, not the rename-only window",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "piece_chest_wood",
+      "dz": 2.5,
+      "as": "chest"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15,
+      "as": "ward"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "interact",
+      "target": "chest",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": true,
+      "label": "the Lock menu opened",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": false,
+      "label": "the rename-only workshop did not take the key"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Lock",
+      "exact": true,
+      "label": "the Lock tab is there"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Name",
+      "exact": true,
+      "label": "the Name tab is there"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Ward",
+      "exact": true,
+      "label": "the Ward tab is there"
+    },
+    {
+      "do": "click",
+      "button": "Name"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.3
+    },
+    {
+      "do": "type",
+      "field": "Name",
+      "text": "Pantry"
+    },
+    {
+      "do": "click",
+      "button": "Save"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.3
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceName",
+      "args": {
+        "target": "chest"
+      },
+      "expect": "Pantry",
+      "label": "the Name tab saved the piece name"
+    },
+    {
+      "do": "screenshot",
+      "name": "chest-name-ward-tabs"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

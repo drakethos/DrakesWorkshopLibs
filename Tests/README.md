@@ -9,6 +9,8 @@ Each suite needs only its two mods (`requireMods`), so a profile with some of th
 | DrakeModsLibs-ReskinIt-ItemShop | ReskinIt + ItemShop | a reskinned item bought from a shop keeps its icon, tint and worn model |
 | DrakeModsLibs-LockSmith-ItemShop | LockSmith + ItemShop | the Shop group (Buy, Layout) and Mail tab in the Lock menu; a LockSmith guest may open the shop chest but not run the shop; LockSmith public on shops and mailboxes |
 | DrakeModsLibs-RenameIt-ReskinIt | RenameIt + ReskinIt | the NoRename tag blocks renaming but not reskinning; a renamed + reskinned item on a stand and on the ground |
+| DrakeModsLibs-RenameIt-LockSmith | RenameIt + LockSmith + ItemShop | Shift+E on a chest, door or shop opens the Lock menu (Ward, Name, Shop) instead of RenameIt's piece workshop; a workbench still opens the workshop |
+| DrakeModsLibs-AllMods | RenameIt + ReskinIt + Teams + LockSmith + BetterRepair + ItemShop | One piece Shift+E for every mod: tab order comes from Libs, a Team Ward shares the Lock menu and locks LockSmith's own switches to server admins, and a renamed + reskinned item still repairs |
 
 `gen_integration_suites.py` writes `suites/`. The suites use each mod's own test hooks (Debug builds only), so build the mods
 in Debug (`scripts/Test-All.ps1` does). `Test-All` copies these suites into the drakeTest profiles; `Tests/` is never packaged.

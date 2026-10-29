@@ -1,0 +1,219 @@
+{
+  "name": "I-53 Shift+E on a Team Ward is the Lock menu, and only an admin can change it",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "hook",
+      "name": "teams.defineTeam",
+      "args": {
+        "team": "red",
+        "title": "Red"
+      }
+    },
+    {
+      "do": "hook",
+      "name": "teams.setAdmin",
+      "args": {
+        "on": true
+      }
+    },
+    {
+      "do": "place",
+      "prefab": "TeamWard",
+      "dz": 3,
+      "as": "ward"
+    },
+    {
+      "do": "wait",
+      "seconds": 1.0
+    },
+    {
+      "do": "interact",
+      "target": "ward",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.teamMenu",
+      "expect": true,
+      "label": "the shared menu opened",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": true
+    },
+    {
+      "do": "hook",
+      "name": "teams.wardPanelOpen",
+      "expect": false,
+      "label": "the separate admin window stayed closed"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": false,
+      "label": "rename did not take the ward"
+    },
+    {
+      "do": "hook",
+      "name": "lock.teamLocked",
+      "expect": false,
+      "label": "an admin can change what it protects"
+    },
+    {
+      "do": "hook",
+      "name": "lock.tabOrder",
+      "contains": "Team,Lock",
+      "label": "Team before Lock"
+    },
+    {
+      "do": "hook",
+      "name": "teams.adminCommand",
+      "args": {
+        "line": "ward team red"
+      }
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Team",
+      "exact": true,
+      "label": "Team"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Lock",
+      "exact": true,
+      "label": "Lock"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Team managed",
+      "label": "Team managed"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Protect build",
+      "label": "Protect build"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Red",
+      "exact": true,
+      "label": "the ward is Red"
+    },
+    {
+      "do": "click",
+      "button": "Lock"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.3
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Ward on",
+      "label": "Ward on"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Who can change this ward: server admins.",
+      "label": "who may change it"
+    },
+    {
+      "do": "hook",
+      "name": "teams.setAdmin",
+      "args": {
+        "on": false
+      }
+    },
+    {
+      "do": "click",
+      "button": "Team"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.teamLocked",
+      "expect": true,
+      "label": "everyone else only gets the locked menu"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Only admins can change a Team Ward.",
+      "label": "told why"
+    },
+    {
+      "do": "hook",
+      "name": "teams.setAdmin",
+      "args": {
+        "on": true
+      }
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "hook",
+      "name": "lock.teamLocked",
+      "expect": false
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesServerTeams"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesBetterRepair"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

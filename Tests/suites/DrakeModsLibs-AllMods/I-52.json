@@ -1,0 +1,130 @@
+{
+  "name": "I-52 a shop Shift+E opens on Shop, with Layout and Name, and Lock still has Ward",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "as": "shop"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "interact",
+      "target": "shop",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": true,
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": false
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Shop",
+      "exact": true,
+      "label": "Shop"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Layout",
+      "exact": true,
+      "label": "Layout"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Name",
+      "exact": true,
+      "label": "Name"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Lock",
+      "exact": true,
+      "label": "Lock"
+    },
+    {
+      "do": "click",
+      "button": "Lock"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.3
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Ward",
+      "exact": true,
+      "label": "Ward"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Name",
+      "exact": true,
+      "label": "Name"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesServerTeams"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesBetterRepair"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

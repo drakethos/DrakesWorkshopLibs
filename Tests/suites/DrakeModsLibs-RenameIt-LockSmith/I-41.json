@@ -1,0 +1,91 @@
+{
+  "name": "I-41 Shift+E on a door opens the Lock menu with Name and Ward",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "wood_door",
+      "dz": 2.5,
+      "as": "door"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "interact",
+      "target": "door",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": true,
+      "label": "the Lock menu opened on the door",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": false,
+      "label": "the workshop did not take the door"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Lock",
+      "exact": true,
+      "label": "Lock"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Name",
+      "exact": true,
+      "label": "Name"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Ward",
+      "exact": true,
+      "label": "Ward"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

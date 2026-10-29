@@ -1,0 +1,88 @@
+{
+  "name": "I-51 PieceTabOrder in the Libs config is the order the menu uses",
+  "description": "",
+  "steps": [
+    {
+      "do": "setConfig",
+      "guid": "com.drakemods.libs",
+      "values": {
+        "Integration/PieceTabOrder": "locksmith.ward;locksmith;renameit.piece;locksmith.groups"
+      }
+    },
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "piece_chest_wood",
+      "dz": 2.5,
+      "as": "chest"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "interact",
+      "target": "chest",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": true,
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "lock.tabOrder",
+      "contains": "Ward,Lock,Name",
+      "label": "Ward, then Lock, then Name"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesServerTeams"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesBetterRepair"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

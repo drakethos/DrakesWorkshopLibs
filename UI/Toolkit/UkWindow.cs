@@ -20,7 +20,8 @@ public sealed class UkWindow
     public const int DialogLayer = 30;
 
     static readonly List<UkWindow> OpenWindows = new();
-    static bool _weBlockedInput;
+    static int _inputBlocks;
+    static bool _weHoldInput;
     static int _orderCounter;
     static GameObject? _runner;
 
@@ -54,6 +55,12 @@ public sealed class UkWindow
     public Func<bool>? EscapeHandler;
 
     public bool IsOpen { get; private set; }
+
+    /// <summary>
+    /// When false, opening this window does not take the mouse or the keyboard, and Esc still reaches the game.
+    /// A trade request uses this: the card is there to click, and the player can keep moving until they accept.
+    /// </summary>
+    public bool BlocksInput { get; set; } = true;
 
     /// <summary>Any <see cref="UkWindow"/> is open (a cue for other code to leave Esc or clicks alone).</summary>
     public static bool AnyOpen => OpenWindows.Count > 0;
@@ -225,11 +232,16 @@ public sealed class UkWindow
         IsOpen = true;
         _openOrder = ++_orderCounter;
         OpenWindows.Add(this);
-        // Block game input once for however many windows are open; only release what we took.
-        if (OpenWindows.Count == 1 && !DrakeGuiInput.IsBlocked)
+        // Block game input once for however many blocking windows are open; only release what we took.
+        if (BlocksInput)
         {
-            DrakeGuiInput.EnsureBlocked();
-            _weBlockedInput = true;
+            if (_inputBlocks == 0 && !DrakeGuiInput.IsBlocked)
+            {
+                DrakeGuiInput.EnsureBlocked();
+                _weHoldInput = true;
+            }
+
+            _inputBlocks++;
         }
 
         EnsureRunner();
@@ -250,15 +262,20 @@ public sealed class UkWindow
     {
         if (!IsOpen)
             return;
+        var wasBlocking = BlocksInput;
         IsOpen = false;
         _scrim.Show(false);
         Tips.Hide();
         Toast.Hide();
         OpenWindows.Remove(this);
-        if (OpenWindows.Count == 0 && _weBlockedInput)
+        if (wasBlocking)
         {
-            DrakeGuiInput.EnsureUnblocked();
-            _weBlockedInput = false;
+            _inputBlocks = Math.Max(0, _inputBlocks - 1);
+            if (_inputBlocks == 0 && _weHoldInput)
+            {
+                DrakeGuiInput.EnsureUnblocked();
+                _weHoldInput = false;
+            }
         }
 
         if (notify)
@@ -331,14 +348,39 @@ public sealed class UkWindow
         _runner.AddComponent<WindowRunner>();
     }
 
-    /// <summary>One Update for all windows: Esc closes the topmost.</summary>
+    /// <summary>
+    /// Sit in the top-right, and let clicks and keys pass through everywhere except the card.
+    /// Used by a request the other player did not open.
+    /// </summary>
+    public void DockAside()
+    {
+        _scrim.style.justifyContent = Justify.FlexStart;
+        _scrim.style.alignItems = Align.FlexEnd;
+        _scrim.style.paddingTop = 72;
+        _scrim.style.paddingRight = 28;
+        _scrim.pickingMode = PickingMode.Ignore;
+    }
+
+    /// <summary>How solid the card is. 1 is the normal window; lower lets the fight show through.</summary>
+    public void SetCardOpacity(float opacity) => Card.style.opacity = Mathf.Clamp(opacity, 0.2f, 1f);
+
+    /// <summary>One Update for all windows: Esc closes the topmost window that is holding input.</summary>
     sealed class WindowRunner : MonoBehaviour
     {
         void Update()
         {
-            if (OpenWindows.Count == 0 || !UnityEngine.Input.GetKeyDown(KeyCode.Escape))
+            if (!UnityEngine.Input.GetKeyDown(KeyCode.Escape))
                 return;
-            OpenWindows.OrderBy(w => w._layer).ThenBy(w => w._openOrder).Last().HandleEscape();
+            UkWindow? top = null;
+            foreach (var window in OpenWindows)
+            {
+                if (!window.BlocksInput)
+                    continue;
+                if (top == null || window._layer > top._layer || (window._layer == top._layer && window._openOrder > top._openOrder))
+                    top = window;
+            }
+
+            top?.HandleEscape();
         }
     }
 }

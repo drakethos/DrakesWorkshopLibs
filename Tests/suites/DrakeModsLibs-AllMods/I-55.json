@@ -1,0 +1,82 @@
+{
+  "name": "I-55 a workbench still opens the workshop, not the Lock menu",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "piece_workbench",
+      "dz": 2.5,
+      "as": "bench"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "interact",
+      "target": "bench",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": true,
+      "label": "the workshop opened",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": false,
+      "label": "LockSmith has nothing to do on a workbench"
+    },
+    {
+      "do": "hook",
+      "name": "lock.teamMenu",
+      "expect": false
+    },
+    {
+      "do": "hook",
+      "name": "renameit.closeWindows"
+    },
+    {
+      "do": "closeUi"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesReskinIt"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesServerTeams"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesBetterRepair"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

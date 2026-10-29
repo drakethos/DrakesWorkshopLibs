@@ -3,47 +3,47 @@
   "description": "ItemShop's tabs inside LockSmith's Lock menu (smart Shop group, Mail), and LockSmith access on shops and mailboxes.",
   "requireMods": [
     {
-      "guid": "com.drakesworkshop.locksmith",
+      "guid": "com.drakemods.locksmith",
       "minVersion": "0.1.0"
     },
     {
-      "guid": "com.drakesworkshop.itemshop",
+      "guid": "com.drakemods.itemshop",
       "minVersion": "0.1.0"
     }
   ],
   "configOverrides": [
     {
-      "guid": "com.drakesworkshop.locksmith",
+      "guid": "com.drakemods.locksmith",
       "section": "02 Features",
       "key": "EnableChests",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.locksmith",
+      "guid": "com.drakemods.locksmith",
       "section": "02 Features",
       "key": "EnableManagedAccess",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.locksmith",
+      "guid": "com.drakemods.locksmith",
       "section": "02 Features",
       "key": "RequireActiveWard",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.locksmith",
+      "guid": "com.drakemods.locksmith",
       "section": "02 Features",
       "key": "EnableOptInAccess",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.locksmith",
+      "guid": "com.drakemods.locksmith",
       "section": "02 Features",
       "key": "EnablePieceGuests",
       "value": "true"
     },
     {
-      "guid": "com.drakesworkshop.locksmith",
+      "guid": "com.drakemods.locksmith",
       "section": "02 Features",
       "key": "EnableDesignate",
       "value": "false"

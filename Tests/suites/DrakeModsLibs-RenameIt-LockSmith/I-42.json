@@ -1,0 +1,124 @@
+{
+  "name": "I-42 Shift+E on a shop opens on Shop, with Layout and Name beside it; Lock still has Ward",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "Drake_DisplayCase",
+      "dz": 3,
+      "as": "shop"
+    },
+    {
+      "do": "spawn",
+      "prefab": "guard_stone",
+      "dz": -2,
+      "owner": "Alice",
+      "enabled": true,
+      "radius": 15
+    },
+    {
+      "do": "wait",
+      "seconds": 0.5
+    },
+    {
+      "do": "interact",
+      "target": "shop",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": true,
+      "label": "the Lock menu opened on the case",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": false,
+      "label": "the workshop did not take the shop"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Shop",
+      "exact": true,
+      "label": "Shop is the opening tab"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Layout",
+      "exact": true,
+      "label": "Layout is visible with Shop"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Name",
+      "exact": true,
+      "label": "Name is on the row, not hidden under Lock"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Lock",
+      "exact": true,
+      "label": "and Lock"
+    },
+    {
+      "do": "click",
+      "button": "Lock"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.3
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Ward",
+      "exact": true,
+      "label": "Ward shows with the Lock group"
+    },
+    {
+      "do": "check",
+      "check": "uiVisible",
+      "name": "Name",
+      "exact": true,
+      "label": "Name stays visible"
+    },
+    {
+      "do": "screenshot",
+      "name": "shop-lock-name-ward"
+    },
+    {
+      "do": "hook",
+      "name": "lock.closeMenu"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

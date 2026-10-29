@@ -1,0 +1,65 @@
+{
+  "name": "I-43 a workbench has no Lock menu, so Shift+E still opens the piece workshop",
+  "description": "",
+  "steps": [
+    {
+      "do": "playAs",
+      "who": "Alice"
+    },
+    {
+      "do": "place",
+      "prefab": "piece_workbench",
+      "dz": 2.5,
+      "as": "bench"
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "interact",
+      "target": "bench",
+      "alt": true,
+      "hold": false,
+      "asPlayer": true
+    },
+    {
+      "do": "wait",
+      "seconds": 0.4
+    },
+    {
+      "do": "hook",
+      "name": "renameit.pieceWindow",
+      "expect": true,
+      "label": "the workshop opened",
+      "stop": true
+    },
+    {
+      "do": "hook",
+      "name": "lock.menuOpen",
+      "expect": false,
+      "label": "LockSmith has nothing to do on a workbench"
+    },
+    {
+      "do": "hook",
+      "name": "renameit.closeWindows"
+    },
+    {
+      "do": "closeUi"
+    }
+  ],
+  "asserts": [
+    {
+      "check": "noErrors",
+      "source": "DrakesRenameit"
+    },
+    {
+      "check": "noErrors",
+      "source": "LockSmith"
+    },
+    {
+      "check": "noErrors",
+      "source": "DrakesItemShop"
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "name": "DrakeModsLibs-AllMods",
+  "description": "One Shift+E for a placed piece. Tab order comes from DrakeModsLibs Integration/PieceTabOrder. A Team Ward uses that same Lock menu and LockSmith keeps its own switches locked to server admins. Rename, Reskin and Repair share an item without taking the piece key from each other.",
+  "requireMods": [
+    {
+      "guid": "com.drakemods.renameit",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakemods.reskinit",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakemods.serverteams",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakemods.betterrepair",
+      "minVersion": "0.1.0"
+    },
+    {
+      "guid": "com.drakemods.itemshop",
+      "minVersion": "0.1.0"
+    }
+  ],
+  "configOverrides": [
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "01 Admin",
+      "key": "AllowAdminOverride",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "07 UnlockCost",
+      "key": "UnlockCostEnabled",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "05 General",
+      "key": "LockToOwner",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "06 Stacks",
+      "key": "SeparateStacks",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "06 Stacks",
+      "key": "SeparateStacksHardLock",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "03 Exclusions",
+      "key": "ExcludedNames",
+      "value": ""
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "03 Exclusions",
+      "key": "ExcludedCategory",
+      "value": ""
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "11 UI-NotSynced",
+      "key": "MenuOpenModifier",
+      "value": ""
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "12 Pieces",
+      "key": "PieceRenameEnabled",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.renameit",
+      "section": "11 UI-NotSynced",
+      "key": "UseToolkitUi",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.reskinit",
+      "section": "02 - Admin",
+      "key": "AdminSource",
+      "value": "Own"
+    },
+    {
+      "guid": "com.drakemods.reskinit",
+      "section": "02 - Admin",
+      "key": "AllowAdminOverride",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.reskinit",
+      "section": "03 - Features",
+      "key": "RequireDiscovery",
+      "value": "Off"
+    },
+    {
+      "guid": "com.drakemods.reskinit",
+      "section": "03 - Features",
+      "key": "ProgressionGate",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.reskinit",
+      "section": "05 - Cost",
+      "key": "CostEnabled",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.reskinit",
+      "section": "04 - Exclusions",
+      "key": "ExclusionSource",
+      "value": "Own"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableDesignate",
+      "value": "false"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableChests",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableDoors",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "EnableManagedAccess",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "02 Features",
+      "key": "RequireActiveWard",
+      "value": "true"
+    },
+    {
+      "guid": "com.drakemods.locksmith",
+      "section": "04 Display",
+      "key": "UseWheel",
+      "value": "false"
+    }
+  ],
+  "setup": {
+    "timeOfDay": 0.5,
+    "freezeTime": 1,
+    "god": 1,
+    "noBuild": "off",
+    "hideUnlockPopups": 1
+  },
+  "resetBetweenTests": true
+}

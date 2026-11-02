@@ -1,5 +1,8 @@
 # DrakeModsLibs
 
+## 1.0.6
+- **Fix: custom Crafted-by and description in UIs that call `GetTooltip` themselves.** The `GetTooltip` hook only matched the old three-argument overload; Valheim 1.0 has `GetTooltip(int stackOverride)` and a six-argument static, so nothing was patched ("no patchable GetTooltip overload" in the debug log) and mods that draw their own item UI (SeneaL UI and others) showed the vanilla *Crafted by* line and description. The hook now matches the 1.0 overloads and swaps in the custom description next to the crafted-by display. The inventory grid tooltip is unchanged.
+
 ## 1.0.5
 - **Piece menu tabs:** `PieceMenuTab.Leads` (default true). A root with it false stays on the row and does not take the opening tab. Used by RenameIt's Name tab.
 - **`UkField.FocusAfterOpen()`** waits until Use is released, so Shift+E does not type an E into the name. Used by RenameIt's piece and animal workshops.

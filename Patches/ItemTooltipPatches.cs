@@ -63,7 +63,8 @@ internal static class ItemTooltipPatches
                 if (m.IsStatic)
                 {
                     var p = m.GetParameters();
-                    if (p.Length == 3 &&
+                    // Valheim 1.0 has (item, quality, crafting, worldLevel, stackOverride, appending): match on the first three
+                    if (p.Length >= 3 &&
                         p[0].ParameterType == typeof(ItemDrop.ItemData) &&
                         p[1].ParameterType == typeof(int) &&
                         p[2].ParameterType == typeof(bool))
@@ -107,6 +108,8 @@ internal static class ItemTooltipPatches
         ref string __result)
     {
         __result = ApplyCraftedByDisplayToTooltipText(__result, item);
+        // UIs that call GetTooltip themselves (not the inventory grid) show the custom description too
+        __result = InventoryGridDisplayTooltipPatch.ApplyDescriptionToTooltipText(item, __result);
     }
 
     internal static void CraftedByDisplayInstancePostfix(ItemDrop.ItemData __instance, ref string __result)

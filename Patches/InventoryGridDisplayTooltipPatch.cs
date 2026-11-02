@@ -22,6 +22,10 @@ public static class InventoryGridDisplayTooltipPatch
         tooltip.Set(topic, currentText, __instance.m_tooltipAnchor);
     }
 
+    /// <summary>Swap the item's vanilla description in a tooltip text for its custom one (no change when it has none).</summary>
+    internal static string ApplyDescriptionToTooltipText(ItemDrop.ItemData? item, string currentText) =>
+        UpdateDescription(item, currentText);
+
     private static string UpdateDescription(ItemDrop.ItemData? item, string currentText)
     {
         if (item?.m_shared == null)

@@ -1,5 +1,10 @@
 # DrakeModsLibs
 
+## Unreleased
+
+- **Icon.** Brass knot on the workshop brown. DrakeMods, Libs, and a short code panel. Version stays 1.0.6 until the next release.
+- A character preview with no network view (an inventory mod's figure of you) wears the looks the local player published, and redraws when those looks change.
+
 ## 1.0.6
 - **Fix: custom Crafted-by and description in UIs that call `GetTooltip` themselves.** The `GetTooltip` hook only matched the old three-argument overload; Valheim 1.0 has `GetTooltip(int stackOverride)` and a six-argument static, so nothing was patched ("no patchable GetTooltip overload" in the debug log) and mods that draw their own item UI (SeneaL UI and others) showed the vanilla *Crafted by* line and description. The hook now matches the 1.0 overloads and swaps in the custom description next to the crafted-by display. The inventory grid tooltip is unchanged.
 

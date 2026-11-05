@@ -245,6 +245,14 @@ internal static class ItemLookPatches
                 if (zdo.GetInt(TintHash(slot), 0) != packed)
                     zdo.Set(TintKey(slot), packed);
             }
+
+            // a character preview (an inventory mod's figure of you) only re-copies when the equipment changes, not when a look does
+            var signature = LookSignature(zdo);
+            if (signature != _publishedSignature)
+            {
+                _publishedSignature = signature;
+                RefreshPreviews();
+            }
         }
         catch (Exception)
         {
@@ -308,7 +316,79 @@ internal static class ItemLookPatches
     static ZDO? ZdoOf(VisEquipment vis)
     {
         var nview = NViewField?.GetValue(vis) as ZNetView;
-        return nview != null && nview.IsValid() ? nview.GetZDO() : null;
+        if (nview != null && nview.IsValid())
+            return nview.GetZDO();
+        return LocalPreviewZdo(vis);
+    }
+
+    /// <summary>
+    /// A figure that has no network identity but stands in for the local player (the character panel of an inventory mod draws
+    /// a clone of you) wears the looks the local player published, so its reskinned models and colours match the real character.
+    /// </summary>
+    static ZDO? LocalPreviewZdo(VisEquipment vis)
+    {
+        try
+        {
+            if (!IsLocalPreview(vis))
+                return null;
+            var nview = NViewField?.GetValue(Player.m_localPlayer.GetComponent<VisEquipment>()) as ZNetView;
+            return nview != null && nview.IsValid() ? nview.GetZDO() : null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>A figure with no network identity that hangs off a Player other than the local one: a preview of the local player.</summary>
+    static bool IsLocalPreview(VisEquipment vis)
+    {
+        var me = Player.m_localPlayer;
+        var myVis = me != null ? me.GetComponent<VisEquipment>() : null;
+        if (myVis == null || myVis == vis)
+            return false;
+        var owner = vis.GetComponentInParent<Player>();
+        if (owner == null || owner == me)
+            return false;
+        var ownerView = owner.GetComponent<ZNetView>();
+        return ownerView == null || !ownerView.IsValid(); // a valid view = a real other player
+    }
+
+    static int _publishedSignature;
+    static readonly MethodInfo? UpdateVisualsMethod = AccessTools.Method(typeof(VisEquipment), "UpdateVisuals");
+
+    /// <summary>What this player has published as looks (model swaps and tints), as one number.</summary>
+    static int LookSignature(ZDO zdo)
+    {
+        unchecked
+        {
+            var count = Math.Min(zdo.GetInt(ModelCountKey, 0), MaxModelSwaps);
+            var h = count;
+            for (var i = 0; i < count; i++)
+                h = h * 31 + zdo.GetInt(ModelFromKeys[i], 0) * 17 + zdo.GetInt(ModelToKeys[i], 0);
+            foreach (var (slot, _, _) in Slots)
+                h = h * 31 + zdo.GetInt(TintHash(slot), 0);
+            return h;
+        }
+    }
+
+    /// <summary>Redraw the character previews so they pick up a look that just changed.</summary>
+    static void RefreshPreviews()
+    {
+        try
+        {
+            if (UpdateVisualsMethod == null)
+                return;
+            foreach (var vis in Resources.FindObjectsOfTypeAll<VisEquipment>())
+            {
+                if (vis != null && vis.gameObject.activeInHierarchy && IsLocalPreview(vis))
+                    UpdateVisualsMethod.Invoke(vis, null);
+            }
+        }
+        catch (Exception)
+        {
+            // a preview that cannot refresh keeps its old look
+        }
     }
 
     static FieldInfo? InstanceField(string name)

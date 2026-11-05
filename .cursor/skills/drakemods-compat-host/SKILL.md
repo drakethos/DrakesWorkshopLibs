@@ -26,14 +26,14 @@ description: >-
 
 ## LockSmith (reference)
 
-- Host owner GUID: `com.drakesworkshop.locksmith`
+- Host owner GUID: `com.drakemods.locksmith`
 - Domain: `IWardCompatModule` + `WardCoverageKind` + `CompatibilityManager` ward queries
 - Built-ins: `Compat/Vanilla`, `Compat/WardIsLove`, `Compat/DevCommands`
 - Public API: `LockSmith.API.LockSmithCompatApi`
 
 ## RenameIt
 
-- Host owner GUID: `com.drakesworkshop.renameit` via `CompatibilityManager` → `CompatHosts.GetOrCreate`
+- Host owner GUID: `com.drakemods.renameit` via `CompatibilityManager` → `CompatHosts.GetOrCreate`
 - Domain: `IAreaCompatModule` + `AreaCoverageKind` (paper take / edit). Item-stand hover and DevCommands are `ICompatModule` only.
 - Built-ins: `Compat/Vanilla`, `Compat/WardIsLove`, `Compat/ItemLibs`, `Compat/DevCommands`
 - **Item stands:** `ItemStandHoverModule` postfixes WardIsLove's item-stand hover method. WIL 4.x type is `ShowWardLockOnItemStandHover`; WIL 3.5.x type is `ItemStandGetHoverTextPatch`. Both expose `Postfix(string __result, ItemStand __instance)` and return the piece name plus a red No access line. The method is static — read the stand from `__args`, not Harmony `__instance`. When `ShowItemStandItemNameWhenNoAccess` is on, replace that denied line with the Libs stand label plus No access. Do not patch stand Interact (`BlockUnpermittedItemStandUse` / old `ItemStandInteractPatch`).

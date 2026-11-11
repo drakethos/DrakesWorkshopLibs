@@ -428,6 +428,7 @@ public static class RichText
         {
             doc.Chars.RemoveRange(maxVisible, doc.Chars.Count - maxVisible);
             doc.Styles.RemoveRange(maxVisible, doc.Styles.Count - maxVisible);
+            DropDanglingSurrogate(doc);
         }
 
         var text = Write(doc, out _);
@@ -435,10 +436,22 @@ public static class RichText
         {
             doc.Chars.RemoveAt(doc.Chars.Count - 1);
             doc.Styles.RemoveAt(doc.Styles.Count - 1);
+            DropDanglingSurrogate(doc);
             text = Write(doc, out _);
         }
 
         return text;
+    }
+
+    /// <summary>An emoji is two UTF-16 characters. A cut between them leaves half a pair, which draws as a broken box; drop the half.</summary>
+    static void DropDanglingSurrogate(RichModel doc)
+    {
+        var last = doc.Chars.Count - 1;
+        if (last >= 0 && char.IsHighSurrogate(doc.Chars[last]))
+        {
+            doc.Chars.RemoveAt(last);
+            doc.Styles.RemoveAt(last);
+        }
     }
 
     /// <summary>

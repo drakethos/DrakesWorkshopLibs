@@ -59,12 +59,44 @@ public static class UkFonts
         try
         {
             var asset = FontAsset.CreateFontAsset(font);
+            if (asset != null)
+                AddEmojiFallback(asset);
             return asset != null ? FontDefinition.FromSDFFont(asset) : FontDefinition.FromFont(font);
         }
         catch (Exception ex)
         {
             Jotunn.Logger.LogWarning($"[UITK] Font '{font.name}' could not become a UI Toolkit font: {ex.Message}");
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Averia has no emoji, so a name or paper text with one drew boxes in the editors although a sign (TextMeshPro, whose font falls
+    /// back to Noto Emoji) shows it. Borrow the game's own emoji font file as a fallback. Only the emoji font, nothing else, and its
+    /// glyphs are built on demand, so installs that never type an emoji pay no more than one small font object.
+    /// </summary>
+    static void AddEmojiFallback(FontAsset asset)
+    {
+        try
+        {
+            var seen = new System.Collections.Generic.HashSet<Font>();
+            foreach (var tmp in Resources.FindObjectsOfTypeAll<TMPro.TMP_FontAsset>())
+            {
+                if (tmp == null || tmp.name.IndexOf("Emoji", StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
+                var source = tmp.sourceFontFile;
+                if (source == null || !seen.Add(source))
+                    continue;
+                var fallback = FontAsset.CreateFontAsset(source);
+                if (fallback == null)
+                    continue;
+                asset.fallbackFontAssetTable ??= new System.Collections.Generic.List<FontAsset>();
+                asset.fallbackFontAssetTable.Add(fallback);
+            }
+        }
+        catch (Exception ex)
+        {
+            Jotunn.Logger.LogWarning($"[UITK] Emoji fallback for the editor font could not be added: {ex.Message}");
         }
     }
 

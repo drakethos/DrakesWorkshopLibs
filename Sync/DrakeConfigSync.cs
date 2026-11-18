@@ -16,6 +16,10 @@ public sealed class DrakeConfigSync
 
     public static DrakeConfigSync Create(string modId, string displayName, string currentVersion, string minimumRequiredVersion = null)
     {
+        // A mod that is loaded again in the same game (dev hot reload) must replace its old sync: ServerSync keeps
+        // every ConfigSync in a static set and registers one RPC per name on each ZNet.Awake, so two with the same
+        // name throw there and the next world never finishes loading. Normal play creates each sync once.
+        ForgetExisting(modId);
         var inner = new ConfigSync(modId)
         {
             DisplayName = displayName,
@@ -23,6 +27,25 @@ public sealed class DrakeConfigSync
             MinimumRequiredVersion = ToSystemVersion(minimumRequiredVersion ?? currentVersion),
         };
         return new DrakeConfigSync(inner);
+    }
+
+    static readonly System.Reflection.FieldInfo? ConfigSyncsField =
+        HarmonyLib.AccessTools.Field(typeof(ConfigSync), "configSyncs");
+
+    static void ForgetExisting(string modId)
+    {
+        try
+        {
+            if (ConfigSyncsField?.GetValue(null) is not System.Collections.Generic.HashSet<ConfigSync> all)
+                return;
+            var removed = all.RemoveWhere(s => s.Name == modId);
+            if (removed > 0)
+                Jotunn.Logger.LogInfo($"DrakeConfigSync: replaced {removed} earlier sync(s) named '{modId}' (mod loaded again).");
+        }
+        catch (Exception ex)
+        {
+            Jotunn.Logger.LogWarning($"DrakeConfigSync: could not check for an earlier '{modId}' sync: {ex.Message}");
+        }
     }
 
     /// <summary>

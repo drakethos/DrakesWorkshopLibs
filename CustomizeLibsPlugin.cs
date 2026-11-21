@@ -1,4 +1,5 @@
 using BepInEx;
+using DrakeModsLibs.Defense;
 using DrakeModsLibs.Input;
 using DrakeModsLibs.Integration;
 using HarmonyLib;
@@ -14,6 +15,7 @@ public partial class CustomizeLibsPlugin : BaseUnityPlugin
 
     private void Awake()
     {
+        var guard = ModGuard.Create(ModName, GUID, Version, typeof(CustomizeLibsPlugin).Assembly, _harmony, Logger);
         DrakeIntegrationConfig.Bind(Config);
         MenuBindingRegistry.SetLogger(Logger);
         MenuBindingRegistry.Register(
@@ -23,7 +25,7 @@ public partial class CustomizeLibsPlugin : BaseUnityPlugin
             () => DrakeIntegrationConfig.InventoryOpenModifier,
             ModName);
 
-        HarmonyPatchHub.ApplyAll(_harmony, Logger);
+        HarmonyPatchHub.ApplyAll(_harmony, Logger, guard);
 
         PrefabManager.OnVanillaPrefabsAvailable += OnVanillaPrefabs;
         Logger.LogInfo($"{ModName} {Version} loaded (display patches, DrakeConfigSync API, shared wood UI + inventory context host).");

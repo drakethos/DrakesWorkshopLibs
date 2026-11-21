@@ -1,5 +1,14 @@
 # DrakeModsLibs
 
+## 1.0.7
+- **Defensive against other mods.** The mod no longer assumes it is alone in the game:
+  - Each Harmony patch class is applied on its own. If one cannot be applied (a game update, or another mod's transpiler broke the method) it is skipped and named in the log with the other mods patching that type; the rest of the mod still loads. Before, the first failure stopped the whole patch run.
+  - A finalizer on every method this mod patches attributes errors. A log line now says whether the error came from **DrakeModsLibs** or from another mod (named, with its GUID and version), once per distinct error with a count. An error in a DrakeModsLibs postfix is contained so it cannot break the game method; the game method is never skipped on our account.
+  - After all plugins load, `BepInEx/DrakeMods-compat-report.txt` lists the loaded plugins and every method this mod shares with other mods, flagging the risky ones (another mod's transpiler, or a prefix that can skip the original). **Send that file with `LogOutput.log` when reporting a conflict.**
+  - Set the environment variable `DRAKEMODS_NO_GUARD=1` to turn the error finalizers off (isolated patching stays).
+- **New public API:** `DrakeModsLibs.Defense.ModGuard` (`Create`, `PatchAll`, `PatchClass`, `Arm`, `Try`) so Drake mods built on Libs get the same behaviour.
+- Libs' own patch steps are individually isolated (a failing step is skipped, not fatal to `Awake`).
+
 ## 1.0.6
 - **Fix: custom Crafted-by and description in UIs that call `GetTooltip` themselves.** The `GetTooltip` hook only matched the old three-argument overload; Valheim 1.0 has `GetTooltip(int stackOverride)` and a six-argument static, so nothing was patched ("no patchable GetTooltip overload" in the debug log) and mods that draw their own item UI (SeneaL UI and others) showed the vanilla *Crafted by* line and description. The hook now matches the 1.0 overloads and swaps in the custom description next to the crafted-by display. The inventory grid tooltip is unchanged.
 

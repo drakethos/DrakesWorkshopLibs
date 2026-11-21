@@ -13,8 +13,15 @@ internal static class ItemIconPatches
 {
     static void Postfix(ItemDrop.ItemData __instance, ref Sprite __result)
     {
-        var sprite = ItemIconService.ResolveOverride(__instance);
-        if (sprite)
-            __result = sprite!;
+        try
+        {
+            var sprite = ItemIconService.ResolveOverride(__instance);
+            if (sprite)
+                __result = sprite!;
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemIconPatches.Postfix", __guardEx);
+        }
     }
 }

@@ -76,32 +76,39 @@ namespace DrakeModsLibs.Patches
         [HarmonyPostfix]
         private static void Postfix(ItemDrop.ItemData __instance, ref string __result)
         {
-            var item = __instance;
-            if (item?.m_shared == null || string.IsNullOrEmpty(__result))
-                return;
-            if (!ItemDisplayService.HasCustomName(item) && !DisplayNameModifierHub.AffectsDisplay(item))
-                return;
-
-            // Whatever method we patched is already returning a display string; swap only the base-name fragment.
-            string originalName = Localization.instance != null
-                ? Localization.instance.Localize(item.m_shared.m_name)
-                : item.m_shared.m_name;
-            if (string.IsNullOrEmpty(originalName))
-                return;
-
-            string customName = ItemDisplayService.GetDisplayNameForUi(item, localize: true);
-            if (string.IsNullOrEmpty(customName))
-                return;
-
-            if (__result.Contains(originalName))
+            try
             {
-                __result = __result.Replace(originalName, customName);
-                return;
-            }
+                var item = __instance;
+                if (item?.m_shared == null || string.IsNullOrEmpty(__result))
+                    return;
+                if (!ItemDisplayService.HasCustomName(item) && !DisplayNameModifierHub.AffectsDisplay(item))
+                    return;
 
-            // Fallback: some callers may use the raw token rather than localized.
-            if (!string.IsNullOrEmpty(item.m_shared.m_name) && __result.Contains(item.m_shared.m_name))
-                __result = __result.Replace(item.m_shared.m_name, customName);
+                // Whatever method we patched is already returning a display string; swap only the base-name fragment.
+                string originalName = Localization.instance != null
+                    ? Localization.instance.Localize(item.m_shared.m_name)
+                    : item.m_shared.m_name;
+                if (string.IsNullOrEmpty(originalName))
+                    return;
+
+                string customName = ItemDisplayService.GetDisplayNameForUi(item, localize: true);
+                if (string.IsNullOrEmpty(customName))
+                    return;
+
+                if (__result.Contains(originalName))
+                {
+                    __result = __result.Replace(originalName, customName);
+                    return;
+                }
+
+                // Fallback: some callers may use the raw token rather than localized.
+                if (!string.IsNullOrEmpty(item.m_shared.m_name) && __result.Contains(item.m_shared.m_name))
+                    __result = __result.Replace(item.m_shared.m_name, customName);
+            }
+            catch (System.Exception __guardEx)
+            {
+                global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemDataDecoratedNameLikePatch.Postfix", __guardEx);
+            }
         }
     }
 }

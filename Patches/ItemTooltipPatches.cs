@@ -107,14 +107,28 @@ internal static class ItemTooltipPatches
         bool crafting,
         ref string __result)
     {
-        __result = ApplyCraftedByDisplayToTooltipText(__result, item);
-        // UIs that call GetTooltip themselves (not the inventory grid) show the custom description too
-        __result = InventoryGridDisplayTooltipPatch.ApplyDescriptionToTooltipText(item, __result);
+        try
+        {
+            __result = ApplyCraftedByDisplayToTooltipText(__result, item);
+            // UIs that call GetTooltip themselves (not the inventory grid) show the custom description too
+            __result = InventoryGridDisplayTooltipPatch.ApplyDescriptionToTooltipText(item, __result);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemTooltipPatches.CraftedByDisplayStaticPostfix", __guardEx);
+        }
     }
 
     internal static void CraftedByDisplayInstancePostfix(ItemDrop.ItemData __instance, ref string __result)
     {
-        __result = ApplyCraftedByDisplayToTooltipText(__result, __instance);
+        try
+        {
+            __result = ApplyCraftedByDisplayToTooltipText(__result, __instance);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemTooltipPatches.CraftedByDisplayInstancePostfix", __guardEx);
+        }
     }
 
     internal static void CraftedByDisplayInstanceQualityCraftingPostfix(
@@ -123,7 +137,14 @@ internal static class ItemTooltipPatches
         bool crafting,
         ref string __result)
     {
-        __result = ApplyCraftedByDisplayToTooltipText(__result, __instance);
+        try
+        {
+            __result = ApplyCraftedByDisplayToTooltipText(__result, __instance);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemTooltipPatches.CraftedByDisplayInstanceQualityCraftingPostfix", __guardEx);
+        }
     }
 
     /// <summary>Inventory / shared: rewrite the crafted-by segment like description replacement (handles color tags + localization).</summary>

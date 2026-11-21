@@ -89,6 +89,7 @@
     <Compile Include="Display\DisplayNameResolutionPipeline.cs" />
     <Compile Include="Display\ItemDisplayService.cs" />
     <Compile Include="Display\TooltipRichText.cs" />
+    <Compile Include="Defense\ModGuard.cs" />
     <Compile Include="HarmonyPatchHub.cs" />
     <Compile Include="Input\MenuBindingRegistry.cs" />
     <Compile Include="Input\MenuKeyBinding.cs" />

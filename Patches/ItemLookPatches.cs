@@ -185,43 +185,130 @@ internal static class ItemLookPatches
 
     [HarmonyPatch(typeof(VisEquipment), "SetRightHandEquipped")]
     [HarmonyPrefix]
-    static void RightHand(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
+    static void RightHand(VisEquipment __instance, ref int hash)
+    {
+        try
+        {
+            MapModel(__instance, ref hash);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.RightHand", __guardEx);
+        }
+    }
 
     [HarmonyPatch(typeof(VisEquipment), "SetLeftHandEquipped")]
     [HarmonyPrefix]
-    static void LeftHand(VisEquipment __instance, ref int hash, ref int variant) => MapModel(__instance, ref hash, ref variant, true);
+    static void LeftHand(VisEquipment __instance, ref int hash, ref int variant)
+    {
+        try
+        {
+            MapModel(__instance, ref hash, ref variant, true);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.LeftHand", __guardEx);
+        }
+    }
 
     [HarmonyPatch(typeof(VisEquipment), "SetBackEquipped")]
     [HarmonyPrefix]
     static void Back(VisEquipment __instance, ref int leftItem, ref int rightItem, ref int leftVariant)
     {
-        MapModel(__instance, ref leftItem, ref leftVariant, true);
-        MapModel(__instance, ref rightItem);
-    }
+            try
+            {
+            MapModel(__instance, ref leftItem, ref leftVariant, true);
+            MapModel(__instance, ref rightItem);
+            }
+            catch (System.Exception __guardEx)
+            {
+                global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Back", __guardEx);
+            }
+        }
 
     [HarmonyPatch(typeof(VisEquipment), "SetChestEquipped")]
     [HarmonyPrefix]
-    static void Chest(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
+    static void Chest(VisEquipment __instance, ref int hash)
+    {
+        try
+        {
+            MapModel(__instance, ref hash);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Chest", __guardEx);
+        }
+    }
 
     [HarmonyPatch(typeof(VisEquipment), "SetLegEquipped")]
     [HarmonyPrefix]
-    static void Legs(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
+    static void Legs(VisEquipment __instance, ref int hash)
+    {
+        try
+        {
+            MapModel(__instance, ref hash);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Legs", __guardEx);
+        }
+    }
 
     [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquipped")]
     [HarmonyPrefix]
-    static void Helmet(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
+    static void Helmet(VisEquipment __instance, ref int hash)
+    {
+        try
+        {
+            MapModel(__instance, ref hash);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Helmet", __guardEx);
+        }
+    }
 
     [HarmonyPatch(typeof(VisEquipment), "SetShoulderEquipped")]
     [HarmonyPrefix]
-    static void Shoulder(VisEquipment __instance, ref int hash, ref int variant) => MapModel(__instance, ref hash, ref variant, true);
+    static void Shoulder(VisEquipment __instance, ref int hash, ref int variant)
+    {
+        try
+        {
+            MapModel(__instance, ref hash, ref variant, true);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Shoulder", __guardEx);
+        }
+    }
 
     [HarmonyPatch(typeof(VisEquipment), "SetUtilityEquipped")]
     [HarmonyPrefix]
-    static void Utility(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
+    static void Utility(VisEquipment __instance, ref int hash)
+    {
+        try
+        {
+            MapModel(__instance, ref hash);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Utility", __guardEx);
+        }
+    }
 
     [HarmonyPatch(typeof(VisEquipment), "SetTrinketEquipped")]
     [HarmonyPrefix]
-    static void Trinket(VisEquipment __instance, ref int hash) => MapModel(__instance, ref hash);
+    static void Trinket(VisEquipment __instance, ref int hash)
+    {
+        try
+        {
+            MapModel(__instance, ref hash);
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Trinket", __guardEx);
+        }
+    }
 
     // ── Model tint ──────────────────────────────────────────────────────────
 

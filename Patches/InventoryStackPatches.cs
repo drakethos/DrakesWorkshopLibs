@@ -96,7 +96,14 @@ internal static class InventoryStackPatches
 
     internal static void AddItem_IncomingPrefix(ItemDrop.ItemData item)
     {
-        IncomingStackItem = item;
+        try
+        {
+            IncomingStackItem = item;
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("InventoryStackPatches.AddItem_IncomingPrefix", __guardEx);
+        }
     }
 
     internal static void AddItem_IncomingCleanup(Exception? __exception)
@@ -110,33 +117,41 @@ internal static class InventoryStackPatches
         int quality,
         ref ItemDrop.ItemData? __result)
     {
-        var policy = CustomizeLibsRuntime.StackMergePolicy;
-        if (policy == null || IncomingStackItem == null)
-            return true;
-
-        var force = ResolveForce(policy, IncomingStackItem, null);
-        var useIdentity = force == DrakeStackForce.ByIdentity
-                          || (force == DrakeStackForce.None && policy.SeparateStacksEnabled);
-
-        // Never: do not auto-merge into an existing stack.
-        if (force == DrakeStackForce.Never)
+        try
         {
+            var policy = CustomizeLibsRuntime.StackMergePolicy;
+            if (policy == null || IncomingStackItem == null)
+                return true;
+
+            var force = ResolveForce(policy, IncomingStackItem, null);
+            var useIdentity = force == DrakeStackForce.ByIdentity
+                              || (force == DrakeStackForce.None && policy.SeparateStacksEnabled);
+
+            // Never: do not auto-merge into an existing stack.
+            if (force == DrakeStackForce.Never)
+            {
+                __result = null;
+                return false;
+            }
+
+            if (!useIdentity)
+                return true;
+
             __result = null;
+            foreach (ItemDrop.ItemData? itemData in __instance.GetAllItems())
+            {
+                if (TryPickStackSlot(IncomingStackItem, name, quality, itemData, requireIdentity: true, ref __result))
+                    continue;
+                break;
+            }
+
             return false;
         }
-
-        if (!useIdentity)
-            return true;
-
-        __result = null;
-        foreach (ItemDrop.ItemData? itemData in __instance.GetAllItems())
+        catch (System.Exception __guardEx)
         {
-            if (TryPickStackSlot(IncomingStackItem, name, quality, itemData, requireIdentity: true, ref __result))
-                continue;
-            break;
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("InventoryStackPatches.FindFreeStackItem_Prefix", __guardEx);
+            return true;
         }
-
-        return false;
     }
 
     /// <returns><c>true</c> = keep scanning; <c>false</c> = matched a stack.</returns>
@@ -169,51 +184,59 @@ internal static class InventoryStackPatches
         Inventory __instance,
         ref bool __result)
     {
-        var policy = CustomizeLibsRuntime.StackMergePolicy;
-        if (policy == null)
-            return true;
-
-        ItemDrop.ItemData? itemAt = __instance.GetItemAt(x, y);
-        if (itemAt == null)
-            return true;
-
-        if (itemAt.m_shared.m_name != item.m_shared.m_name)
-            return true;
-        if (itemAt.m_shared.m_maxQuality > 1 && itemAt.m_quality != item.m_quality)
-            return true;
-
-        var force = ResolveForce(policy, item, itemAt);
-        if (force == DrakeStackForce.Never)
+        try
         {
-            __result = false;
-            return false;
-        }
+            var policy = CustomizeLibsRuntime.StackMergePolicy;
+            if (policy == null)
+                return true;
 
-        if (force == DrakeStackForce.ByIdentity)
-        {
+            ItemDrop.ItemData? itemAt = __instance.GetItemAt(x, y);
+            if (itemAt == null)
+                return true;
+
+            if (itemAt.m_shared.m_name != item.m_shared.m_name)
+                return true;
+            if (itemAt.m_shared.m_maxQuality > 1 && itemAt.m_quality != item.m_quality)
+                return true;
+
+            var force = ResolveForce(policy, item, itemAt);
+            if (force == DrakeStackForce.Never)
+            {
+                __result = false;
+                return false;
+            }
+
+            if (force == DrakeStackForce.ByIdentity)
+            {
+                if (!StackIdentity.SameDrakeStackIdentity(item, itemAt))
+                {
+                    __result = false;
+                    return false;
+                }
+
+                return true;
+            }
+
+            // None — global SeparateStacks path.
+            if (!policy.SeparateStacksEnabled)
+                return true;
+
             if (!StackIdentity.SameDrakeStackIdentity(item, itemAt))
             {
+                if (!policy.SeparateStacksHardLock)
+                    return true;
+
                 __result = false;
                 return false;
             }
 
             return true;
         }
-
-        // None — global SeparateStacks path.
-        if (!policy.SeparateStacksEnabled)
-            return true;
-
-        if (!StackIdentity.SameDrakeStackIdentity(item, itemAt))
+        catch (System.Exception __guardEx)
         {
-            if (!policy.SeparateStacksHardLock)
-                return true;
-
-            __result = false;
-            return false;
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("InventoryStackPatches.AddItemAtCell_Prefix", __guardEx);
+            return true;
         }
-
-        return true;
     }
 
     /// <summary>Never wins over ByIdentity over None when either side forces.</summary>

@@ -102,6 +102,10 @@ public static class MenuBindingRegistry
                 continue;
             if (existing.Scope != added.Scope)
                 continue;
+            // Sharing the common context-menu key is by design (a tab opens on it); only two mod-owned bindings clash.
+            if (existing.Id == global::DrakeModsLibs.Integration.InventoryContextHints.BindingId
+                || added.Id == global::DrakeModsLibs.Integration.InventoryContextHints.BindingId)
+                continue;
             if (Normalize(existing.GetBindingString()) != newBinding)
                 continue;
 

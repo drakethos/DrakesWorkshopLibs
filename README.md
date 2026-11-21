@@ -59,6 +59,7 @@ Optional foreign mods (WardIsLove, ProtectiveWards, Arcane Ward, DevCommands, �
 
 - `DrakeModsLibs.API.PieceInteractionClaims.Register(owner, Func<Piece,bool>)`: a mod whose own pieces use Shift+Use (alt-interact) claims them so RenameIt's piece rename leaves them alone (DrakesServerTeams' Team Ward, soft via reflection; LockSmith for chests and doors that have a Lock menu)
 - `DrakeModsLibs.Compat.ICompatModule` / `CompatPriority`
+- `DrakeModsLibs.Defense.ModGuard`: defensive Harmony host. `Create(name, guid, version, assembly, harmony, log)`, then `PatchAll()` / `PatchClass(type)` apply each patch class on its own, `Try(what, action)` isolates a startup step, `Arm()` adds an error-attribution finalizer to every patched method, and `PatchFailed(patch, ex)` logs a caught patch error with the mod it came from; each guard writes its section of `BepInEx/DrakeMods-compat-report.txt`. Used by Libs itself; RenameIt (main and Legacy), ReskinIt, LockSmith, ItemShop, ServerTeams and OmniConfig ship their own copy until they pin a Libs release that has it.
 - `CompatHost` / `CompatHosts.GetOrCreate(ownerGuid, log)` — **one host per Drake plugin GUID**
 
 Domain rules (ward access, paper take, item-stand names) stay in **LockSmith** / **RenameIt**. Built-in bridges there are a courtesy — not a promise to track every upstream ward change. Please report issues on those repos; pull requests and your own SoftDependency modules are welcome. LockSmith also exposes `LockSmithCompatApi` for third-party bridges.

@@ -18,29 +18,36 @@ public static class InventoryContextOpenPatch
     [HarmonyPriority(Priority.Last)]
     static void WrapPlayerGridRightClick(InventoryGui __instance)
     {
-        if (__instance?.m_playerGrid == null)
-            return;
-
-        var previous = __instance.m_playerGrid.m_onRightClick;
-        __instance.m_playerGrid.m_onRightClick = (grid, item, pos) =>
+        try
         {
-            try
-            {
-                // Tabs whose mod has its own key (linked with MenuBindingRegistry.LinkTab) wait for that key.
-                if (item != null
-                    && MenuKeyBinding.IsHeld(DrakeIntegrationConfig.InventoryOpenModifier)
-                    && DrakeTabHost.OpenForItem(item, null, null,
-                        MenuBindingRegistry.TabsWaitingForOwnKey(MenuBindingRegistry.InventoryContextScope, InventoryContextHints.BindingId)))
-                {
-                    return;
-                }
-            }
-            catch (Exception)
-            {
-                // Never dump into inventory click path; feature mods log their own Show failures.
-            }
+            if (__instance?.m_playerGrid == null)
+                return;
 
-            previous?.Invoke(grid, item, pos);
-        };
+            var previous = __instance.m_playerGrid.m_onRightClick;
+            __instance.m_playerGrid.m_onRightClick = (grid, item, pos) =>
+            {
+                try
+                {
+                    // Tabs whose mod has its own key (linked with MenuBindingRegistry.LinkTab) wait for that key.
+                    if (item != null
+                        && MenuKeyBinding.IsHeld(DrakeIntegrationConfig.InventoryOpenModifier)
+                        && DrakeTabHost.OpenForItem(item, null, null,
+                            MenuBindingRegistry.TabsWaitingForOwnKey(MenuBindingRegistry.InventoryContextScope, InventoryContextHints.BindingId)))
+                    {
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                    // Never dump into inventory click path; feature mods log their own Show failures.
+                }
+
+                previous?.Invoke(grid, item, pos);
+            };
+        }
+        catch (System.Exception __guardEx)
+        {
+            global::DrakeModsLibs.Defense.ModGuard.PatchFailed("InventoryContextOpenPatch.WrapPlayerGridRightClick", __guardEx);
+        }
     }
 }

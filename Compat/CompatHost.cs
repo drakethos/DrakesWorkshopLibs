@@ -186,7 +186,7 @@ public sealed class CompatHost
             }
         }
 
-        _log?.LogInfo($"CompatHost[{OwnerGuid}] registered: {module.Id} (priority {module.Priority})");
+        _log?.LogDebug($"CompatHost[{OwnerGuid}] registered: {module.Id} (priority {module.Priority})");
         return true;
     }
 
@@ -240,6 +240,6 @@ public sealed class CompatHost
         if (!any)
             sb.Append(" (none)");
 
-        _log?.LogInfo(sb.ToString());
+        _log?.LogDebug(sb.ToString());
     }
 }

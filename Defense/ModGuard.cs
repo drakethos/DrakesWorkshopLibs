@@ -72,6 +72,12 @@ public sealed class ModGuard
     /// </summary>
     public bool ContainOwnPostfixErrors { get; set; } = true;
 
+    /// <summary>Where players are told to send reports (shown in conflict/error log lines and the report file).</summary>
+    public string ReportTo { get; set; } = "drakethos@gmail.com";
+
+    string ReportLine =>
+        $"  Please report it: send BepInEx/LogOutput.log and BepInEx/{ReportFileName} (plugin list + patch overlaps) to {ReportTo}.\n";
+
     ModGuard(string name, string guid, string version, Assembly assembly, Harmony harmony, ManualLogSource log)
     {
         Name = name;
@@ -353,9 +359,10 @@ public sealed class ModGuard
             if (count == 1)
             {
                 var others = OtherModLabels(original, own);
-                var msg = $"[Error origin: {own.Name} {own.Version}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
+                var (conflict, verdict) = OwnVerdict(original, own);
+                var msg = $"[{(conflict ? "Conflict detected: " + own.Name + " + " + OtherModLabels(original, own).FirstOrDefault() : "Error origin: " + own.Name + " " + own.Version)}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
                           $"  Thrown by {own.Name} (its {stage.ToString().ToLowerInvariant()} on this method).\n" +
-                          $"  Conflict check: {OwnVerdict(original, own)}\n" +
+                          $"  Conflict check: {verdict}\n" + own.ReportLine +
                           (contain
                               ? "  Contained: the game method was not affected.\n"
                               : "  Not contained: it runs before/inside the game method, so it is passed on unchanged.\n") +
@@ -378,8 +385,9 @@ public sealed class ModGuard
             var origin = culprit.Assembly == null
                 ? "game code or unidentified (no mod code in the stack)"
                 : culprit.IsMod ? $"mod '{culprit.Label}'" : $"game ({culprit.Label})";
-            var msg = $"[Error origin: {origin}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
-                      $"  Conflict check: {ForeignVerdict(ex, original, attached, culprit)}\n" +
+            var (conflict, verdict) = ForeignVerdict(ex, original, attached, culprit);
+            var msg = $"[{(conflict ? "Conflict detected: " + attached.Name + " + " + origin : "Error origin: " + origin)}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
+                      $"  Conflict check: {verdict}\n" + (conflict ? attached.ReportLine : string.Empty) +
                       (others.Count > 0 ? $"  Mods patching this method: {string.Join(", ", others)}.\n" : string.Empty) +
                       "  Passed on unchanged.";
             attached._log.LogWarning(msg);
@@ -424,6 +432,7 @@ public sealed class ModGuard
                           (ours
                               ? $"  Thrown by {guard.Name}'s own code. It was contained and the game method ran as normal.\n"
                               : $"  Thrown outside {guard.Name} while {guard.Name}'s patch was running, so another mod or the game may have handed it unexpected data. It was contained and the game method ran as normal.\n") +
+                          (ours ? guard.ReportLine : string.Empty) +
                           $"  Stack: {FirstFrames(ex, 6)}";
                 guard._log.LogWarning(msg);
                 AppendReport("PATCH-ERROR " + msg);
@@ -440,7 +449,7 @@ public sealed class ModGuard
     }
 
     /// <summary>Plain-language reading of an error our own patch threw: could another mod have caused it?</summary>
-    static string OwnVerdict(MethodBase original, ModGuard own)
+    static (bool Conflict, string Text) OwnVerdict(MethodBase original, ModGuard own)
     {
         var risky = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
         var all = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -461,19 +470,19 @@ public sealed class ModGuard
         }
 
         if (risky.Count > 0)
-            return $"possible conflict with {string.Join(", ", risky)}. It changes or can skip this method, so what {own.Name} received may not be what it expects. Try without it to confirm.";
+            return (true, $"conflict detected with {string.Join(", ", risky)}. It changes or can skip this method, so what {own.Name} received may not be what it expects. Try without it to confirm.");
         if (all.Count > 0)
-            return $"{string.Join(", ", all)} also patch this method but nothing suggests they interfere; this looks like a {own.Name} bug or unexpected data.";
-        return $"no other mod patches this method; this looks like a {own.Name} bug or unexpected game data.";
+            return (false, $"{string.Join(", ", all)} also patch this method but nothing suggests they interfere; this looks like a {own.Name} bug or unexpected data.");
+        return (false, $"no other mod patches this method; this looks like a {own.Name} bug or unexpected game data.");
     }
 
     /// <summary>Plain-language reading of an error another mod threw on a method we also patch.</summary>
-    static string ForeignVerdict(Exception ex, MethodBase original, ModGuard attached, Culprit culprit)
+    static (bool Conflict, string Text) ForeignVerdict(Exception ex, MethodBase original, ModGuard attached, Culprit culprit)
     {
         var who = culprit.Assembly == null ? "the source" : culprit.Label;
         if (StageOfOwnPatch(ex, original, attached) != PatchStage.Unknown)
-            return $"{attached.Name}'s patch was running in the same call as {who}, so this may be an interaction between the two. Disabling either one would confirm.";
-        return $"{attached.Name}'s code was not part of the failing call. {attached.Name} only patches this method too, so this looks like an issue inside {who}.";
+            return (true, $"{attached.Name}'s patch was running in the same call as {who}, so the two interact on this method. Disabling either one would confirm.");
+        return (false, $"{attached.Name}'s code was not part of the failing call. {attached.Name} only patches this method too, so this looks like an issue inside {who}.");
     }
 
     enum PatchStage { Unknown, Prefix, Postfix, Other }
@@ -781,7 +790,7 @@ public sealed class ModGuard
             if (risky > 0)
                 g._log.LogWarning(
                     $"[{g.Name}] {risky} method(s) are also rewritten or short-circuited by other mods — if you see errors, " +
-                    $"send BepInEx/{ReportFileName} and LogOutput.log; it names who touches what.");
+                    $"send BepInEx/LogOutput.log and BepInEx/{ReportFileName} to {g.ReportTo}; it names who touches what.");
         }
 
         WriteSection(guards[0].Assembly.GetName().Name ?? "mod", sb.ToString());
@@ -797,7 +806,7 @@ public sealed class ModGuard
             {
                 var path = ReportPath();
                 ResetIfStaleUnlocked(path);
-                var text = File.Exists(path) ? File.ReadAllText(path) : "=== Drake mods compatibility report ===\n(runtime errors are appended as they happen)\n\n";
+                var text = File.Exists(path) ? File.ReadAllText(path) : "=== Drake mods compatibility report ===\nSend this file and BepInEx/LogOutput.log to the mod page or drakethos@gmail.com when reporting a conflict.\n(runtime errors are appended as they happen)\n\n";
                 var begin = $"#### BEGIN {key}\n";
                 var end = $"#### END {key}\n";
                 var a = text.IndexOf(begin, StringComparison.Ordinal);

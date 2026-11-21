@@ -353,8 +353,8 @@ public sealed class ModGuard
             if (count == 1)
             {
                 var others = OtherModLabels(original, own);
-                var msg = $"[{own.Name} {own.Version}] ERROR in {where}: {ex.GetType().Name}: {InnermostMessage(ex)}\n" +
-                          $"  Caused by: {own.Name} (its {stage.ToString().ToLowerInvariant()} on this method) — this is a bug in {own.Name}, not a conflict.\n" +
+                var msg = $"[Error origin: {own.Name} {own.Version}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
+                          $"  Thrown by {own.Name} (its {stage.ToString().ToLowerInvariant()} on this method).\n" +
                           (contain
                               ? "  Contained: the game method was not affected.\n"
                               : "  Not contained: it runs before/inside the game method, so it is passed on unchanged.\n") +
@@ -375,12 +375,12 @@ public sealed class ModGuard
         {
             var others = OtherModLabels(original, attached);
             var origin = culprit.Assembly == null
-                ? "game code or an unidentified source (no mod code in the stack)"
-                : culprit.IsMod ? $"mod '{culprit.Label}'" : $"the game ({culprit.Label})";
-            var msg = $"[{attached.Name}] NOT US: this error is not caused by {attached.Name}. {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
-                      $"  Thrown by: {origin}. {attached.Name} only shows up because it also patches {where}, so its name can appear in the error log.\n" +
+                ? "game code or unidentified (no mod code in the stack)"
+                : culprit.IsMod ? $"mod '{culprit.Label}'" : $"game ({culprit.Label})";
+            var msg = $"[Error origin: {origin}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
+                      $"  Reported by {attached.Name}, which also patches {where}; the throwing code is the origin named above, so that is who to contact.\n" +
                       (others.Count > 0 ? $"  Mods patching this method: {string.Join(", ", others)}.\n" : string.Empty) +
-                      "  Left unchanged. If it only happens with this mod set, report it to that mod's author.";
+                      "  Passed on unchanged.";
             attached._log.LogWarning(msg);
             AppendReport("FOREIGN-ERROR " + msg);
         }

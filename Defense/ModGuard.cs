@@ -355,6 +355,7 @@ public sealed class ModGuard
                 var others = OtherModLabels(original, own);
                 var msg = $"[Error origin: {own.Name} {own.Version}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
                           $"  Thrown by {own.Name} (its {stage.ToString().ToLowerInvariant()} on this method).\n" +
+                          $"  Conflict check: {OwnVerdict(original, own)}\n" +
                           (contain
                               ? "  Contained: the game method was not affected.\n"
                               : "  Not contained: it runs before/inside the game method, so it is passed on unchanged.\n") +
@@ -378,7 +379,7 @@ public sealed class ModGuard
                 ? "game code or unidentified (no mod code in the stack)"
                 : culprit.IsMod ? $"mod '{culprit.Label}'" : $"game ({culprit.Label})";
             var msg = $"[Error origin: {origin}] {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
-                      $"  Reported by {attached.Name}, which also patches {where}; the throwing code is the origin named above, so that is who to contact.\n" +
+                      $"  Conflict check: {ForeignVerdict(ex, original, attached, culprit)}\n" +
                       (others.Count > 0 ? $"  Mods patching this method: {string.Join(", ", others)}.\n" : string.Empty) +
                       "  Passed on unchanged.";
             attached._log.LogWarning(msg);
@@ -386,6 +387,43 @@ public sealed class ModGuard
         }
 
         return ex;
+    }
+
+    /// <summary>Plain-language reading of an error our own patch threw: could another mod have caused it?</summary>
+    static string OwnVerdict(MethodBase original, ModGuard own)
+    {
+        var risky = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        var all = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            foreach (var (label, kind, note, ours) in EnumeratePatches(original))
+            {
+                if (ours)
+                    continue;
+                all.Add(label);
+                if (note.Length > 0)
+                    risky.Add($"{label} ({kind.Split(',')[0]})");
+            }
+        }
+        catch
+        {
+            // best effort
+        }
+
+        if (risky.Count > 0)
+            return $"possible conflict with {string.Join(", ", risky)}. It changes or can skip this method, so what {own.Name} received may not be what it expects. Try without it to confirm.";
+        if (all.Count > 0)
+            return $"{string.Join(", ", all)} also patch this method but nothing suggests they interfere; this looks like a {own.Name} bug or unexpected data.";
+        return $"no other mod patches this method; this looks like a {own.Name} bug or unexpected game data.";
+    }
+
+    /// <summary>Plain-language reading of an error another mod threw on a method we also patch.</summary>
+    static string ForeignVerdict(Exception ex, MethodBase original, ModGuard attached, Culprit culprit)
+    {
+        var who = culprit.Assembly == null ? "the source" : culprit.Label;
+        if (StageOfOwnPatch(ex, original, attached) != PatchStage.Unknown)
+            return $"{attached.Name}'s patch was running in the same call as {who}, so this may be an interaction between the two. Disabling either one would confirm.";
+        return $"{attached.Name}'s code was not part of the failing call. {attached.Name} only patches this method too, so this looks like an issue inside {who}.";
     }
 
     enum PatchStage { Unknown, Prefix, Postfix, Other }

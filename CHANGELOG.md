@@ -8,6 +8,7 @@
   - Set the environment variable `DRAKEMODS_NO_GUARD=1` to turn the error finalizers off (isolated patching stays).
 - **New public API:** `DrakeModsLibs.Defense.ModGuard` (`Create`, `PatchAll`, `PatchClass`, `Arm`, `Try`) so Drake mods built on Libs get the same behaviour.
 - Libs' own patch steps are individually isolated (a failing step is skipped, not fatal to `Awake`).
+- **Hardened patches.** Every patch method that had no error handling now catches its own failures: a prefix falls back to the normal game method, a postfix is skipped. The failure is logged once as `[Error origin: …]` instead of breaking the game call.
 
 ## 1.0.6
 - **Fix: custom Crafted-by and description in UIs that call `GetTooltip` themselves.** The `GetTooltip` hook only matched the old three-argument overload; Valheim 1.0 has `GetTooltip(int stackOverride)` and a six-argument static, so nothing was patched ("no patchable GetTooltip overload" in the debug log) and mods that draw their own item UI (SeneaL UI and others) showed the vanilla *Crafted by* line and description. The hook now matches the 1.0 overloads and swaps in the custom description next to the crafted-by display. The inventory grid tooltip is unchanged.

@@ -195,9 +195,16 @@ internal static class ItemLookPatches
     [HarmonyPrefix]
     static void Back(VisEquipment __instance, ref int leftItem, ref int rightItem, ref int leftVariant)
     {
-        MapModel(__instance, ref leftItem, ref leftVariant, true);
-        MapModel(__instance, ref rightItem);
-    }
+            try
+            {
+            MapModel(__instance, ref leftItem, ref leftVariant, true);
+            MapModel(__instance, ref rightItem);
+            }
+            catch (System.Exception __guardEx)
+            {
+                global::DrakeModsLibs.Defense.ModGuard.PatchFailed("ItemLookPatches.Back", __guardEx);
+            }
+        }
 
     [HarmonyPatch(typeof(VisEquipment), "SetChestEquipped")]
     [HarmonyPrefix]

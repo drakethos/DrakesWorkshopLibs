@@ -12,15 +12,22 @@ public static class InventoryGridDisplayTooltipPatch
     [HarmonyPostfix]
     static void ApplyDisplayTooltip(InventoryGrid __instance, ItemDrop.ItemData? item, UITooltip tooltip)
     {
-        if (item?.m_shared == null || tooltip == null)
-            return;
+            try
+            {
+            if (item?.m_shared == null || tooltip == null)
+                return;
 
-        var topic = ItemDisplayService.GetDisplayNameForUi(item, localize: false);
-        string currentText = item.GetTooltip();
-        currentText = ItemTooltipPatches.ApplyCraftedByDisplayToTooltipText(currentText, item);
-        currentText = UpdateDescription(item, currentText);
-        tooltip.Set(topic, currentText, __instance.m_tooltipAnchor);
-    }
+            var topic = ItemDisplayService.GetDisplayNameForUi(item, localize: false);
+            string currentText = item.GetTooltip();
+            currentText = ItemTooltipPatches.ApplyCraftedByDisplayToTooltipText(currentText, item);
+            currentText = UpdateDescription(item, currentText);
+            tooltip.Set(topic, currentText, __instance.m_tooltipAnchor);
+            }
+            catch (System.Exception __guardEx)
+            {
+                global::DrakeModsLibs.Defense.ModGuard.PatchFailed("InventoryGridDisplayTooltipPatch.ApplyDisplayTooltip", __guardEx);
+            }
+        }
 
     /// <summary>Swap the item's vanilla description in a tooltip text for its custom one (no change when it has none).</summary>
     internal static string ApplyDescriptionToTooltipText(ItemDrop.ItemData? item, string currentText) =>

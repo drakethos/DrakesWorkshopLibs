@@ -389,6 +389,56 @@ public sealed class ModGuard
         return ex;
     }
 
+    /// <summary>
+    /// Called from the <c>catch</c> of a hardened patch method: logs once (then at 10/100/1000) with the mod the error
+    /// originates from, and lets the game method carry on. Never throws.
+    /// </summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    public static void PatchFailed(string patchName, Exception ex)
+    {
+        try
+        {
+            var calling = Assembly.GetCallingAssembly();
+            ModGuard? guard;
+            lock (Gate)
+                guard = Guards.FirstOrDefault(g => g.Assembly == calling) ?? Guards.FirstOrDefault();
+            if (guard == null)
+                return;
+
+            var culprit = Blame(ex);
+            var key = "patch|" + patchName + "|" + culprit.Label + "|" + ex.GetType().Name;
+            int count;
+            lock (ErrorCounts)
+            {
+                ErrorCounts.TryGetValue(key, out count);
+                ErrorCounts[key] = ++count;
+            }
+
+            if (count == 1)
+            {
+                var ours = culprit.Assembly == guard.Assembly;
+                var origin = culprit.Assembly == null
+                    ? "game code or unidentified"
+                    : ours ? $"{guard.Name} {guard.Version}" : culprit.IsMod ? $"mod '{culprit.Label}'" : $"game ({culprit.Label})";
+                var msg = $"[Error origin: {origin}] {ex.GetType().Name} in {guard.Name} patch {patchName}: {InnermostMessage(ex)}\n" +
+                          (ours
+                              ? $"  Thrown by {guard.Name}'s own code. It was contained and the game method ran as normal.\n"
+                              : $"  Thrown outside {guard.Name} while {guard.Name}'s patch was running, so another mod or the game may have handed it unexpected data. It was contained and the game method ran as normal.\n") +
+                          $"  Stack: {FirstFrames(ex, 6)}";
+                guard._log.LogWarning(msg);
+                AppendReport("PATCH-ERROR " + msg);
+            }
+            else if (count == 10 || count == 100 || count == 1000)
+            {
+                guard._log.LogWarning($"[{guard.Name}] patch {patchName} has now failed {count} times (details above).");
+            }
+        }
+        catch
+        {
+            // diagnostics must never throw into the game
+        }
+    }
+
     /// <summary>Plain-language reading of an error our own patch threw: could another mod have caused it?</summary>
     static string OwnVerdict(MethodBase original, ModGuard own)
     {

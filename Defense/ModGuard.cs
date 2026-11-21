@@ -377,8 +377,8 @@ public sealed class ModGuard
             var origin = culprit.Assembly == null
                 ? "game code or an unidentified source (no mod code in the stack)"
                 : culprit.IsMod ? $"mod '{culprit.Label}'" : $"the game ({culprit.Label})";
-            var msg = $"[{attached.Name}] NOTE: {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
-                      $"  Origin: {origin}. This did NOT come from {attached.Name}; {attached.Name} also patches this method, so its name can appear in the error log.\n" +
+            var msg = $"[{attached.Name}] NOT US: this error is not caused by {attached.Name}. {ex.GetType().Name} in {where}: {InnermostMessage(ex)}\n" +
+                      $"  Thrown by: {origin}. {attached.Name} only shows up because it also patches {where}, so its name can appear in the error log.\n" +
                       (others.Count > 0 ? $"  Mods patching this method: {string.Join(", ", others)}.\n" : string.Empty) +
                       "  Left unchanged. If it only happens with this mod set, report it to that mod's author.";
             attached._log.LogWarning(msg);

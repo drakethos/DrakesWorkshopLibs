@@ -1,5 +1,11 @@
 # DrakeModsLibs
 
+## 1.0.7
+- **Plays safely with other mods.** Libs' own patches are applied one class at a time through ModGuard: one broken hook switches off only its feature, errors in hooked methods say which mod they came from (`Error origin: ...`), and `BepInEx/DrakeMods-compat-report.txt` lists the methods Libs shares with other mods.
+- **Respects other mods' interaction gates on item stands.** When another mod's prefix blocks `ItemStand.UseItem` (a ward, or a roleplay/progression gate such as VRPCore's), the stand's saved name is left alone: no name on an empty stand, and the mounted item keeps its name.
+- **ZenItemStands:** a renamed item placed through ZenItemStands' container shows its custom name on the stand. ZenItemStands rebuilds the hover text from the base name; Libs now swaps in the rename from the item saved on the stand (never twice).
+- **Quieter log:** the shared inventory key no longer reports a "menu binding conflict"; setup detail (display patches, drop HUD, compat modules) is at Debug.
+
 ## 1.0.6
 - **Fix: custom Crafted-by and description in UIs that call `GetTooltip` themselves.** The `GetTooltip` hook only matched the old three-argument overload; Valheim 1.0 has `GetTooltip(int stackOverride)` and a six-argument static, so nothing was patched ("no patchable GetTooltip overload" in the debug log) and mods that draw their own item UI (SeneaL UI and others) showed the vanilla *Crafted by* line and description. The hook now matches the 1.0 overloads and swaps in the custom description next to the crafted-by display. The inventory grid tooltip is unchanged.
 

@@ -790,14 +790,33 @@ public static class ItemStandPatch
                 // Container-only stands (no vanilla attachment hash): rewrite hover from the real inventory item.
                 // Vanilla attachment labels come from m_currentItemName (updated live) â€” do not re-apply durability here
                 // or names become "Worn Worn â€¦".
+                int attachedHash = 0;
                 try
                 {
-                    if (TryGetAttachedPrefabHash(__instance) != 0)
-                        return;
+                    attachedHash = TryGetAttachedPrefabHash(__instance);
                 }
                 catch
                 {
                     /* fall through to container path */
+                }
+
+                if (attachedHash != 0)
+                {
+                    // Vanilla hover already carries the rename (m_currentItemName). A stand mod that rebuilds the hover
+                    // from the item's base name (ZenItemStands) does not: swap the base name for the rename of the item
+                    // saved on the stand. Skipped when the rename is already there, so "Stone Axe of Bob" is never
+                    // rewritten a second time.
+                    var standItem = TryGetStandItemForDisplay(__instance, out var loaded);
+                    if (!loaded || standItem?.m_shared == null || !ItemDisplayService.HasCustomName(standItem))
+                        return;
+                    var custom = ItemDisplayService.GetDisplayNameForUi(standItem, localize: false);
+                    if (string.IsNullOrEmpty(custom))
+                        return;
+                    var localizedCustom = Localization.instance != null ? Localization.instance.Localize(custom) : custom;
+                    if (__result.IndexOf(localizedCustom, System.StringComparison.Ordinal) >= 0)
+                        return;
+                    HoverRenameHelper.ApplyRenameToHoverResult(ref __result, standItem);
+                    return;
                 }
 
                 var item = TryGetFirstContainerItem(__instance);
@@ -940,7 +959,7 @@ internal static class DropHudMessagePatches
             }
 
             harmony.Patch(m, prefix: new HarmonyMethod(typeof(DropHudMessagePatches), nameof(HumanoidDropItemTypedPrefix)));
-            log.LogInfo("[DrakeModsLibs] Drop HUD: patched typed " + m.DeclaringType?.Name + "." + m.Name);
+            log.LogDebug("[DrakeModsLibs] Drop HUD: patched typed " + m.DeclaringType?.Name + "." + m.Name);
         }
         catch (Exception ex)
         {
@@ -1132,7 +1151,7 @@ internal static class DropHudMessagePatches
                     : new HarmonyMethod(typeof(DropHudMessagePatches), nameof(MessageHudShowMessageStringArg1));
 
                 harmony.Patch(best, prefix: prefix);
-                log.LogInfo("[DrakeModsLibs] Drop HUD: patched MessageHud." + best.Name + " stringArg=" + stringArgIndex + " :: " + best);
+                log.LogDebug("[DrakeModsLibs] Drop HUD: patched MessageHud." + best.Name + " stringArg=" + stringArgIndex + " :: " + best);
             }
             catch (Exception ex)
             {
